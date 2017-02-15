@@ -18,7 +18,6 @@
 			<url>scp://www.yourcompany.com/www/docs/project/docker/docker-swarm</url>
 		</site>
 	</distributionManagement>
-	
 	<reporting>
 		<excludeDefaults>true</excludeDefaults>
 		<outputDirectory>${project.build.directory}/site</outputDirectory>

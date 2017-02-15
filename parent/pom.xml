@@ -8,5 +8,5 @@
 	<properties>
 		<maven-site-plugin.version>3.3</maven-site-plugin.version>
 	</properties>
-	
+
 </project>
