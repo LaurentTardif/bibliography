@@ -97,4 +97,81 @@ docker run docker-whale
           \____\______/
 
 ....
+
+Now, let's tag the image and push it to docker hub
+
+....
+docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+docker-whale        latest              2e261c9e4cbb        About an hour ago   256 MB
+docker/whalesay     latest              6b362a9f73eb        21 months ago       247 MB
+
+docker tag 2e261c9e4cbb ouelcum/docker-whale:1.0
+
+docker images
+REPOSITORY             TAG                 IMAGE ID            CREATED             SIZE
+docker-whale           latest              2e261c9e4cbb        About an hour ago   256 MB
+ouelcum/docker-whale   1.0                 2e261c9e4cbb        About an hour ago   256 MB
+docker/whalesay        latest              6b362a9f73eb        21 months ago       247 MB
+....
  
+Now, we are ready to push it 
+....
+
+docker login
+
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username: ouelcum
+Password:
+Login Succeeded
+
+docker push ouelcum/docker-whale
+
+The push refers to a repository [docker.io/ouelcum/docker-whale]
+9287995a542b: Pushing 1.083 MB/9.431 MB
+5f70bf18a086: Pushed
+d061ee1340ec: Pushed
+d511ed9e12e1: Pushed
+091abc5148e4: Pushed
+b26122d57afa: Pushing 1.056 MB/58.56 MB
+37ee47034d9b: Pushed
+528c8710fd95: Pushed
+1154ba695078: Pushing 525.3 kB/188.1 MB
+
+....
+
+We can delete local images
+docker  image remove 2e261c9e4cbb (it will remove both images, we can also run docker image remove docker-whale:latest)
+
+If we run again the image locally, it try to fetch it, most of the stuff is present locally, just run it
+....
+docker run ouelcum/docker-whale:1.0
+Unable to find image 'ouelcum/docker-whale:1.0' locally
+1.0: Pulling from ouelcum/docker-whale
+4fe767775744: Already exists
+c464cf84c0e1: Already exists
+af18d94c8f7b: Already exists
+a3ed95caeb02: Already exists
+21e782d076bd: Already exists
+ac3159f8a827: Already exists
+ed1f77a892d5: Already exists
+cb3cb5695f26: Already exists
+16ac0bcde243: Already exists
+Digest: sha256:85c05b72310498980af71c89cc5c8603a0380d00f39cfdf27669fb5cb72b9042
+Status: Downloaded newer image for ouelcum/docker-whale:1.0
+ ______________________________________
+/ Everything should be built top-down, \
+\ except the first time.               /
+ --------------------------------------
+    \
+     \
+      \
+                    ##        .
+              ## ## ##       ==
+           ## ## ## ##      ===
+       /""""""""""""""""___/ ===
+  ~~~ {~~ ~~~~ ~~~ ~~~~ ~~ ~ /  ===- ~~~
+       \______ o          __/
+        \    \        __/
+          \____\______/
+....

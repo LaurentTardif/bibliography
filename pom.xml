@@ -41,5 +41,6 @@
 
 	<modules>
 		<module>docker</module>
+		<module>unix</module>
 	</modules>
 </project>

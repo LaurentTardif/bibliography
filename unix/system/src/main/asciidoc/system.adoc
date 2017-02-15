@@ -1,0 +1,14 @@
+= Unix/linux system 
+:toc:
+
+== Introduction 
+
+quick start for unix system 
+From 
+
+ * https://pbs.twimg.com/media/C3-06ZaWYAEaurx.jpg:large
+ *
+
+== quick start unix commands 
+
+image::LinuxPerformanceTools.jpg[LinuxPerformanceTools]
