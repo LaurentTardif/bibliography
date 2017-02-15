@@ -7,8 +7,8 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ouelcum.bibliography.docker</groupId>
-	<artifactId>docker-swarm</artifactId>
-	<name>docker-swarm</name>
+	<artifactId>docker</artifactId>
+	<name>docker</name>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
@@ -55,7 +55,7 @@
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
-			<url>scp://www.yourcompany.com/www/docs/project/docker/docker-swarm</url>
+			<url>scp://www.yourcompany.com/www/docs/project/docker/docker</url>
 		</site>
 	</distributionManagement>
 	<reporting>
