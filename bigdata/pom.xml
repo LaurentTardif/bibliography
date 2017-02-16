@@ -1,0 +1,72 @@
+<project>
+	<parent>
+		<groupId>org.ouelcum.bibliography</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1</version>
+		<relativePath>../parent/pom.xml</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ouelcum.bibliography</groupId>
+	<artifactId>bigdata</artifactId>
+	<name>bigdata</name>
+	<version>0.0.1</version>
+	<packaging>pom</packaging>
+     
+	<distributionManagement>
+		<site>
+			<id>www.yourcompany.com</id>
+			<url>scp://www.yourcompany.com/www/docs/project/bigdata/</url>
+		</site>
+	</distributionManagement>	 
+	 
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>${maven-site-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-descriptor</id>
+						<goals>
+							<goal>attach-descriptor</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<reporting>
+		<excludeDefaults>true</excludeDefaults>
+		<outputDirectory>${project.build.directory}/site</outputDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<dependencyDetailsEnabled>true</dependencyDetailsEnabled>
+					<dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>scm</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+			</plugin>
+		</plugins>
+	</reporting>
+	
+	
+	<modules>
+		<module>database</module>
+	</modules>
+</project>

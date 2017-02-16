@@ -40,6 +40,7 @@
 	</distributionManagement>
 
 	<modules>
+		<module>bigdata</module>
 		<module>docker</module>
 		<module>unix</module>
 	</modules>

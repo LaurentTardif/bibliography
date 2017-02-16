@@ -1,0 +1,17 @@
+= Database
+:toc:
+
+== Introduction 
+
+Database quick start, good practices 
+
+From 
+
+ * https://s-media-cache-ak0.pinimg.com/736x/ae/6e/99/ae6e9906853414a0dedddfe7a6dfd716.jpg
+ * 
+
+== Different jointures 
+
+
+
+image::joinType.jpg[joinType]
