@@ -9,12 +9,12 @@ From
  * http://www.tecmint.com/install-nagios-in-linux/
  *
 
- == Remote
+== Remote
  
- === idea 
+=== idea 
  
-   share code easily among two people
-   avoid remote server connection
+ * share code easily among two people
+ * avoid remote server connection
    
 === example
 
@@ -23,7 +23,7 @@ Simple example of workflow :
  * one personn clone a remote, do some change
  * someonelse get the change locally, and push it to master 
 
-image::nsremoteworkflowca.png[remoteworkflow]
+image::remoteworkflow.png[remoteworkflow]
  
  
 == Worktree 
