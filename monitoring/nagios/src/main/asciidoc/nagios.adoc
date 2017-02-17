@@ -6,7 +6,9 @@
 quick start for nagios monitoring tools  
 From 
 
- * https://pbs.twimg.com/media/C3-06ZaWYAEaurx.jpg:large
+ * http://www.tecmint.com/install-nagios-in-linux/
+ * https://www.server-world.info/en/note?os=CentOS_7&p=nagios
+
  *
 
 == quick start unix commands 
