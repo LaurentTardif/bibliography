@@ -43,6 +43,7 @@
 		<module>bigdata</module>
 		<module>docker</module>
 		<module>git</module>
+		<module>maven</module>
 		<module>monitoring</module>
 		<module>unix</module>
 	</modules>
