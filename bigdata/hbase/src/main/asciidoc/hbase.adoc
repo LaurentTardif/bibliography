@@ -1,5 +1,11 @@
-= HBase  (version 2.0.0 ) 
+﻿= HBase  
 :toc:
+
+== Versions 
+
+ * 2.0.0 (soon)
+ * 1.3.0 (latest)
+ * 1.2.4 (stable)
 
 == Introduction 
 
@@ -8,6 +14,7 @@ HBase quick start, good practices
 From official references 
 
  * http://hbase.apache.org/book.html
+ * Download link : http://www.apache.org/dyn/closer.cgi/hbase/
 
 From tutorials
 
@@ -32,8 +39,163 @@ Tips
  * https://dzone.com/articles/handling-big-data-hbase-part-5
  * http://www.slideshare.net/lhofhansl/h-base-tuninghbasecon2015ok
 
-== Different jointures 
+== Quick start
+
+=== Installation 
+
+Download the latest stable version from apache website.
+
+Create an installation dir (the data storage is easily configurable)
+
+My choice : 
+
+ * centos 7
+ * installation in my user home dir
+ * configuration  of the data dir inside the _conf/hbase-site.xml_ file (see example bellow)
+ * ensure java is installed, and JAVA_HOME is configured. export JAVA_HOME=/usr 
+
+....
+ <configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>file:///opt/hbase/hbase</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/opt/hbase/zookeeper</value>
+  </property>
+</configuration>
+....  
+
+=== Start hbase
+
+to start hbase simply run the startup script _bin/start-hbase.sh_
+From this point you can access the administrative page : _lynx localhost:16010_ 
+if you want to access it from an other server, you need to configure the firewall
+
+....
+sudo firewall-cmd --get-active-zones   #to list the zone where you have a firewall applicable
+#need to configure it for all zone. Take care if you are in a dmz, or a secure area
+sudo firewall-cmd --zone=public --add-port=16010/tcp --permanent
+sudo firewall-cmd --reload
+....
+
+=== Connect to your local instance
+
+simply run _./bin/hbase shell_
+
+
+=== Create Table, put data, get results
+
+To create a table : 
+....
+hbase(main):003:0> create 'test', 'cf'
+0 row(s) in 1.4610 seconds
+
+=> Hbase::Table - test
+....
+
+you can double check in the browser
+
+image::hbase_createTable.png[hbase_createTable]
+
+Now, we can add data, a get them 
+
+....
+hbase(main):002:0> put 'test', 'row1', 'cf:a', 'value1'
+hbase(main):003:0> put 'test', 'row2', 'cf:b', 'value2'
+hbase(main):004:0> put 'test', 'row3', 'cf:c', 'value3'
+
+#to get the full content of the table
+hbase(main):006:0> scan 'test'
+ROW                               COLUMN+CELL
+ row1                             column=cf:a, timestamp=1487598057519, value=value1
+ row2                             column=cf:b, timestamp=1487598062099, value=value2
+ row3                             column=cf:c, timestamp=1487598066972, value=value3
+3 row(s) in 0.0220 seconds
+
+#To get only one row
+hbase(main):029:0* get 'test', 'row1'
+COLUMN                            CELL
+ cf:a                             timestamp=1487598057519, value=value1
+1 row(s) in 0.0280 seconds
+....
+
+[TIP]
+====
+ before dropping a table, or alter it, you need to disable it.
+ _disable 'test'_ 
+====
+
+=== Stop hbase
+
+simply run _./bin/stop-hbase.sh_
+
+== Now, let's go cluster
+
+=== First, separate zookeeper from the HBase master 
+
+Update the _conf/hbase-site.xml_ with :
+
+....
+<property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+</property>
+....
+
+if you want to move to hdfs at the same time :
+....
+<property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://localhost:8020/hbase</value>
+</property>
+....
+
+=== You need 3 hosts to do such setup
 
 
 
-#image::joinType.jpg[joinType]
+== TIPS
+
+[TIP]
+====
+ . ssh
+ . dns
+ . loopback entry
+ . ntp
+ . ulimit
+====
+
+=== _ssh_
+
+HBase uses the Secure Shell (ssh) command and utilities extensively to communicate between cluster nodes. Each server in the cluster must be running ssh so that the Hadoop and HBase daemons can be managed. You must be able to connect to all nodes via SSH, including the local node, from the Master as well as any backup Master, using a shared key rather than a password. You can see the basic methodology for such a set-up in Linux or Unix systems at "Procedure: Configure Passwordless SSH Access". If your cluster nodes use OS X, see the section, SSH: Setting up Remote Desktop and Enabling Self-Login on the Hadoop wiki.
+
+=== _DNS_
+
+HBase uses the local hostname to self-report its IP address. Both forward and reverse DNS resolving must work in versions of HBase previous to 0.92.0. The hadoop-dns-checker tool can be used to verify DNS is working correctly on the cluster. The project README file provides detailed instructions on usage.
+
+=== _Loopback IP_
+
+Prior to hbase-0.96.0, HBase only used the IP address 127.0.0.1 to refer to localhost, and this could not be configured. See Loopback IP for more details.
+
+=== _ NTP_
+
+The clocks on cluster nodes should be synchronized. A small amount of variation is acceptable, but larger amounts of skew can cause erratic and unexpected behavior. Time synchronization is one of the first things to check if you see unexplained problems in your cluster. It is recommended that you run a Network Time Protocol (NTP) service, or another time-synchronization mechanism, on your cluster, and that all nodes look to the same service for time synchronization. See the Basic NTP Configuration at The Linux Documentation Project (TLDP) to set up NTP.===_Limits on Number of Files and Processes (ulimit)_
+
+=== _ulimit_
+Apache HBase is a database. It requires the ability to open a large number of files at once. Many Linux distributions limit the number of files a single user is allowed to open to 1024 (or 256 on older versions of OS X). You can check this limit on your servers by running the command ulimit -n when logged in as the user which runs HBase. See the Troubleshooting section for some of the problems you may experience if the limit is too low. You may also notice errors such as the following:
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Exception increateBlockOutputStream java.io.EOFException
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Abandoning block blk_-6935524980745310745_1391901
+
+It is recommended to raise the ulimit to at least 10,000, but more likely 10,240, because the value is usually expressed in multiples of 1024. Each ColumnFamily has at least one StoreFile, and possibly more than six StoreFiles if the region is under load. The number of open files required depends upon the number of ColumnFamilies and the number of regions. The following is a rough formula for calculating the potential number of open files on a RegionServer.
+Calculate the Potential Number of Open Files
+
+   (StoreFiles per ColumnFamily) x (regions per RegionServer)
+
+For example, assuming that a schema had 3 ColumnFamilies per region with an average of 3 StoreFiles per ColumnFamily, and there are 100 regions per RegionServer, the JVM will open 3 * 3 * 100 = 900 file descriptors, not counting open JAR files, configuration files, and others. Opening a file does not take many resources, and the risk of allowing a user to open too many files is minimal.
+
+Another related setting is the number of processes a user is allowed to run at once. In Linux and Unix, the number of processes is set using the ulimit -u command. This should not be confused with the nproc command, which controls the number of CPUs available to a given user. Under load, a ulimit -u that is too low can cause OutOfMemoryError exceptions. See Jack Levin's major HDFS issues thread on the hbase-users mailing list, from 2011.
+
+
+
