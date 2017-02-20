@@ -1,14 +1,36 @@
-= HBase
+= HBase  (version 2.0.0 ) 
 :toc:
 
 == Introduction 
 
 HBase quick start, good practices 
 
-From 
+From official references 
 
- * https://s-media-cache-ak0.pinimg.com/736x/ae/6e/99/ae6e9906853414a0dedddfe7a6dfd716.jpg
- * 
+ * http://hbase.apache.org/book.html
+
+From tutorials
+
+ *  http://www.guru99.com/hbase-tutorials.html
+ * http://hortonworks.com/apache/hbase/
+ * https://hbase.apache.org/book.html
+ 
+From Pro and cons
+ 
+ * https://www.packtpub.com/mapt/book/big-data-and-business-intelligence/9781783985944/1/ch01lvl1sec16/hbase-pros-and-cons
+ * http://www.cyanny.com/2014/03/13/hbase-architecture-analysis-part-3-pros-cons/
+ * http://stackoverflow.com/questions/22542307/hbase-what-are-the-pros-and-cons-of-using-one-column-with-a-list-of-values-vs
+ * http://www.slideshare.net/EdurekaIN/no-sql-databases-35591065
+ 
+Tips 
+
+ * https://www.dynamicyield.com/2015/05/apache-hbase-for-the-win-2/
+ * http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
+ * http://www.techsquids.com/bd/hbase-scan-filters-tips-tricks/
+ * http://lecluster.delaurent.com/hbase-tips-tricks/
+ * https://intellipaat.com/interview-question/hbase-interview-questions/
+ * https://dzone.com/articles/handling-big-data-hbase-part-5
+ * http://www.slideshare.net/lhofhansl/h-base-tuninghbasecon2015ok
 
 == Different jointures 
 

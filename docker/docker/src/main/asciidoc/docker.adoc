@@ -9,6 +9,10 @@ From
 
  * https://docs.docker.com/engine/getstarted
  * https://hub.docker.com/
+ * https://blogs.technet.microsoft.com/virtualization/2016/10/18/use-docker-compose-and-service-discovery-on-windows-to-scale-out-your-multi-service-container-application/
+ * Package manager : https://docs.google.com/presentation/d/1JuNunEmZk8zQf2lJccUP1YfJYRPWzHxgkhD9GQaQIFw/edit#slide=id.g1bba50e503_0_55  
+
+
 
 == Starting to use docker 
 
