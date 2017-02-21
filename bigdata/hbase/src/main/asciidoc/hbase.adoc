@@ -28,6 +28,12 @@ From Pro and cons
  * http://www.cyanny.com/2014/03/13/hbase-architecture-analysis-part-3-pros-cons/
  * http://stackoverflow.com/questions/22542307/hbase-what-are-the-pros-and-cons-of-using-one-column-with-a-list-of-values-vs
  * http://www.slideshare.net/EdurekaIN/no-sql-databases-35591065
+
+Data Model 
+
+ * http://jimbojw.com/#understanding%20hbase
+ * http://0b4af6cdc2f0c5998459-c0245c5c937c5dedcca3f1764ecc9b2f.r43.cf2.rackcdn.com/9353-login1210_khurana.pdf
+ 
  
 Tips 
 
@@ -42,7 +48,56 @@ Tips
 == Key concepts
 
 === Master, zookeeper, region servers
+
+
+=== Database and datamodel 
+
+==== namespace
  
+A namespace is a logical grouping of tables analogous to a database in relation database systems. This abstraction lays the groundwork for upcoming multi-tenancy related features:
+
+ * Quota Management (HBASE-8410) - Restrict the amount of resources (i.e. regions, tables) a namespace can consume.
+ * Namespace Security Administration (HBASE-9206) - Provide another level of security administration for tenants.
+ * Region server groups (HBASE-6721) - A namespace/table can be pinned onto a subset of RegionServers thus guaranteeing a course level of isolation.
+ 
+==== Column family
+
+Columns in Apache HBase are grouped into column families. All column members of a column family have the same prefix. For example, the columns courses:history and courses:math are both members of the courses column family. The colon character (:) delimits the column family from the column family qualifier. The column family prefix must be composed of printable characters. The qualifying tail, the column family qualifier, can be made of any arbitrary bytes. Column families must be declared up front at schema definition time whereas columns do not need to be defined at schema time but can be conjured on the fly while the table is up and running.
+Physically, all column family members are stored together on the filesystem. Because tunings and storage specifications are done at the column family level, it is advised that all column family members have the same general access pattern and size characteristics.
+ 
+==== Table, Row, Cell
+ 
+ * Tables are declared up front at schema definition time
+ * Row keys are uninterpreted bytes. Rows are lexicographically sorted with the lowest order appearing first in a table. The empty byte array is used to denote both the start and end of a tables' namespace.
+ * A {row, column, version} tuple exactly specifies a cell in HBase. Cell content is uninterpreted bytes
+
+A {row, column, version} tuple exactly specifies a cell in HBase. It’s possible to have an unbounded number of cells where the row and column are the same but the cell address differs only in its version dimension.
+
+While rows and column keys are expressed as bytes, the version is specified using a long integer. Typically this long contains time instances such as those returned by java.util.Date.getTime() or System.currentTimeMillis(), that is: the difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC.
+
+The HBase version dimension is stored in decreasing order, so that when reading from a store file, the most recent values are found first.
+
+There is a lot of confusion over the semantics of cell versions, in HBase. In particular:
+
+ * If multiple writes to a cell have the same version, only the last written is fetchable.
+ * It is OK to write cells in a non-increasing version order.
+ 
+[TIP]
+====
+The maximum number of versions to store for a given column is part of the column schema and is specified at table creation, or via an alter command, via HColumnDescriptor.DEFAULT_VERSIONS. 
+==== 
+
+[TIP]
+.Modify the Maximum Number of Versions for a Column Family
+====
+alter ‘t1′, NAME => ‘f1′, VERSIONS => 5
+====
+ 
+[TIP]
+.Modify the Maximum Number of Versions for a Column Family
+====
+alter ‘t1′, NAME => ‘f1′, MIN_VERSIONS => 2
+====
  
 === Understanding HBASE and BigTable (from Jim R. Wilson)
 
