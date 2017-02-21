@@ -5,7 +5,7 @@
 == Others documents in the same section
 
  * <<CloudBigtable.adoc#toc,Cloud BigTable>>
- * <<DesigningYourSchema.adoc#toc,Desigining your schema>>
+ * <<DesigningYourSchema.adoc#toc,Desigining your schema>> , from https://cloud.google.com/bigtable/docs/schema-design
  
 == Introduction 
 
