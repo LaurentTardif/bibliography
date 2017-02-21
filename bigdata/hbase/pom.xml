@@ -30,6 +30,10 @@
 				<configuration>
 					<backend>html</backend>
 					<outputDirectory>target/docs/asciidoc</outputDirectory>
+					<attributes>
+						<sectnums>true</sectnums>
+						 <toc>left</toc>
+					</attributes>
 					<resources>
 						<resource>
 							<!-- (Mandatory) Directory to copy from. Paths are relative to maven's ${baseDir} -->
