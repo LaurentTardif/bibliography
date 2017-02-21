@@ -1,0 +1,145 @@
+﻿= Designing Your Schema
+:toc:
+
+This page explains how to design a schema for a Cloud Bigtable table. Before you read this page, you should be familiar with the overview of Cloud Bigtable.
+
+== General concepts
+
+Designing a Cloud Bigtable schema is very different than designing a schema for a relational database. As you design your Cloud Bigtable schema, keep the following concepts in mind:
+
+ * Each table has only one index, the row key. There are no secondary indices.
+ * Rows are sorted lexicographically by row key, from the lowest to the highest byte string. Row keys are sorted in big-endian, or network, byte order, the binary equivalent of alphabetical order.
+ * All operations are atomic at the row level. For example, if you update two rows in a table, it's possible that one row will be updated successfully and the other update will fail. Avoid schema designs that require atomicity across rows.
+ * Reads and writes should ideally be distributed evenly across the row space of the table.
+ * In general, keep all information for an entity in a single row. An entity that doesn't need atomic updates and reads can be be split across multiple rows. Splitting across multiple rows is recommended if the entity data is large (hundreds of MB).
+ * Related entities should be stored in adjacent rows, which makes reads more efficient.
+ * Cloud Bigtable tables are sparse. Empty columns don't take up any space. As a result, it often makes sense to create a very large number of columns, even if most columns are empty in most rows.
+
+== Size limits
+
+As a best practice, be sure your schema design allows you to stay below these recommended size limits:
+
+ * Row keys: 4 KB per key
+ * Column families: ~100 families per table
+ * Column qualifiers: 16 KB per qualifier
+ * Individual values: ~10 MB per cell
+ * All values in a single row: ~100 MB
+
+In addition, your schema design must allow you to stay below these hard limits:
+
+ * Individual values: 100 MB per cell
+ * All values in a single row: 256 MB
+ * Tables: 1,000 per cluster
+
+Rows are read atomically, so it's especially important to limit the total amount of data that you store in a single row. For example, if you try to read 25 rows that each contain 100 MB of data, and your instance has only 2 GB of RAM available, you'll trigger an out-of-memory error.
+
+== Choosing a row key
+
+To get the best performance out of Cloud Bigtable, it's essential to think carefully about how you compose your row key. That's because the most efficient Cloud Bigtable queries use the row key, a row prefix, or a row range to retrieve the data. Other types of queries trigger a full table scan, which is much less efficient. By choosing the correct row key now, you can avoid a painful data-migration process later.
+
+Start by asking how you'll use the data that you plan to store. For example:
+
+ * User information: Do you need quick access to information about connections between users (for example, whether user A follows user B)?
+ * User-generated content: If you show users a sample of a large amount of user-generated content, such as status updates, how will you decide which status updates to display to a given user?
+ * Time series data: Will you often need to retrieve the most recent N records, or records that fall within a certain time range? If you're storing data for several kinds of events, will you need to filter based on the type of event?
+
+By understanding your needs up front, you can ensure that your row key, and your overall schema design, provide enough flexibility to query your data efficiently.
+
+=== Types of row keys
+
+This section describes some of the most commonly used types of row keys and explains when to use each type of key.
+
+As a general rule of thumb, keep your row keys reasonably short. Long row keys take up additional memory and storage and increase the time it takes to get responses from the Cloud Bigtable server.
+
+=== Reverse domain names
+
+If you're storing data about entities that can be represented as domain names, consider using a reverse domain name (for example, com.company.product) as the row key. Using a reverse domain name is an especially good idea if each row's data tends to overlap with adjacent rows. In this case, Cloud Bigtable can compress your data more efficiently.
+
+This approach works best when your data is spread across many different reverse domain names. If you expect to store most of your data in a small number of reverse domain names, consider other values for your row key. Otherwise, you may overload a tablet by pushing most writes to a single node in your cluster.
+
+=== String identifiers
+
+If you're storing data about entities that can be identified with a simple string (for example, user IDs), you may want to use the string identifier as the row key, or as a portion of the row key. Consider using a hash of the identifier, rather than the identifier itself, so that the identifier is always a predictable length. Using a hash is is especially helpful when you combine multiple values into a single row key, as discussed below.
+
+=== Timestamps
+
+If you often need to retrieve data based on the time when it was recorded, it's a good idea to include a timestamp as part of your row key. Using the timestamp by itself as the row key is not recommended, as most writes would be pushed onto a single node. For the same reason, avoid placing a timestamp at the start of the row key.
+
+For example, your application might need to record performance-related data, such as CPU and memory usage, once per second for a large number of machines. Your row key for this data could combine an identifier for the machine with a timestamp for the data (for example, machine_4223421#1425330757685).
+
+If you usually retrieve the most recent records first, you can use a reversed timestamp in the row key by subtracting the timestamp from your programming language's maximum value for long integers (in Java, java.lang.Long.MAX_VALUE). With a reversed timestamp, the records will be ordered from most recent to least recent.
+
+== Multiple values in a single row key
+
+Because the only way to query Cloud Bigtable efficiently is by row key, it's often useful to include multiple identifiers in your row key. When your row key includes multiple values, it's especially important to have a clear understanding of how you'll use your data.
+
+For example, suppose your application allows users to post messages, and users can mention one another in posts. You want an efficient way to list all the users who have tagged a specific user in a post. One way to achieve this goal is to use a row key that contains a hash of the tagged username, followed by a hash of the username that did the tagging. Each row would store the unhashed usernames along with the post data:
+
+image::multiple-value-row-key.svg[multiple-value-row-key]
+.A Cloud Bigtable table whose row keys combine the hashed versions of two usernames.
+
+To find out who has tagged a specific username, or to show all the posts that tag that username, you can simply retrieve the range of rows whose row keys start with the username.
+
+As shown in the example, it's important to create a row key that still allows you to retrieve a well-defined range of rows. Otherwise your query will require a table scan, which is much slower than retrieving specific rows. For example, suppose you're storing performance-related data once per second. If your row key consisted of a timestamp, followed by the machine identifier (for example, 1425330757685#machine_4223421), there would be no efficient way to limit your query to a specific machine, and you could only limit your query based on the timestamp.
+
+=== Row keys to avoid
+
+Some types of row keys can make it difficult to query your data or result in poor performance. This section describes some types of row keys that you should avoid using in Cloud Bigtable.
+
+=== Domain names
+
+Avoid using standard, non-reversed domain names as row keys. Using standard domain names makes it inefficient to retrieve all of the rows within a portion of the domain (for example, all rows that relate to company.com will be in separate row ranges like services.company.com, product.company.com and so on). In addition, using standard domain names causes rows to be sorted in such a way that related data is not grouped together in one place, which can result in less efficient compression.
+
+=== Sequential numeric IDs
+
+Suppose your system assigns a numeric ID to each of your application's users. You might be tempted to use the user's numeric ID as the row key for your table. However, since new users are more likely to be active users, this approach is likely to push most of your traffic to a small number of nodes.
+
+A safer approach is to use a reversed version of the user's numeric ID, which spreads traffic more evenly across all of the nodes for your Cloud Bigtable table.
+
+=== Static, repeatedly updated identifiers
+
+Avoid using a single row key to identify a value that must be updated very frequently. For example, if you store memory-usage data once per second, do not use a single row key named memusage and update the row repeatedly. This type of operation overloads the tablet that stores the frequently used row. It can also cause a row to exceed its size limit, since a cell's previous values take up space for a while.
+
+Instead, store one value per row, using a row key that contains the type of metric, a delimiter, and a timestamp. For example, to track memory usage over time, you could use row keys similar to memusage#1423523569918. This strategy is efficient because in Cloud Bigtable, creating a new row takes no more time than creating a new cell. In addition, this strategy allows you to quickly read data from a specific date range by calculating the appropriate start and end keys.
+
+For values that change very frequently, such as a counter that is updated hundreds of times each minute, it's best to simply keep the data in memory, at the application layer, and write new rows to Cloud Bigtable periodically.
+
+== Column families and column qualifiers
+
+This section provides guidance on how to think about column families and column qualifiers within your table.
+
+=== Column families
+
+In Cloud Bigtable, unlike in HBase, you can use up to ~100 column families while maintaining excellent performance. As a result, whenever a row contains multiple values that are related to one another, it's a good practice to group those values into the same column family. Grouping data into column families allows you to retrieve data from a single family, or multiple families, rather than retrieving all of the data in each row. Group data as closely as you can to get just the information that you need, but no more, in your most frequent API calls.
+
+Also, the names of your column families should be short, since they're included in the data that is transferred for each request.
+
+=== Column qualifiers
+
+Because Cloud Bigtable tables are sparse, you can create as many column qualifiers as you need in each row. There is no space penalty for empty cells in a row. As a result, it often makes sense to treat column qualifiers as data. For example, if your table is storing user posts, you could use the unique identifier for each post as the column qualifier.
+
+As with row keys and column families, it's a good idea to keep the names of column qualifiers short, which helps to minimize the amount of data that is transferred for each request.
+
+=== Tall versus wide tables
+
+The examples you've seen so far depict wide tables, where a single row contains a very large number of columns. You typically get a wide table when you use column qualifiers as data. There are also cases where it makes sense to use a tall table, which has a very large number of rows with very few columns in each row.
+
+Let's revisit the Prezzy example from the overview:
+
+image::bigtable-example.svg[bigtable-example]
+.A wide table with many columns for each username.
+
+This example is a wide table that tracks who each user follows. For each user, the table contains one column per followed user.
+
+Suppose you don't need the complete list of users that each user follows. Instead, you only want to use Cloud Bigtable to answer a narrower question: Does user A follow user B?
+
+An efficient solution in this case is to use a tall table, with one row per follower/followed relationship. The row key for the tall table combines hashes of the follower's username and the followed username. As a result, you can check whether user A follows user B by searching for a single row key. If the row is present, user A follows user B; if the row is absent, user A does not follow user B.
+
+Here's the tall-table version of the Prezzy data:
+
+image::tall-table.svg[tall-table]
+.A tall table with one row for each follower/followed relationship.
+
+If you want to know whether the user jadams follows tjefferson, you can simply search for the row key that combines the hash of jadams (df887e44) with the hash of tjefferson (b0452e5c). The row df887e44b0452e5c exists, so we know that jadams follows tjefferson.
+
+Notice that the tall table stores the username of each followed user. Without this information, it would be very time-consuming to find the username that corresponds to the hash.

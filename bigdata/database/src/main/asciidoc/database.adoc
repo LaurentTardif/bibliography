@@ -1,6 +1,12 @@
 = Database
 :toc:
 
+
+== Others documents in the same section
+
+ * <<CloudBigtable.adoc#toc,Cloud BigTable>>
+ * <<DesigningYourSchema.adoc#toc,Desigining your schema>>
+ 
 == Introduction 
 
 Database quick start, good practices 
