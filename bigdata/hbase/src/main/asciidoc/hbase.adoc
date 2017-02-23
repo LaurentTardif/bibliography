@@ -1,6 +1,37 @@
 ﻿= HBase  
 :toc:
 
+== What's HBASE
+
+A non-relational (NoSQL) database that runs on top of HDFS
+
+Apache HBase is an open source NoSQL database that provides real-time read/write access to those large datasets.
+
+HBase scales linearly to handle huge data sets with billions of rows and millions of columns, and it easily combines data sources that use a wide variety of different structures and schemas. HBase is natively integrated with Hadoop and works seamlessly alongside other data access engines through YARN.
+What HBase Does
+
+Apache HBase provides random, real time access to your data in Hadoop. It was created for hosting very large tables, making it a great choice to store multi-structured or sparse data. Users can query HBase for a particular point in time, making “flashback” queries possible. These following characterisitcs make HBase a great choice for storing semi-structured data like log data and then providing that data very quickly to users or applications integrated with HBase.
+
+ * Fault tolerant 	
+
+	Replication across the data center
+    Atomic and strongly consistent row-level operations
+    High availability through automatic failover
+    Automatic sharding and load balancings of tables
+
+ * Fast 	
+
+    Near real time lookups
+    In-memory caching via block cache and bloom filters
+    Server side processing via filters and co-processors
+	
+ * Usable 	
+ 
+    Data model accommodates wide range of use cases
+    Metrics exports via File and Ganglia plugins
+    Easy Java API as well as Thrift and REST gateway APIs
+
+
 == Versions 
 
  * 2.0.0 (soon)
