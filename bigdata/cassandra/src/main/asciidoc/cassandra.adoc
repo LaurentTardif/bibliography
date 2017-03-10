@@ -30,3 +30,14 @@ Understand data and application queries
   * Design is based on access patterns or queries over data	
  * Implement the design using CQL	
   * Optimizations concerning data types, keys, partition sizes, ordering	
+
+=== Modeling data
+
+ * Modeling principle 1: “Know your data”
+ * Key and cardinality constraints are fundamental to schema design
+ * Modeling principle 2: “Know your queries”
+ * Queries drive schema design
+ * Modeling principle 3: “Nest data”
+ * Data nesting is the main data modeling technique
+ * Modeling principle 4: “Duplicate data”
+ * Better to duplicate than to join
