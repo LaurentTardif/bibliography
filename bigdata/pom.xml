@@ -69,5 +69,6 @@
 	<modules>
 		<module>database</module>
 		<module>hbase</module>
-	</modules>
+		<module>cassandra</module>
+		</modules>
 </project>
