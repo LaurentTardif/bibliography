@@ -1,9 +1,32 @@
 ﻿= Cassandra  
 :toc:
 
-== What's Cassandra
+= What's Cassandra
+
+ Cassandra is a column-family system, offering near-linear scaling across commodity clusters
+= Hot topics
+
+== Communication / cqlsh / 
 
 
-== Hot topics
+== Data modelling
 
-=== Communication / cqlsh / 
+ Data modeling is a process that involves	
+
+ * Collection and analysis of data requirements in an information system	
+ * Identiﬁcation of participating entities and relationships among them	
+ * Identiﬁcation of data access patterns 	
+ * A particular way of organizing and structuring data	
+ * Design and speciﬁcation of a database schema	
+ * Schema optimization and data indexing techniques 
+ 
+=== Key steps
+
+Understand data and application queries	
+
+ * Data may or may not exist in some format (RDBMS, XML, CSV, …)	
+  * Queries can be organized into a query graph	
+ *  Design column families 	
+  * Design is based on access patterns or queries over data	
+ * Implement the design using CQL	
+  * Optimizations concerning data types, keys, partition sizes, ordering	

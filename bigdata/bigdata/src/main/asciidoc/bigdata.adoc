@@ -3,6 +3,16 @@
 
 == What's BigData
 
+ * _Applications involving the "three V's"_	
+  * Volume: gigabytes, growing to terabytes and beyond	
+  * Velocity: sensor data, click streams, ﬁnancial transactions	
+  * Variety: data must be ingested from many different formats	
+ * _Characteristics requiring_	
+  * multi-region availability	
+  * very fast and reliable response	
+  * no single point of failure	
+
+
 
 == Hot topics
 
