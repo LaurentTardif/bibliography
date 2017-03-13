@@ -4,6 +4,7 @@
 = What's Cassandra
 
  Cassandra is a column-family system, offering near-linear scaling across commodity clusters
+ 
 = Hot topics
 
 == Communication / cqlsh / 
@@ -11,8 +12,7 @@
 
 == Data modelling
 
- Data modeling is a process that involves	
-
+.Data modeling is a process that involves	
  * Collection and analysis of data requirements in an information system	
  * Identiﬁcation of participating entities and relationships among them	
  * Identiﬁcation of data access patterns 	
@@ -22,22 +22,73 @@
  
 === Key steps
 
-Understand data and application queries	
-
+.Understand data and application queries
  * Data may or may not exist in some format (RDBMS, XML, CSV, …)	
-  * Queries can be organized into a query graph	
- *  Design column families 	
-  * Design is based on access patterns or queries over data	
- * Implement the design using CQL	
-  * Optimizations concerning data types, keys, partition sizes, ordering	
+ * Queries can be organized into a query graph	
+ * Design column families
+ ** Design is based on access patterns or queries over data	
+ * Implement the design using CQL
+ ** Optimizations concerning data types, keys, partition sizes, ordering	
 
 === Modeling data
 
  * Modeling principle 1: “Know your data”
- * Key and cardinality constraints are fundamental to schema design
+ ** Key and cardinality constraints are fundamental to schema design
  * Modeling principle 2: “Know your queries”
- * Queries drive schema design
+ ** Queries drive schema design
  * Modeling principle 3: “Nest data”
- * Data nesting is the main data modeling technique
+ ** Data nesting is the main data modeling technique
  * Modeling principle 4: “Duplicate data”
- * Better to duplicate than to join
+ ** Better to duplicate than to join
+
+==== Know your data
+
+.Key and cardinality constraints are fundamental to schema design
+* What are entities in a model?
+User, Artifact, Venue, Review, Publication, Presentation
+* hat are relationships among entities?
+User posts Review, Venue features Artifact, Artifact IsA Presentation
+* What are keys of entities and relationships?
+ (venue name, year) for Venue
+ (artifact id) for Artifact
+ (artifact id) for features
+* What cardinality constraints do relationships have?
+ Artifact appears in exactly one Venue 
+ Venue features many Artifacts
+
+==== Know your queries
+
+Queries drive schema design
+Organizing data such that queries are efficient
+Partition per query (gold)
+Partition+ per query (silver)
+Table and Table+ per query (dirt)
+
+Partition per query
+The most efficient access pattern
+Query only needs to access one partition to retrieve results
+Partition can be single-row or multi-row 
+Find information for a specified user (retrieve one row/partition)
+Find all reviews for a specified user (retrieve many rows in one partition)
+Not always possible or desirable (very large partitions)
+
+==== Nest data
+
+Data nesting is the main data modeling technique
+“Partition per query” frequently requires organizing multiple entities (usually of the same type) under one entity (usually of a different type)
+Nesting is usually based on known relationships among entities
+
+Two main data nesting mechanisms that support “partition per query”
+Clustering columns
+Collection columns
+
+Technically, using composite partition keys is the third mechanism
+Supports less efficient “partition+ per query”
+
+==== Duplicate data
+
+Better to duplicate than to join
+“Partition per query” and data nesting result in data duplication
+Query results are pre-computed and materialized
+Data can be duplicated across tables, partitions, and/or rows
+
