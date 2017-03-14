@@ -213,6 +213,46 @@ When you’re done, stop the daemons with:
 
   $ sbin/stop-yarn.sh and sbin/stop-dfs.sh
 
+  
+== Formalisation and a step further : Cluster
+
+=== Configuration files
 
 
+.Hadoop’s Java configuration is driven by two types of important configuration files:
 
+ Read-only default configuration - core-default.xml, hdfs-default.xml, yarn-default.xml and mapred-default.xml.
+
+ Site-specific configuration - etc/hadoop/core-site.xml, etc/hadoop/hdfs-site.xml, etc/hadoop/yarn-site.xml and etc/hadoop/mapred-site.xml.
+
+ Additionally, you can control the Hadoop scripts found in the bin/ directory of the distribution, by setting site-specific values via the etc/hadoop/hadoop-env.sh and etc/hadoop/yarn-env.sh.
+
+To configure the Hadoop cluster you will need to configure the environment in which the Hadoop daemons execute as well as the configuration parameters for the Hadoop daemons.
+HDFS daemons are NameNode, SecondaryNameNode, and DataNode. YARN damones are ResourceManager, NodeManager, and WebAppProxy. If MapReduce is to be used, then the MapReduce Job History Server will also be running. For large installations, these are generally running on separate hosts.
+
+
+Full example is here : 
+http://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-common/ClusterSetup.html
+
+[format="csv", options="header"]
+|===
+Daemon,Web Interface,Notes
+NameNode,http://nn_host:port/ ,Default HTTP port is 50070 
+ResourceManager ,http://rm_host:port/ ,Default HTTP port is 8088
+MapReduce JobHistory Server ,http://jhs_host:port/ ,Default HTTP port is 19888
+|===
+
+Web Interfaces
+Once the Hadoop cluster is up and running check the web-ui of the components as described below:
+Daemon 
+Web Interface 
+Notes 
+NameNode 
+http://nn_host:port/ 
+Default HTTP port is 50070. 
+ResourceManager 
+http://rm_host:port/ 
+Default HTTP port is 8088. 
+MapReduce JobHistory Server 
+http://jhs_host:port/ 
+Default HTTP port is 19888. 

@@ -65,6 +65,9 @@ Data Model
  * http://jimbojw.com/#understanding%20hbase
  * http://0b4af6cdc2f0c5998459-c0245c5c937c5dedcca3f1764ecc9b2f.r43.cf2.rackcdn.com/9353-login1210_khurana.pdf
  
+Performance
+
+ * https://db-blog.web.cern.ch/blog/zbigniew-baranowski/2017-01-performance-comparison-different-file-formats-and-storage-engines
  
 Tips 
 
