@@ -58,9 +58,9 @@ Current is 2.7.3  , 3.0 is comming.
   daemonlog            get/set the log level for each daemon
   trace                view and modify Hadoop tracing settings
 
-== your first map reduce operation
+== your firsts "map reduce" operations
 
-=== Count the occurence number of dfs ..
+=== Count the occurence number of dfs .. in a jvm 
 
   $ mkdir input
   $ cp etc/hadoop/*.xml input
@@ -71,9 +71,9 @@ Current is 2.7.3  , 3.0 is comming.
 
 ... what do you notice ... output ..... 
 
-== Pseudo-Distributed Operation
+=== Pseudo-Distributed Operation
 
-=== Configuration
+==== Configuration
 
 in etc/hadoop/core-site.xml:
 
@@ -93,7 +93,7 @@ in etc/hadoop/hdfs-site.xml:
     </property>
  </configuration>
  
-=== Setup ssh 
+==== Setup ssh 
 
  check you can "ssh localhost" without passphrase.
  if not : 
@@ -103,8 +103,13 @@ in etc/hadoop/hdfs-site.xml:
   $ chmod 0600 ~/.ssh/authorized_keys
 
   
-=== Create DFS partition, create and start NameNode DataNode
+==== Create DFS partition, create and start NameNode DataNode
 
+* NameNode
+
+* DataNode
+
+* Yarn 
 
 ==== firewall setting for centos 7
 
@@ -168,9 +173,45 @@ that gave
 When you’re done, stop the daemons with:
 sbin/stop-dfs.sh   
 
-* NameNode
+=== let's do it with yarn
 
-* DataNode
+Configure parameters as follows:etc/hadoop/mapred-site.xml:
+
+ <configuration>
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+ </configuration>
+
+etc/hadoop/yarn-site.xml:
+
+ <configuration>
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+ </configuration>
+
+Start ResourceManager daemon and NodeManager daemon:
+
+ $ sbin/start-dfs.sh
+ $ sbin/start-yarn.sh
+
+Browse the web interface for the ResourceManager; by default it is available at:
+ResourceManager - http://localhost:8088/
+
+image::yarn_startup.png[Yarn GUI]
+
+Run a MapReduce job.
+
+ bin/yarn jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar grep input output 'dfs[a-z.]+'
+
+image::yarn_running.png[Yarn running]
+
+When you’re done, stop the daemons with:
+
+  $ sbin/stop-yarn.sh and sbin/stop-dfs.sh
 
 
 
