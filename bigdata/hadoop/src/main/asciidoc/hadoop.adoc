@@ -14,7 +14,8 @@ The Apache Hadoop software library is a framework that allows for the distribute
 
 == Version 
  
- Current is 2.7.3  , 3.0 is comming.
+Current is 2.7.3  , 3.0 is comming.
+
 .What will be new in 3.0 :
  * Minimum required Java version increased from Java 7 to Java 8
  * Support for erasure encoding in HDFS : Erasure coding is a method for durably storing data with significant space savings compared to replication. Standard encodings like Reed-Solomon (10,4) have a 1.4x space overhead, compared to the 3x overhead of standard HDFS replication.
@@ -28,4 +29,149 @@ The Apache Hadoop software library is a framework that allows for the distribute
  * Hadoop now supports integration with Microsoft Azure Data Lake and Aliyun Object Storage System as alternative Hadoop-compatible filesystems.
  * Intra-datanode balancer
 
+= Let's start 
+
+== Installation
+
+ * Download from apache location (2.7.3),
+ * unpack, 
+ * edit etc/hadoop/hadoop-env.sh to define the javahome that match your installation
+
+== run it
+
+ [root@localhost hadoop]# bin/hadoop
+ Usage: hadoop [--config confdir] [COMMAND | CLASSNAME]
+  CLASSNAME            run the class named CLASSNAME
+ or
+  where COMMAND is one of:
+  fs                   run a generic filesystem user client
+  version              print the version
+  jar <jar>            run a jar file
+                       note: please use "yarn jar" to launch
+                             YARN applications, not this command.
+  checknative [-a|-h]  check native hadoop and compression libraries availability
+  distcp <srcurl> <desturl> copy file or directories recursively
+  archive -archiveName NAME -p <parent path> <src>* <dest> create a hadoop archive
+  classpath            prints the class path needed to get the
+  credential           interact with credential providers
+                       Hadoop jar and the required libraries
+  daemonlog            get/set the log level for each daemon
+  trace                view and modify Hadoop tracing settings
+
+== your first map reduce operation
+
+=== Count the occurence number of dfs ..
+
+  $ mkdir input
+  $ cp etc/hadoop/*.xml input
+  $ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar grep input output 'dfs[a-z.]+'
+  $ cat output/*
+
+=== Do the same with Zookeeper
+
+... what do you notice ... output ..... 
+
+== Pseudo-Distributed Operation
+
+=== Configuration
+
+in etc/hadoop/core-site.xml:
+
+ <configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://localhost:9000</value>
+    </property>
+ </configuration>
+
+in etc/hadoop/hdfs-site.xml:
+
+ <configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>1</value>
+    </property>
+ </configuration>
  
+=== Setup ssh 
+
+ check you can "ssh localhost" without passphrase.
+ if not : 
+ 
+  $ ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+  $ cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  $ chmod 0600 ~/.ssh/authorized_keys
+
+  
+=== Create DFS partition, create and start NameNode DataNode
+
+
+==== firewall setting for centos 7
+
+ firewall-cmd --get-active-zones
+ firewall-cmd --zone=public --add-port=9000/tcp --permanent
+ firewall-cmd --zone=public --add-port=50070/tcp --permanent
+ firewall-cmd --reload
+ 
+==== LEt's start name node and data node
+
+  bin/hdfs namenode -format
+  sbin/start-dfs.sh
+
+from here you can check the webui  http://localhost:50070/
+
+image::dfshealth.png[dfs GUI]
+.dfs status
+   
+We can create the bases repositories
+   
+ $ bin/hdfs dfs -mkdir /user
+ $ bin/hdfs dfs -mkdir /user/<username>
+
+Then Copy the input files into the distributed filesystem:
+
+  $ bin/hdfs dfs -put etc/hadoop input
+
+Run some of the examples provided:
+
+  $ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar grep input output 'dfs[a-z.]+'
+
+Examine the output files: Copy the output files from the distributed filesystem to the local filesystem and examine them:
+
+  $ bin/hdfs dfs -get output output
+  $ cat output/*   
+
+We can also browse the ui
+
+image::dfs_browseFileSystem.png[Browse the file system]   
+
+Or get the information directly from hdfs
+
+ bin/hdfs dfs -cat output/*
+ 
+that gave 
+
+ [admin@localhost hadoop]$  bin/hdfs dfs -cat output/*6	dfs.audit.logger
+ 4	dfs.class
+ 3	dfs.server.namenode.
+ 2	dfs.period
+ 2	dfs.audit.log.maxfilesize
+ 2	dfs.audit.log.maxbackupindex
+ 1	dfsmetrics.log
+ 1	dfsadmin
+ 1	dfs.servers
+ 1	dfs.replication
+ 1	dfs.file
+ 
+ 
+
+When you’re done, stop the daemons with:
+sbin/stop-dfs.sh   
+
+* NameNode
+
+* DataNode
+
+
+
+
