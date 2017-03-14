@@ -69,6 +69,8 @@
 	<modules>
 		<module>bigdata</module>
 		<module>database</module>
+		
+		<module>hadoop</module>
 		<module>hbase</module>
 		<module>cassandra</module>
 		</modules>

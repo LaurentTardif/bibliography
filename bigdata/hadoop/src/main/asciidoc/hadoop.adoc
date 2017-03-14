@@ -1,0 +1,31 @@
+﻿= Hadoop
+
+:toc:
+
+
+= Introduction
+
+The Apache Hadoop software library is a framework that allows for the distributed processing of large data sets across clusters of computers using simple programming models. It is designed to scale up from single servers to thousands of machines, each offering local computation and storage. Rather than rely on hardware to deliver high-availability, the library itself is designed to detect and handle failures at the application layer, so delivering a highly-available service on top of a cluster of computers, each of which may be prone to failures. 
+
+ * _Hadoop Common_: The common utilities that support the other Hadoop modules. 
+ * _Hadoop Distributed File System (HDFS™)_: A distributed file system that provides high-throughput access to application data.
+ * _Hadoop YARN_: A framework for job scheduling and cluster resource management.
+ * _Hadoop MapReduce_: A YARN-based system for parallel processing of large data sets.
+
+== Version 
+ 
+ Current is 2.7.3  , 3.0 is comming.
+.What will be new in 3.0 :
+ * Minimum required Java version increased from Java 7 to Java 8
+ * Support for erasure encoding in HDFS : Erasure coding is a method for durably storing data with significant space savings compared to replication. Standard encodings like Reed-Solomon (10,4) have a 1.4x space overhead, compared to the 3x overhead of standard HDFS replication.
+ * YARN Timeline Service v.2: addresses two major challenges: improving scalability and reliability of Timeline Service, and enhancing usability by introducing flows and aggregation.
+ * Shell script rewrite
+ * Shaded client jars
+ * Support for Opportunistic Containers and Distributed Scheduling.
+ * MapReduce task-level native optimization
+ * Support for more than 2 NameNodes.
+ * Default ports of multiple services have been changed.
+ * Hadoop now supports integration with Microsoft Azure Data Lake and Aliyun Object Storage System as alternative Hadoop-compatible filesystems.
+ * Intra-datanode balancer
+
+ 
