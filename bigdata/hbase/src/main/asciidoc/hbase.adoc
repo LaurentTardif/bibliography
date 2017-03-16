@@ -450,7 +450,7 @@ simply run _./bin/stop-hbase.sh_
 == Over Hadoop, 
 
 
-image::HbaseOverHadoop.png[HBase over hadoop]
+
 
 if you want to move to hdfs :
 ....
@@ -462,6 +462,9 @@ if you want to move to hdfs :
 
 you'll see a new bunch of files, hbase will create them automatically.
 Warning, if there's already an HBase directory, hbase will try to do a migration from the existing version.
+
+
+image::HbaseOverHadoop.png[HBase over hadoop]
 
 
 == Now, let's go to an hbase cluster (we'll not discuss about hadoop cluster here ... )
@@ -476,6 +479,42 @@ Update the _conf/hbase-site.xml_ with :
   <value>true</value>
 </property>
 ....
+
+=== How to check it's working 
+
+==== do you have jps (Java Virtual Machine Process Status Tool)
+
+it's not installed by default with openJDK, you need to install the devel modules
+
+ [admin@localhost hbase]$ sudo yum list *java*devel*
+ Modules complémentaires chargés : fastestmirror, langpacks
+ Loading mirror speeds from cached hostfile
+  * base: miroir.univ-paris13.fr
+  * extras: mirrors.ircam.fr
+  * updates: miroir.univ-paris13.fr
+ Paquets disponibles
+ java-1.6.0-openjdk-devel.x86_64                     1:1.6.0.41-1.13.13.1.el7_3                updates
+ java-1.7.0-openjdk-devel.x86_64                     1:1.7.0.131-2.6.9.0.el7_3                 updates
+ java-1.8.0-openjdk-devel.i686                       1:1.8.0.121-0.b13.el7_3                   updates
+ java-1.8.0-openjdk-devel.x86_64                     1:1.8.0.121-0.b13.el7_3                   updates
+ java-1.8.0-openjdk-devel-debug.i686                 1:1.8.0.121-0.b13.el7_3                   updates
+ java-1.8.0-openjdk-devel-debug.x86_64               1:1.8.0.121-0.b13.el7_3                   updates
+ libdb-java-devel.i686                               5.3.21-19.el7                             base   
+ libdb-java-devel.x86_64                             5.3.21-19.el7                             base   
+ libguestfs-java-devel.x86_64                        1:1.32.7-3.el7.centos.2                   updates
+ libvirt-java-devel.noarch                           0.4.9-4.el7                               base   
+
+==== run jps command
+
+ [admin@localhost hbase]$ jps
+ 10066 SecondaryNameNode
+ 10619 HMaster
+ 9741 NameNode
+ 9885 DataNode
+ 10541 HQuorumPeer
+ 10718 HRegionServer
+ 12494 Jps
+
 
 
 === You need 3 hosts to do such setup
@@ -508,6 +547,11 @@ You can enter HBase Shell commands into a text file, one command per line, and p
 ====
 
 
+===  A detailed documentation of the commands is available here
+
+https://learnhbase.wordpress.com/2013/03/02/hbase-shell-commands/
+
+
 == DATA MODEL
 
 
@@ -519,17 +563,27 @@ You can enter HBase Shell commands into a text file, one command per line, and p
     A row in HBase consists of a row key and one or more columns with values associated with them. Rows are sorted alphabetically by the row key as they are stored. For this reason, the design of the row key is very important. The goal is to store data in such a way that related rows are near each other. A common row key pattern is a website domain. If your row keys are domains, you should probably store them in reverse (org.apache.www, org.apache.mail, org.apache.jira). This way, all of the Apache domains are near each other in the table, rather than being spread out based on the first letter of the subdomain.
 Column
 
+.Column
+
     A column in HBase consists of a column family and a column qualifier, which are delimited by a : (colon) character.
 Column Family
+
+.ColumnFamily
 
     Column families physically colocate a set of columns and their values, often for performance reasons. Each column family has a set of storage properties, such as whether its values should be cached in memory, how its data is compressed or its row keys are encoded, and others. Each row in a table has the same column families, though a given row might not store anything in a given column family.
 Column Qualifier
 
+.ColumnQualifier
+
     A column qualifier is added to a column family to provide the index for a given piece of data. Given a column family content, a column qualifier might be content:html, and another might be content:pdf. Though column families are fixed at table creation, column qualifiers are mutable and may differ greatly between rows.
 Cell
 
+.Cell
+
     A cell is a combination of row, column family, and column qualifier, and contains a value and a timestamp, which represents the value’s version.
 Timestamp
+
+.Timestamp
 
     A timestamp is written alongside each value, and is the identifier for a given version of a value. By default, the timestamp represents the time on the RegionServer when the data was written, but you can specify a different timestamp value when you put data into the cell.
 
