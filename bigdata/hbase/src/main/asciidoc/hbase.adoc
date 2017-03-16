@@ -447,7 +447,24 @@ COLUMN                            CELL
 
 simply run _./bin/stop-hbase.sh_
 
-== Now, let's go cluster
+== Over Hadoop, 
+
+
+image::HbaseOverHadoop.png[HBase over hadoop]
+
+if you want to move to hdfs :
+....
+<property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://localhost:8020/hbase</value>
+</property>
+....
+
+you'll see a new bunch of files, hbase will create them automatically.
+Warning, if there's already an HBase directory, hbase will try to do a migration from the existing version.
+
+
+== Now, let's go to an hbase cluster (we'll not discuss about hadoop cluster here ... )
 
 === First, separate zookeeper from the HBase master 
 
@@ -460,13 +477,6 @@ Update the _conf/hbase-site.xml_ with :
 </property>
 ....
 
-if you want to move to hdfs at the same time :
-....
-<property>
-  <name>hbase.rootdir</name>
-  <value>hdfs://localhost:8020/hbase</value>
-</property>
-....
 
 === You need 3 hosts to do such setup
 

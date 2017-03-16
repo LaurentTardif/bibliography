@@ -33,7 +33,7 @@ Current is 2.7.3  , 3.0 is comming.
 
 == Installation
 
- * Download from apache location (2.7.3),
+ * Download from apache location (2.7.3), http://www-eu.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz  or for 3.0 http://www.apache.org/dyn/closer.cgi/hadoop/common/hadoop-3.0.0-alpha1/hadoop-3.0.0-alpha1.tar.gz
  * unpack, 
  * edit etc/hadoop/hadoop-env.sh to define the javahome that match your installation
 
@@ -113,10 +113,10 @@ in etc/hadoop/hdfs-site.xml:
 
 ==== firewall setting for centos 7
 
- firewall-cmd --get-active-zones
- firewall-cmd --zone=public --add-port=9000/tcp --permanent
- firewall-cmd --zone=public --add-port=50070/tcp --permanent
- firewall-cmd --reload
+ sudo firewall-cmd --get-active-zones
+ sudo firewall-cmd --zone=public --add-port=9000/tcp --permanent
+ sudo firewall-cmd --zone=public --add-port=50070/tcp --permanent
+ sudo firewall-cmd --reload
  
 ==== LEt's start name node and data node
 
@@ -234,6 +234,12 @@ HDFS daemons are NameNode, SecondaryNameNode, and DataNode. YARN damones are Res
 Full example is here : 
 http://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-common/ClusterSetup.html
 
+
+Web Interfaces
+Once the Hadoop cluster is up and running check the web-ui of the components as described below:
+
+
+
 [format="csv", options="header"]
 |===
 Daemon,Web Interface,Notes
@@ -241,18 +247,3 @@ NameNode,http://nn_host:port/ ,Default HTTP port is 50070
 ResourceManager ,http://rm_host:port/ ,Default HTTP port is 8088
 MapReduce JobHistory Server ,http://jhs_host:port/ ,Default HTTP port is 19888
 |===
-
-Web Interfaces
-Once the Hadoop cluster is up and running check the web-ui of the components as described below:
-Daemon 
-Web Interface 
-Notes 
-NameNode 
-http://nn_host:port/ 
-Default HTTP port is 50070. 
-ResourceManager 
-http://rm_host:port/ 
-Default HTTP port is 8088. 
-MapReduce JobHistory Server 
-http://jhs_host:port/ 
-Default HTTP port is 19888. 
