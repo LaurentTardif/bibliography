@@ -100,60 +100,7 @@ Tips
 TODO: define zookeeper and region servers
 
 
-=== Database and datamodel 
 
-
-==== Concepts
-
-TODO: http://jimbojw.com/#understanding%20hbase
-
-
-==== namespace
- 
-A namespace is a logical grouping of tables analogous to a database in relation database systems. This abstraction lays the groundwork for upcoming multi-tenancy related features:
-
- * Quota Management (HBASE-8410) - Restrict the amount of resources (i.e. regions, tables) a namespace can consume.
- * Namespace Security Administration (HBASE-9206) - Provide another level of security administration for tenants.
- * Region server groups (HBASE-6721) - A namespace/table can be pinned onto a subset of RegionServers thus guaranteeing a course level of isolation.
- 
-==== Column family
-
-Columns in Apache HBase are grouped into column families. All column members of a column family have the same prefix. For example, the columns courses:history and courses:math are both members of the courses column family. The colon character (:) delimits the column family from the column family qualifier. The column family prefix must be composed of printable characters. The qualifying tail, the column family qualifier, can be made of any arbitrary bytes. Column families must be declared up front at schema definition time whereas columns do not need to be defined at schema time but can be conjured on the fly while the table is up and running.
-Physically, all column family members are stored together on the filesystem. Because tunings and storage specifications are done at the column family level, it is advised that all column family members have the same general access pattern and size characteristics.
- 
-==== Table, Row, Cell
- 
- * Tables are declared up front at schema definition time
- * Row keys are uninterpreted bytes. Rows are lexicographically sorted with the lowest order appearing first in a table. The empty byte array is used to denote both the start and end of a tables' namespace.
- * A {row, column, version} tuple exactly specifies a cell in HBase. Cell content is uninterpreted bytes
-
-A {row, column, version} tuple exactly specifies a cell in HBase. It’s possible to have an unbounded number of cells where the row and column are the same but the cell address differs only in its version dimension.
-
-While rows and column keys are expressed as bytes, the version is specified using a long integer. Typically this long contains time instances such as those returned by java.util.Date.getTime() or System.currentTimeMillis(), that is: the difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC.
-
-The HBase version dimension is stored in decreasing order, so that when reading from a store file, the most recent values are found first.
-
-There is a lot of confusion over the semantics of cell versions, in HBase. In particular:
-
- * If multiple writes to a cell have the same version, only the last written is fetchable.
- * It is OK to write cells in a non-increasing version order.
- 
-[TIP]
-====
-The maximum number of versions to store for a given column is part of the column schema and is specified at table creation, or via an alter command, via HColumnDescriptor.DEFAULT_VERSIONS. 
-==== 
-
-[TIP]
-.Modify the Maximum Number of Versions for a Column Family
-====
-alter ‘t1′, NAME => ‘f1′, VERSIONS => 5
-====
- 
-[TIP]
-.Modify the Maximum Number of Versions for a Column Family
-====
-alter ‘t1′, NAME => ‘f1′, MIN_VERSIONS => 2
-====
  
 === Understanding HBASE and BigTable (from Jim R. Wilson)
 
@@ -377,9 +324,9 @@ As always, I look forward to your thoughts, comments and suggestions.
 
  
  
-== Quick start for installation
+= Installation
 
-=== Installation 
+== Quick start for Installation 
 
 Download the latest stable version from apache website.
 
@@ -541,8 +488,18 @@ it's not installed by default with openJDK, you need to install the devel module
 
 === You need 3 hosts to do such setup
 
+== Configuration tips
 
-== Shell
+A few configuration recommendations include disabling auto-compaction (by default it happens every 24 hours from the time you start HBase) and schedule it to run every day at an off-peak time. You should also configure compression (such as LZO) and explicitly put the correctly configured HBase conf directory in your CLASSPATH.
+
+
+== Metrics 
+
+ref : http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
+You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each. That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
+
+
+= Shell
 
 === shell from text file
 
@@ -574,16 +531,31 @@ You can enter HBase Shell commands into a text file, one command per line, and p
 https://learnhbase.wordpress.com/2013/03/02/hbase-shell-commands/
 
 
-== DATA MODEL
+= DATA MODEL
 
+== Concepts
+
+TODO: http://jimbojw.com/#understanding%20hbase
+
+.Namespace 
+
+	A namespace is a logical grouping of tables analogous to a database in relation database systems. This abstraction lays the groundwork for upcoming multi-tenancy related features:
+ * Quota Management (HBASE-8410) - Restrict the amount of resources (i.e. regions, tables) a namespace can consume.
+ * Namespace Security Administration (HBASE-9206) - Provide another level of security administration for tenants.
+ * Region server groups (HBASE-6721) - A namespace/table can be pinned onto a subset of RegionServers thus guaranteeing a course level of isolation.
 
 .Table
+
     An HBase table consists of multiple rows.
 
 .Row
 
     A row in HBase consists of a row key and one or more columns with values associated with them. Rows are sorted alphabetically by the row key as they are stored. For this reason, the design of the row key is very important. The goal is to store data in such a way that related rows are near each other. A common row key pattern is a website domain. If your row keys are domains, you should probably store them in reverse (org.apache.www, org.apache.mail, org.apache.jira). This way, all of the Apache domains are near each other in the table, rather than being spread out based on the first letter of the subdomain.
 Column
+
+.Rowkey 
+
+	Row keys are uninterpreted bytes. Rows are lexicographically sorted with the lowest order appearing first in a table. The empty byte array is used to denote both the start and end of a tables' namespace.
 
 .Column
 
@@ -592,7 +564,9 @@ Column Family
 
 .ColumnFamily
 
-    Column families physically colocate a set of columns and their values, often for performance reasons. Each column family has a set of storage properties, such as whether its values should be cached in memory, how its data is compressed or its row keys are encoded, and others. Each row in a table has the same column families, though a given row might not store anything in a given column family.
+    Columns in Apache HBase are grouped into column families. All column members of a column family have the same prefix. For example, the columns courses:history and courses:math are both members of the courses column family. The colon character (:) delimits the column family from the column family qualifier. The column family prefix must be composed of printable characters. The qualifying tail, the column family qualifier, can be made of any arbitrary bytes. Column families must be declared up front at schema definition time whereas columns do not need to be defined at schema time but can be conjured on the fly while the table is up and running.
+Physically, all column family members are stored together on the filesystem. Because tunings and storage specifications are done at the column family level, it is advised that all column family members have the same general access pattern and size characteristics.
+Column families physically colocate a set of columns and their values, often for performance reasons. Each column family has a set of storage properties, such as whether its values should be cached in memory, how its data is compressed or its row keys are encoded, and others. Each row in a table has the same column families, though a given row might not store anything in a given column family.
 Column Qualifier
 
 .ColumnQualifier
@@ -603,12 +577,60 @@ Cell
 .Cell
 
     A cell is a combination of row, column family, and column qualifier, and contains a value and a timestamp, which represents the value’s version.
-Timestamp
+Timestamp. The HBase version dimension is stored in decreasing order, so that when reading from a store file, the most recent values are found first.
+
 
 .Timestamp
 
     A timestamp is written alongside each value, and is the identifier for a given version of a value. By default, the timestamp represents the time on the RegionServer when the data was written, but you can specify a different timestamp value when you put data into the cell.
 
+	
+[TIP]
+====
+The maximum number of versions to store for a given column is part of the column schema and is specified at table creation, or via an alter command, via HColumnDescriptor.DEFAULT_VERSIONS. 
+==== 
+
+[TIP]
+.Modify the Maximum Number of Versions for a Column Family
+====
+alter ‘t1′, NAME => ‘f1′, VERSIONS => 5
+====
+ 
+[TIP]
+.Modify the Maximum Number of Versions for a Column Family
+====
+alter ‘t1′, NAME => ‘f1′, MIN_VERSIONS => 2
+====	
+	
+==  key-hashing strategy
+
+Readings : 
+ * https://sematext.com/blog/2012/04/09/hbasewd-avoid-regionserver-hotspotting-despite-writing-records-with-sequential-keys/
+ * https://www.slideshare.net/amansk/hbase-schema-design-big-data-techcon-boston
+	
+==== Problems
+
+The critical issue of distributing your row keys well to avoid “hot” regions is well known.
+As an example of not really well distributed tables, let’s assume you need to store per-user data. 
+In this case, the row key would simply be the user’s ID, which will probably be a monotonically increasing integer (i.e. generated using a sequence, using MySQL or other tools). It’s easy to see that having the user ID as the key would make all writes for new users go into the last region of your table, which handles the highest values. Additionally, if new users tend to be significantly more active than older ones, or vice-versa, then any updates to existing rows won’t be well distributed across regions as well. Substitute the term ‘User ID’ with ‘Ticket ID’, ‘Product ID’ or any other entity type where there’s a much higher than average write-rate for a small portion of IDs, and you might discover this issue in your own use-cases. 
+	
+==== Simple solution
+However, if we examine that monotonic ID’s structure more closely, we’ll see that it does contain an element that cycles nicely and evenly with each new ID allocated: its least-significant byte. However, once you have any significant number of users, the most significant bytes of generated IDs remain pretty constant for long periods of time while only the least significant bytes rotate (I’m assuming big-endian order, which is pretty much the standard for binary serialization; see for example Hadoop’s Bytes class and Java’s DataOutputStream). This is unfortunate, because good distribution of keys relies on their most significant byte(s). To better illustrate this, think of the odometer in your car, whether digital or old school: how often would you see any of the left-most digits rotate?
+
+speedometer
+A fix for making these row keys distribute nicely is fairly easy to implement. You simply need to prefix the key with a leading byte based on the user ID, whose value is well distributed. In other words, you need a consistent hash. For any given ID, you should always get back the same value.
+
+One way of achieving this is to define a fixed number of buckets, with the leading byte in the key being the bucket number. That byte is usually calculated as userId % BUCKETS_NUMBER. This in effect relies on the well distributed nature of the lowest byte, so alternatively you could just grab the whole least significant byte of the ID as the prefix.
+
+If you have a table for collecting a user’s raw events for later per-user aggregation, then having a consistent hash also has another advantage. It guarantees that a user’s data will always reside under the same prefix, so you can write concurrent code that processes each prefix (i.e. each block of users) without the need for a later reduce phase between tasks. Of course, a MapReduce job could easily merge a user’s rows using the user ID as key, however at Dynamic Yield we’ve tried to steer clear from M/R when dealing with jobs that need to run frequently and quickly, given the high overhead of launching MapReduce. (We’re currently switching to Apache Spark for this kind of job). Whether you use M/R or custom parallel code, you probably want to ensure each task gets an equal share of work, which is another advantage of well distributed tables.
+
+However, sometimes there’s no need for a consistent hash. Assume you have a table whose native key is simply the timestamp (for later scanning by time range). To avoid one hot region that handles all new writes, you could simply generate a random byte (with a value smaller than BUCKETS_NUMBER)as the prefix when writing a new row. To then perform a partial scan for any given time range, you would need a separate scan for each prefix. Note that this multi-scan approach significantly differs from using the built-in scan.setTimeRange() method to find all data with a given HBase-timestamp range (regardless of the row key). The latter requires the Region Server to perform intense analysis over much of the table’s data in order to filter out any data not in range. For large tables, this might mean a very slow scan.
+	
+	
+=== Secondary indexes
+
+TODO: HBase FuzzyRowFilter: Alternative to Secondary Indexes	
+ref : https://sematext.com/blog/2012/08/09/consider-using-fuzzyrowfilter-when-in-need-for-secondary-indexes-in-hbase/
 
 == TIPS
 
@@ -662,5 +684,11 @@ Another related setting is the number of processes a user is allowed to run at o
 
 
 == PHP
+
+== Toolings
+
+==== YCSB
+
+https://github.com/brianfrankcooper/YCSB/wiki
 
 
