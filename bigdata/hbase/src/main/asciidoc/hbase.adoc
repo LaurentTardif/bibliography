@@ -18,6 +18,11 @@ Apache HBase provides random, real time access to your data in Hadoop. It was cr
     Atomic and strongly consistent row-level operations
     High availability through automatic failover
     Automatic sharding and load balancings of tables
+	
+ * Scalling 
+
+    Supports scaling out in coordination with Hadoop file system even on commodity hardware
+	Very flexible on schema design/no fixed schema
 
  * Fast 	
 
@@ -30,7 +35,16 @@ Apache HBase provides random, real time access to your data in Hadoop. It was cr
     Data model accommodates wide range of use cases
     Metrics exports via File and Ganglia plugins
     Easy Java API as well as Thrift and REST gateway APIs
-
+	Great for analytics in association with Hadoop MapReduce
+	Can be integrated with Hive for SQL-like queries, which is better for DBAs who are more familiar with SQL queries
+	
+  * CONS	
+	
+	Single point of failure (when only one HMaster is used)
+    No transaction support
+    JOINs are handled in MapReduce layer rather than the database itself
+    Indexed and sorted only on key, but RDBMS can be indexed on some arbitrary field
+    No built-in authentication or permissions
 
 == Versions 
 
@@ -83,8 +97,16 @@ Tips
 
 === Master, zookeeper, region servers
 
+TODO: define zookeeper and region servers
+
 
 === Database and datamodel 
+
+
+==== Concepts
+
+TODO: http://jimbojw.com/#understanding%20hbase
+
 
 ==== namespace
  
@@ -629,5 +651,16 @@ For example, assuming that a schema had 3 ColumnFamilies per region with an aver
 
 Another related setting is the number of processes a user is allowed to run at once. In Linux and Unix, the number of processes is set using the ulimit -u command. This should not be confused with the nproc command, which controls the number of CPUs available to a given user. Under load, a ulimit -u that is too low can cause OutOfMemoryError exceptions. See Jack Levin's major HDFS issues thread on the hbase-users mailing list, from 2011.
 
+
+
+
+
+= Programming with hbase
+
+
+== Java
+
+
+== PHP
 
 
