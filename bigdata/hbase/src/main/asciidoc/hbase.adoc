@@ -499,38 +499,6 @@ ref : http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
 You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each. That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
 
 
-= Shell
-
-=== shell from text file
-
-You can enter HBase Shell commands into a text file, one command per line, and pass that file to the HBase Shell.
-
-.Example command file
-
-====
- create 'test', 'cf'
- list 'test'
- put 'test', 'row1', 'cf:a', 'value1'
- put 'test', 'row2', 'cf:b', 'value2'
- put 'test', 'row3', 'cf:c', 'value3'
- put 'test', 'row4', 'cf:d', 'value4'
- scan 'test'
- get 'test', 'row1'
- disable 'test'
- enable 'test'
-====
-
-.run command from file
-====
- ./hbase shell ./sample_commands.txt
-====
-
-
-===  A detailed documentation of the commands is available here
-
-https://learnhbase.wordpress.com/2013/03/02/hbase-shell-commands/
-
-
 = DATA MODEL
 
 == Concepts
@@ -632,7 +600,24 @@ However, sometimes there’s no need for a consistent hash. Assume you have a ta
 TODO: HBase FuzzyRowFilter: Alternative to Secondary Indexes	
 ref : https://sematext.com/blog/2012/08/09/consider-using-fuzzyrowfilter-when-in-need-for-secondary-indexes-in-hbase/
 
-== TIPS
+
+=== DBA Tips
+
+.Activate compression :
+
+  ALTER TABLE 'test', {NAME=>'mycolumnfamily', COMPRESSION=>'SNAPPY'} 
+
+.Data block encoding of keys/values
+
+ ALTER TABLE 'test', {NAME=>'mycolumnfamily', DATA_BLOCK_ENCODING => 'FAST_DIFF'}
+
+.Change Split policy for a table (for Hbase 0.94+ the default Split policy changed from ConstantSizeRegionSplitPolicy (based on hbase.hregion.max.filesize) to IncreasingToUpperBoundRegionSplitPolicy)
+
+ alter 'access_demo', {METHOD => 'table_att', CONFIGURATION => {'SPLIT_POLICY' => 'org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy'}}
+
+Remember split will occur if the data size of a ColumnFamily gets bigger than the number defined by the policy.
+  
+== Installation TIPS
 
 [TIP]
 ====
@@ -680,8 +665,504 @@ Another related setting is the number of processes a user is allowed to run at o
 = Programming with hbase
 
 
+
+== Shell
+
+=== shell from text file
+
+You can enter HBase Shell commands into a text file, one command per line, and pass that file to the HBase Shell.
+
+.Example command file
+
+====
+ create 'test', 'cf'
+ list 'test'
+ put 'test', 'row1', 'cf:a', 'value1'
+ put 'test', 'row2', 'cf:b', 'value2'
+ put 'test', 'row3', 'cf:c', 'value3'
+ put 'test', 'row4', 'cf:d', 'value4'
+ scan 'test'
+ get 'test', 'row1'
+ disable 'test'
+ enable 'test'
+====
+
+.run command from file
+====
+ ./hbase shell ./sample_commands.txt
+====
+
+
+===  A detailed documentation of the commands is available here
+
+https://learnhbase.wordpress.com/2013/03/02/hbase-shell-commands/
+
+
+=== Beining efficient with the shell 
+
+==== configuration file 
+
+irbrc file-irbrc configuration to save all command history of all hbase shell invocations.
+
+
+.minimal configuration of irbrc-
+
+[source]
+----
+more ~/.irbrc
+require 'irb/ext/save-history'
+IRB.conf[:SAVE_HISTORY] = 100
+IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb_history"
+Kernel.at_exit do
+    IRB.conf[:AT_EXIT].each do |i|
+        i.call
+    end
+end
+----
+
+==== enabling debug model
+
+[source]
+-----
+hbase>debug
+or
+./bin/hbase shell -d
+-----
+
+==== counters
+
+counters with hbase- hbase offers counter feature, counters are very useful in statistics
+
+
+[source]
+-----
+hbase(main):001:0> create 'account', 'id'
+0 row(s) in 1.1930 seconds
+hbase(main):002:0> incr 'account', '2014', 'id:n', 1
+COUNTER VALUE = 1
+hbase(main):04:0> get_counter 'account', '2014', 'id:n'
+COUNTER VALUE = 2
+-----
+
+==== avoid full scan row  : scan query optimization
+
+
+Scan is used to get the data from hbase and the costliest operation.
+An optional startRow and stopRow is useful to improve the query performance.If rows are not defined(start and stop), the Scanner will iterate over all rows.
+Hbase scan queries with start and end key are much faster because, it doesn’t have to scan everything to get the specified query/filter data.
+Here is tricks-
+
+[source]
+-----
+    create hbase table and populate data-
+
+    create 'TS','cf'
+-----
+
+the result will be 
+.Table populated
+|===
+|card_number_year_month_day_time_o |transaction_amt|location|type|year|month
+
+|100_2014_06_10_10_932845_ta
+|100
+|bangalore
+|credit
+|2014
+|6
+
+|23989_2000_01_11_10_5468756_ta
+|45843745
+|bangalore india
+|debit
+|2000
+|5
+
+|487545_2000_01_11_10_5468756_ta
+|
+|
+|
+|2000
+|1
+|===
+
+
+Avoid Full Table Scan-
+
+find out all transaction done by card number x at place bangalore.
+use prefix/rowkey filter with regex/substring comparator to set the search condition and set the start row as ‘X’ and stop row ‘X~’.
+Row keys are sorted(lexical) and data is stored in byte in hbase. The start/stop key helps to avoid the complete table scan and fetch the data from region contains the range value, as(~) is last in ascii table so hbase scan lookup the rows having prefix X~.
+Retrieving data from HBase scan with filter-
+
+[source]
+-----
+    Scan scan = new Scan(Bytes.ToBytes("23989"),Bytes.toBytes("23989~");
+    scan.setFilter(...);
+-----
+
+Disable cache at client-
+
+	
+[source]
+-----
+    setCacheBlocks(false)
+    and setCaching(0) 
+-----
+
+Get all the row having account number 23989
+
+
+[source]
+-----
+import org.apache.hadoop.hbase.filter.CompareFilter
+import org.apache.hadoop.hbase.filter.RowFilter
+import org.apache.hadoop.hbase.filter.SubstringComparator
+scan 'TS', {STARTROW=>'23989', STOPROW=>'23989~',FILTER=>RowFilter.new(CompareFilter::CompareOp.valueOf('EQUAL'),SubstringComparator.new('23989'))}
+-----
+
+Use start and stop row to optimize scan query.
+
+
 == Java
 
+
+There's several good ressources to start with available 
+
+ * http://www.informit.com/articles/article.aspx?p=2255108&seqNum=2
+ * https://autofei.wordpress.com/2012/04/02/java-example-code-using-hbase-data-model-operations/
+ * https://www.tutorialspoint.com/hbase/hbase_read_data.htm
+
+=== Let's start with maven
+
+.pom file
+
+[source,xml]
+-----
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zenika</groupId>
+    <artifactId>hbase-example</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>hbase-example</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
+             <version>0.98.5-hadoop2</version>
+        </dependency>
+
+        <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <version>4.11</version>
+             <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                   <archive>
+                       <manifest>
+                           <addClasspath>true</addClasspath>
+                           <classpathPrefix>lib/</classpathPrefix>
+                           <mainClass>com.zenika.hbaseexample.HBaseExample</mainClass>
+                       </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+-----
+
+.compile install and run 
+
+[source,shell]
+-----
+   mvn clean install
+-----
+
+This creates a file in the target directory named hbase-example-1.0-SNAPSHOT.jar. You can execute it with the following command:
+
+[source,shell]
+-----
+  java -jar hbase-example-1.0-SNAPSHOT.jar
+-----
+
+=== The POJO page view
+
+[source,java]
+-----
+package com.zenika.hbaseexample;
+
+public class PageView
+{
+
+    private String userId;
+    private String page;
+
+    public PageView() {
+    }
+
+    public PageView(String userId, String page) {
+        this.userId = userId;
+        this.page = page;
+
+    }
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+    public String getPage() {
+        return page;
+    }
+
+    public void setPage(String page) {
+        this.page = page;
+    }
+
+}
+-----
+
+=== The main class
+
+[source,java]
+-----
+package com.zenika.hbaseexample;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HBaseExample
+{
+
+    private HTableInterface pageViewTable;
+
+    public HBaseExample()
+    {
+        try
+        {
+            Configuration conf = HBaseConfiguration.create();
+			//you may need this specific configuration
+			//conf.set("hbase.zookeeper.quorum", "server’s IP address");
+            pageViewTable = new HTable( conf, "PageViews");
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void close()
+    {
+        try
+
+        {
+            pageViewTable.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void put( PageView pageView )
+    {
+        // Create a new Put object with the Row Key as the bytes of the user id
+        Put put = new Put( Bytes.toBytes( pageView.getUserId() ) );
+
+        // Add the user id to the info column family
+        put.add( Bytes.toBytes( "info" ),
+                 Bytes.toBytes( "userId" ),
+                 Bytes.toBytes( pageView.getUserId() ) );
+
+        // Add the page to the info column family
+        put.add( Bytes.toBytes( "info" ),
+                 Bytes.toBytes( "page" ),
+                 Bytes.toBytes( pageView.getPage() ) );
+        try
+
+        {
+
+            // Add the PageView to the page view table
+            pageViewTable.put( put );
+        }
+        catch( IOException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public PageView get( String rowkey )
+
+    {
+        try
+        {
+
+            // Create a Get object with the rowkey (as a byte[])
+            Get get = new Get( Bytes.toBytes( rowkey ) );
+
+            // Execute the Get
+            Result result = pageViewTable.get( get );
+
+            // Retrieve the results
+            PageView pageView = new PageView();
+            byte[] bytes = result.getValue( Bytes.toBytes( "info" ),
+                                            Bytes.toBytes( "userId" ) );
+            pageView.setUserId( Bytes.toString( bytes ) );
+            bytes = result.getValue( Bytes.toBytes( "info" ),
+                                     Bytes.toBytes( "page" ) );
+            pageView.setPage(Bytes.toString(bytes));
+
+
+            // Return the newly constructed PageView
+            return pageView;
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public void delete( String rowkey )
+    {
+        try
+        {
+            Delete delete = new Delete( Bytes.toBytes( rowkey ) );
+            pageViewTable.delete( delete );
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public List<PageView> scan( String startRowKey, String endRowKey )
+    {
+        try
+        {
+            // Build a list to hold our results
+            List<PageView> pageViewResults = new ArrayList<PageView>();
+
+
+            // Create and execute a scan
+            Scan scan = new Scan( Bytes.toBytes( startRowKey ), Bytes.toBytes( endRowKey ) );
+            ResultScanner results = pageViewTable.getScanner(scan);
+
+            for( Result result : results )
+
+            {
+                // Build a new PageView
+                PageView pageView = new PageView();
+                byte[] bytes = result.getValue( Bytes.toBytes( "info" ),
+                        Bytes.toBytes( "userId" ) );
+                pageView.setUserId( Bytes.toString( bytes ) );
+                bytes = result.getValue( Bytes.toBytes( "info" ),
+                        Bytes.toBytes( "page" ) );
+                pageView.setPage(Bytes.toString(bytes));
+
+                // Add the PageView to our results
+                pageViewResults.add( pageView );
+            }
+
+            // Return our results
+            return pageViewResults;
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void main( String[] args )
+
+    {
+        HBaseExample example = new HBaseExample();
+
+        // Create two records
+        example.put( new PageView( "User1", "/mypage" ) );
+        example.put( new PageView( "User2","/mypage" ) );
+
+        // Execute a Scan from "U" to "V"
+        List<PageView> pageViews = example.scan( "U", "V" );
+        if( pageViews != null ) {
+            System.out.println("Page Views:");
+            for (PageView pageView : pageViews) {
+                System.out.println("\tUser ID: " + pageView.getUserId() + ", Page: " + pageView.getPage());
+            }
+        }
+
+        // Get a specific row
+        PageView pv = example.get( "User1" );
+        System.out.println( "User ID: " + pv.getUserId() + ", Page: " + pv.getPage() );
+
+        // Delete a row
+        example.delete( "User1" );
+
+        // Execute another scan, which should just have User2 in it
+        pageViews = example.scan( "U", "V" );
+        if( pageViews != null ) {
+            System.out.println("Page Views:");
+            for (PageView pageView : pageViews) {
+                System.out.println("\tUser ID: " + pageView.getUserId() + ", Page: " + pageView.getPage());
+            }
+        }
+
+        // Close our table
+        example.close();
+    }
+}
+-----
 
 == PHP
 
