@@ -154,9 +154,10 @@ Or get the information directly from hdfs
 
  bin/hdfs dfs -cat output/*
  
-that gave 
+that give 
 
- [admin@localhost hadoop]$  bin/hdfs dfs -cat output/*6	dfs.audit.logger
+ [admin@localhost hadoop]$  bin/hdfs dfs -cat output/*
+ 6	dfs.audit.logger
  4	dfs.class
  3	dfs.server.namenode.
  2	dfs.period
