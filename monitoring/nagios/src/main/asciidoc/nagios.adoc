@@ -11,8 +11,51 @@ From
 
  *
 
-== quick start unix commands 
+== Global architecture 
 
 image::NRPE_Direct_Checks.png[NRPE_Direct_Checks]
 
 image::nsca.png[nsca]
+
+
+== Installation 
+
+.Install apache and php
+
+  sudo yum -y install httpd 
+  sudo systemctl start httpd 
+  sudo systemctl enable httpd 
+  sudo firewall-cmd --add-service=http --permanent 
+  sudo firewall-cmd --reload
+    
+  sudo yum -y install php php-mbstring php-pear 
+  sudo systemctl restart httpd
+  sudo vi /var/www/html/index.php 
+  
+add the following content to display the current date :
+
+[Source, php]
+-----
+  <html>
+    <body>
+		<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: center;">
+			<?php
+				print Date("Y/m/d");
+			?>
+		</div>
+	</body>
+</html>
+-----
+  
+.Install nagios and nagios plugins
+
+  sudo yum -y install epel-release 
+  sudo yum --enablerepo=epel -y install nagios nagios-plugins-{ping,disk,users,procs,load,swap,ssh,http} 
+  sudo htpasswd /etc/nagios/passwd nagiosadmin 
+  sudo systemctl start nagios
+  sudo systemctl enable nagios
+  sudo systemctl restart httpd
+
+.Update security of SELinux 
+
+  sudo chcon -R --type=httpd_sys_content_t /var/spool/nagios 

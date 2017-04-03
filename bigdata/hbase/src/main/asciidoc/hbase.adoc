@@ -528,13 +528,26 @@ For example, assuming that a schema had 3 ColumnFamilies per region with an aver
 
 Another related setting is the number of processes a user is allowed to run at once. In Linux and Unix, the number of processes is set using the ulimit -u command. This should not be confused with the nproc command, which controls the number of CPUs available to a given user. Under load, a ulimit -u that is too low can cause OutOfMemoryError exceptions. See Jack Levin's major HDFS issues thread on the hbase-users mailing list, from 2011.
 
+== Ports 
 
+TODO: list ports number and usage
 
 
 == Metrics 
 
 ref : http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
-You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each. That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
+You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. 
+For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each.
+That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
+
+
+== Monitoring
+
+introscope ...
+
+appdynamique 
+
+NAgios
 
 
 = Hbase 
@@ -1502,18 +1515,7 @@ public class HBaseExample
             // Create and execute a scan
             Scan scan = new Scan( Bytes.toBytes( startRowKey ), Bytes.toBytes( endRowKey ) );
             ResultScanner results = pageViewTable.getScanner(scan);
-
-            for( Result result : results )
-
-            {
-                // Build a new PageView
-                PageView pageView = new PageView();
-                byte[] bytes = result.getValue( Bytes.toBytes( "info" ),
-                        Bytes.toBytes( "userId" ) );
-                pageView.setUserId( Bytes.toString( bytes ) );
-                bytes = result.getValue( Bytes.toBytes( "info" ),
-                        Bytes.toBytes( "page" ) );
-                pageView.setPage(Bytes.toString(bytes));
+IsetPage(Bytes.toString(bytes));
 
                 // Add the PageView to our results
                 pageViewResults.add( pageView );
@@ -1568,6 +1570,13 @@ public class HBaseExample
     }
 }
 -----
+
+=== unit testing 
+
+https://blog.cloudera.com/blog/2013/09/how-to-test-hbase-applications-using-popular-tools/
+https://github.com/apache/hbase/blob/master/src/main/asciidoc/_chapters/unit_testing.adoc
+https://github.com/dbist/HBaseUnitTest  <= 2016
+http://hbase.apache.org/0.94/book/hbase.tests.html
 
 == PHP
 
