@@ -95,12 +95,6 @@ Tips
 
 == Key concepts
 
-=== Master, zookeeper, region servers
-
-TODO: define zookeeper and region servers
-
-
-
  
 === Understanding HBASE and BigTable (from Jim R. Wilson)
 
@@ -493,10 +487,216 @@ it's not installed by default with openJDK, you need to install the devel module
 A few configuration recommendations include disabling auto-compaction (by default it happens every 24 hours from the time you start HBase) and schedule it to run every day at an off-peak time. You should also configure compression (such as LZO) and explicitly put the correctly configured HBase conf directory in your CLASSPATH.
 
 
+== Installation TIPS
+
+[TIP]
+====
+ . ssh
+ . dns
+ . loopback entry
+ . ntp
+ . ulimit
+====
+
+=== _ssh_
+
+HBase uses the Secure Shell (ssh) command and utilities extensively to communicate between cluster nodes. Each server in the cluster must be running ssh so that the Hadoop and HBase daemons can be managed. You must be able to connect to all nodes via SSH, including the local node, from the Master as well as any backup Master, using a shared key rather than a password. You can see the basic methodology for such a set-up in Linux or Unix systems at "Procedure: Configure Passwordless SSH Access". If your cluster nodes use OS X, see the section, SSH: Setting up Remote Desktop and Enabling Self-Login on the Hadoop wiki.
+
+=== _DNS_
+
+HBase uses the local hostname to self-report its IP address. Both forward and reverse DNS resolving must work in versions of HBase previous to 0.92.0. The hadoop-dns-checker tool can be used to verify DNS is working correctly on the cluster. The project README file provides detailed instructions on usage.
+
+=== _Loopback IP_
+
+Prior to hbase-0.96.0, HBase only used the IP address 127.0.0.1 to refer to localhost, and this could not be configured. See Loopback IP for more details.
+
+=== _ NTP_
+
+The clocks on cluster nodes should be synchronized. A small amount of variation is acceptable, but larger amounts of skew can cause erratic and unexpected behavior. Time synchronization is one of the first things to check if you see unexplained problems in your cluster. It is recommended that you run a Network Time Protocol (NTP) service, or another time-synchronization mechanism, on your cluster, and that all nodes look to the same service for time synchronization. See the Basic NTP Configuration at The Linux Documentation Project (TLDP) to set up NTP.===_Limits on Number of Files and Processes (ulimit)_
+
+=== _ulimit_
+Apache HBase is a database. It requires the ability to open a large number of files at once. Many Linux distributions limit the number of files a single user is allowed to open to 1024 (or 256 on older versions of OS X). You can check this limit on your servers by running the command ulimit -n when logged in as the user which runs HBase. See the Troubleshooting section for some of the problems you may experience if the limit is too low. You may also notice errors such as the following:
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Exception increateBlockOutputStream java.io.EOFException
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Abandoning block blk_-6935524980745310745_1391901
+
+It is recommended to raise the ulimit to at least 10,000, but more likely 10,240, because the value is usually expressed in multiples of 1024. Each ColumnFamily has at least one StoreFile, and possibly more than six StoreFiles if the region is under load. The number of open files required depends upon the number of ColumnFamilies and the number of regions. The following is a rough formula for calculating the potential number of open files on a RegionServer.
+Calculate the Potential Number of Open Files
+
+   (StoreFiles per ColumnFamily) x (regions per RegionServer)
+
+For example, assuming that a schema had 3 ColumnFamilies per region with an average of 3 StoreFiles per ColumnFamily, and there are 100 regions per RegionServer, the JVM will open 3 * 3 * 100 = 900 file descriptors, not counting open JAR files, configuration files, and others. Opening a file does not take many resources, and the risk of allowing a user to open too many files is minimal.
+
+Another related setting is the number of processes a user is allowed to run at once. In Linux and Unix, the number of processes is set using the ulimit -u command. This should not be confused with the nproc command, which controls the number of CPUs available to a given user. Under load, a ulimit -u that is too low can cause OutOfMemoryError exceptions. See Jack Levin's major HDFS issues thread on the hbase-users mailing list, from 2011.
+
+
+
+
 == Metrics 
 
 ref : http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
 You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each. That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
+
+
+= Hbase 
+
+[Note] 
+ a detailled blog can be found at : https://www.edureka.co/blog/hbase-architecture/
+
+
+== Introduction to hbase architecture
+
+HBase has three major components i.e., HMaster Server, HBase Region Server  and Zookeeper.
+
+image::HBase-Architecture.png[Hbase Architecture]
+
+The HMaster in the HBase is responsible for
+
+ * Performing Administration
+ * Managing and Monitoring the Cluster
+ * Assigning Regions to the Region Servers
+ * Controlling the Load Balancing and Failover
+
+On the other hand, the HRegionServer perform the following work
+
+ * Hosting and managing Regions
+ * Splitting the Regions automatically
+ * Handling the read/write requests
+ * Communicating with the Clients directly
+
+Each Region Server contains a Write-Ahead Log (called HLog) and multiple Regions. Each Region in turn is made up of a MemStore and multiple StoreFiles (HFile). The data lives in these StoreFiles in the form of Column Families (explained below). The MemStore holds in-memory modifications to the Store (data).
+
+The mapping of Regions to Region Server is kept in a system table called .META. When trying to read or write data from HBase, the clients read the required Region information from the .META table and directly communicate with the appropriate Region Server. Each Region is identified by the start key (inclusive) and the end key (exclusive)
+
+=== Region server
+
+A region contains all the rows between the start key and the end key assigned to that region. HBase tables can be divided into a number of regions in such a way that all the columns of a column family is stored in one region. Each region contains the rows in a sorted order.
+
+Many regions are assigned to a Region Server, which is responsible for handling, managing, executing reads and writes operations on that set of regions.
+
+So, concluding in a simpler way:
+
+ * A table can be divided into a number of regions. A Region is a sorted range of rows storing data between a start key and an end key.
+ * A Region has a default size of 256MB which can be configured according to the need.
+ * A Group of regions is served to the clients by a Region Server.
+ * A Region Server can serve approximately 1000 regions to the client.
+
+A Region Server maintains various regions running on the top of HDFS. Components of a Region Server are:
+
+ * WAL: As you can conclude from the above image, Write Ahead Log (WAL) is a file attached to every Region Server inside the distributed environment. The WAL stores the new data that hasn’t been persisted or committed to the permanent storage. It is used in case of failure to recover the data sets.
+ * Block Cache: From the above image, it is clearly visible that Block Cache resides in the top of Region Server. It stores the frequently read data in the memory. If the data in BlockCache is least recently used, then that data is removed from BlockCache.
+ * MemStore: It is the write cache. It stores all the incoming data before committing it to the disk or permanent memory. There is one MemStore for each column family in a region. As you can see in the image, there are multiple MemStores for a region because each region contains multiple column families. The data is sorted in lexicographical order before committing it to the disk. 
+ * HFile: From the above figure you can see HFile is stored on HDFS. Thus it stores the actual cells on the disk. MemStore commits the data to HFile when the size of MemStore exceeds.
+
+image::RegionServer.png[Region server]
+ 
+=== Master
+
+HBase Components - HBase Architecture - Edureka
+
+ * HBase HMaster performs DDL operations (create and delete tables) and assigns regions to the Region servers as you can see in the above image.
+ * It coordinates and manages the Region Server (similar as NameNode manages DataNode in HDFS).
+ * It assigns regions to the Region Servers on startup and re-assigns regions to Region Servers during recovery and load balancing.
+ * It monitors all the Region Server’s instances in the cluster (with the help of Zookeeper) and performs recovery activities whenever any Region Server is down.
+ * It provides an interface for creating, deleting and updating tables.
+
+HBase has a distributed and huge environment where HMaster alone is not sufficient to manage everything. So, you would be wondering what helps HMaster to manage this huge environment? That’s where ZooKeeper comes into the picture. After we understood how HMaster manages HBase environment, we will understand how Zookeeper helps HMaster in managing the environment. 
+
+image::HBase-Master.png[HMaster]
+
+
+=== Zookeeper – The Coordinator
+
+ * Zookeeper acts like a coordinator inside HBase distributed environment. It helps in maintaining server state inside the cluster by communicating through sessions.
+ * Every Region Server along with HMaster Server sends continuous heartbeat at regular interval to Zookeeper and it checks which server is alive and available as mentioned in above image. It also provides server failure notifications so that, recovery measures can be executed.
+ * Referring from the above image you can see, there is an inactive server, which acts as a backup for active server. If the active server fails, it comes for the rescue.
+ * The active HMaster sends heartbeats to the Zookeeper while the inactive HMaster listens for the notification send by active HMaster. If the active HMaster fails to send a heartbeat the session is deleted and the inactive HMaster becomes active.
+ * While if a Region Server fails to send a heartbeat, the session is expired and all listeners are notified about it. Then HMaster performs suitable recovery actions which we will discuss later in this blog.
+ * Zookeeper also maintains the .META Server’s path, which helps any client in searching for any region. The Client first has to check with .META Server in which Region Server a region belongs, and it gets the path of that Region Server. 
+
+image::ZooKeeper.png[Zookepper]
+
+=== Meta table
+
+image::Meta-Table-Hbase.png[Hbase meta table]
+ 
+The META table is a special HBase catalog table. It maintains a list of all the Regions Servers in the HBase storage system, as you can see in the above image.
+Looking at the figure you can see, .META file maintains the table in form of keys and values. Key represents the start key of the region and its id whereas the value contains the path of the Region Server.
+
+== Read and write operations
+
+=== Write mechanism
+
+he write mechanism goes through the following process sequentially (refer to the above image): 
+
+ * Step 1: Whenever the client has a write request, the client writes the data to the WAL (Write Ahead Log). 
+    The edits are then appended at the end of the WAL file.
+    This WAL file is maintained in every Region Server and Region Server uses it to recover data which is not committed to the disk.
+ * Step 2: Once data is written to the WAL, then it is copied to the MemStore.
+ * Step 3: Once the data is placed in MemStore, then the client receives the acknowledgment.
+ * Step 4: When the MemStore reaches the threshold, it dumps or commits the data into a HFile.
+
+image::HBase-Write.png[Write in Hbase]
+
+.HBase Write Mechanism- MemStore
+
+ * The MemStore always updates the data stored in it, in a lexicographical order (sequentially in a dictionary manner) as sorted KeyValues. There is one MemStore for each column family, and thus the updates are stored in a sorted manner for each column family. 
+ * When the MemStore reaches the threshold, it dumps all the data into a new HFile in a sorted manner. This HFile is stored in HDFS. HBase contains multiple HFiles for each Column Family.
+ * Over time, the number of HFile grows as MemStore dumps the data.
+ * MemStore also saves the last written sequence number, so Master Server and MemStore both knows, that what is committed so far and where to start from. When region starts up, the last sequence number is read, and from that number, new edits start.
+
+As I discussed several times, that HFile is the main persistent storage in an HBase architecture. At last, all the data is committed to HFile which is the permanent storage of HBase. Hence, let us look at the properties of HFile which makes it faster for search while reading and writing.
+
+.HBase Write Mechanism- HFile
+
+ * The writes are placed sequentially on the disk. Therefore, the movement of the disk’s read-write head is very less. This makes write and search mechanism very fast.
+ * The HFile indexes are loaded in memory whenever an HFile is opened. This helps in finding a record in a single seek. 
+ * The trailer is a pointer which points to the HFile’s meta block . It is written at the end of the committed file. It contains information about timestamp and bloom filters.
+ * Bloom Filter helps in searching key value pairs, it skips the file which does not contain the required rowkey. Timestamp also helps in searching a version of the file, it helps in skipping the data.
+
+=== Read Mechanism
+
+As discussed in our search mechanism, first the client retrieves the location of the Region Server from .META Server if the client does not have it in its cache memory. Then it goes through the sequential steps as follows: 
+
+ * For reading the data, the scanner first looks for the Row cell in Block cache. Here all the recently read key value pairs are stored.
+ * If Scanner fails to find the required result, it moves to the MemStore, as we know this is the write cache memory. There, it searches for the most recently written files, which has not been dumped yet in HFile.
+ * At last, it will use bloom filters and block cache to load the data from HFile.
+
+
+
+== Administration 
+
+=== Compaction
+
+HBase combines HFiles to reduce the storage and reduce the number of disk seeks needed for a read. This process is called compaction. Compaction chooses some HFiles from a region and combines them. There are two types of compaction as you can see in the above image.
+
+ * Minor Compaction: HBase automatically picks smaller HFiles and recommits them to bigger HFiles as shown in the above image. This is called Minor Compaction. It performs merge sort for committing smaller HFiles to bigger HFiles. This helps in storage space optimization. 
+ * Major Compaction: As illustrated in the above image, in Major compaction, HBase merges and recommits the smaller HFiles of a region to a new HFile. In this process, the same column families are placed together in the new HFile. It drops deleted and expired cell in this process. It increases read performance.
+
+But during this process, input-output disks and network traffic might get congested. This is known as write amplification. So, it is generally scheduled during low peak load timings.
+
+image::Compaction-in-HBase.png[Compaction in Hbase]
+
+=== Region split 
+
+Whenever a region becomes large, it is divided into two child regions, as shown in the above figure. Each region represents exactly a half of the parent region. Then this split is reported to the HMaster. This is handled by the same Region Server until the HMaster allocates them to a new Region Server for load balancing.
+
+image::HBase-Region-Split.png[Region split]
+
+=== Crash and recovery
+
+
+ * Whenever a Region Server fails, ZooKeeper notifies to the HMaster about the failure.
+ * Then HMaster distributes and allocates the regions of crashed Region Server to many active Region Servers. To recover the data of the MemStore of the failed Region Server, the HMaster distributes the WAL to all the Region Servers.
+ * Each Region Server re-executes the WAL to build the MemStore for that failed region’s column family.
+ * The data is written in chronological order (in a timely order) in WAL. Therefore, Re-executing that WAL means making all the change that were made and stored in the MemStore file.
+ * So, after all the Region Servers executes the WAL, the MemStore data for all column family is recovered.
+
+== Toolings
+
+==== YCSB (Yahoo! Cloud Serving Benchmark )
+
+https://github.com/brianfrankcooper/YCSB/wiki
+
 
 
 = DATA MODEL
@@ -594,11 +794,125 @@ If you have a table for collecting a user’s raw events for later per-user aggr
 
 However, sometimes there’s no need for a consistent hash. Assume you have a table whose native key is simply the timestamp (for later scanning by time range). To avoid one hot region that handles all new writes, you could simply generate a random byte (with a value smaller than BUCKETS_NUMBER)as the prefix when writing a new row. To then perform a partial scan for any given time range, you would need a separate scan for each prefix. Note that this multi-scan approach significantly differs from using the built-in scan.setTimeRange() method to find all data with a given HBase-timestamp range (regardless of the row key). The latter requires the Region Server to perform intense analysis over much of the table’s data in order to filter out any data not in range. For large tables, this might mean a very slow scan.
 	
-	
-=== Secondary indexes
 
-TODO: HBase FuzzyRowFilter: Alternative to Secondary Indexes	
-ref : https://sematext.com/blog/2012/08/09/consider-using-fuzzyrowfilter-when-in-need-for-secondary-indexes-in-hbase/
+=== Monotonically Increasing Row Keys/Timeseries Data
+
+In the HBase chapter of Tom White’s book Hadoop: The Definitive Guide (O’Reilly) there is a an optimization note on watching out for a phenomenon where an import process walks in lock-step with all clients in concert pounding one of the table’s regions (and thus, a single node), then moving onto the next region, etc. With monotonically increasing row-keys (i.e., using a timestamp), this will happen. See this comic by IKai Lan on why monotonically increasing row keys are problematic in BigTable-like datastores: monotonically increasing values are bad. The pile-up on a single region brought on by monotonically increasing keys can be mitigated by randomizing the input records to not be in sorted order, but in general it’s best to avoid using a timestamp or a sequence (e.g. 1, 2, 3) as the row-key.
+
+If you do need to upload time series data into HBase, you should study OpenTSDB as a successful example. It has a page describing the schema it uses in HBase. The key format in OpenTSDB is effectively [metric_type][event_timestamp], which would appear at first glance to contradict the previous advice about not using a timestamp as the key. However, the difference is that the timestamp is not in the lead position of the key, and the design assumption is that there are dozens or hundreds (or more) of different metric types. Thus, even with a continual stream of input data with a mix of metric types, the Puts are distributed across various points of regions in the table.
+	
+=== Reverse Timestamps
+	
+Reverse Scan API
+
+HBASE-4811 implements an API to scan a table or a range within a table in reverse, reducing the need to optimize your schema for forward or reverse scanning. This feature is available in HBase 0.98 and later. See https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Scan.html#setReversed%28boolean for more information.
+
+A common problem in database processing is quickly finding the most recent version of a value. A technique using reverse timestamps as a part of the key can help greatly with a special case of this problem. Also found in the HBase chapter of Tom White’s book Hadoop: The Definitive Guide (O’Reilly), the technique involves appending (Long.MAX_VALUE - timestamp) to the end of any key, e.g. [key][reverse_timestamp].
+
+The most recent value for [key] in a table can be found by performing a Scan for [key] and obtaining the first record. Since HBase keys are in sorted order, this key sorts before any older row-keys for [key] and thus is first.
+
+This technique would be used instead of using Number of Versions where the intent is to hold onto all versions "forever" (or a very long time) and at the same time quickly obtain access to any other version by using the same Scan technique.
+
+
+=== Pre- split tables
+
+If you pre-split your table, it is critical to understand how your rowkey will be distributed across the region boundaries. As an example of why this is important, consider the example of using displayable hex characters as the lead position of the key (e.g., "0000000000000000" to "ffffffffffffffff"). Running those key ranges through Bytes.split (which is the split strategy used when creating regions in Admin.createTable(byte[] startKey, byte[] endKey, numRegions) for 10 regions will generate the following splits…​
+
+ 48 48 48 48 48 48 48 48 48 48 48 48 48 48 48 48                                // 0
+ 54 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10 -10                 // 6
+ 61 -67 -67 -67 -67 -67 -67 -67 -67 -67 -67 -67 -67 -67 -67 -68                 // =
+ 68 -124 -124 -124 -124 -124 -124 -124 -124 -124 -124 -124 -124 -124 -124 -126  // D
+ 75 75 75 75 75 75 75 75 75 75 75 75 75 75 75 72                                // K
+ 82 18 18 18 18 18 18 18 18 18 18 18 18 18 18 14                                // R
+ 88 -40 -40 -40 -40 -40 -40 -40 -40 -40 -40 -40 -40 -40 -40 -44                 // X
+ 95 -97 -97 -97 -97 -97 -97 -97 -97 -97 -97 -97 -97 -97 -97 -102                // _
+ 102 102 102 102 102 102 102 102 102 102 102 102 102 102 102 102                // f
+
+(note: the lead byte is listed to the right as a comment.) Given that the first split is a '0' and the last split is an 'f', everything is great, right? Not so fast.
+
+The problem is that all the data is going to pile up in the first 2 regions and the last region thus creating a "lumpy" (and possibly "hot") region problem. To understand why, refer to an ASCII Table. '0' is byte 48, and 'f' is byte 102, but there is a huge gap in byte values (bytes 58 to 96) that will never appear in this keyspace because the only values are [0-9] and [a-f]. Thus, the middle regions will never be used. To make pre-splitting work with this example keyspace, a custom definition of splits (i.e., and not relying on the built-in split method) is required.
+
+[TIP]
+ Lesson #1: Pre-splitting tables is generally a best practice, but you need to pre-split them in such a way that all the regions are accessible in the keyspace. While this example demonstrated the problem with a hex-key keyspace, the same problem can happen with any keyspace. Know your data.
+
+[TIP]
+ Lesson #2: While generally not advisable, using hex-keys (and more generally, displayable data) can still work with pre-split tables as long as all the created regions are accessible in the keyspace.
+
+To conclude this example, the following is an example of how appropriate splits can be pre-created for hex-keys:.
+
+[Code,Java]
+----
+public static boolean createTable(Admin admin, HTableDescriptor table, byte[][] splits)
+throws IOException {
+  try {
+    admin.createTable( table, splits );
+    return true;
+  } catch (TableExistsException e) {
+    logger.info("table " + table.getNameAsString() + " already exists");
+    // the table already exists...
+    return false;
+  }
+}
+
+public static byte[][] getHexSplits(String startKey, String endKey, int numRegions) {
+  byte[][] splits = new byte[numRegions-1][];
+  BigInteger lowestKey = new BigInteger(startKey, 16);
+  BigInteger highestKey = new BigInteger(endKey, 16);
+  BigInteger range = highestKey.subtract(lowestKey);
+  BigInteger regionIncrement = range.divide(BigInteger.valueOf(numRegions));
+  lowestKey = lowestKey.add(regionIncrement);
+  for(int i=0; i < numRegions-1;i++) {
+    BigInteger key = lowestKey.add(regionIncrement.multiply(BigInteger.valueOf(i)));
+    byte[] b = String.format("%016x", key).getBytes();
+    splits[i] = b;
+  }
+  return splits;
+}
+----
+
+	
+== Secondary indexes
+
+Some biblio can be found here : 
+	TODO: HBase FuzzyRowFilter: Alternative to Secondary Indexes	
+	ref : https://sematext.com/blog/2012/08/09/consider-using-fuzzyrowfilter-when-in-need-for-secondary-indexes-in-hbase/
+
+=== Filter Query
+
+Depending on the case, it may be appropriate to use Client Request Filters. In this case, no secondary index is created. However, don’t try a full-scan on a large table like this from an application (i.e., single-threaded client).
+
+=== Periodic-Update Secondary Index
+
+A secondary index could be created in another table which is periodically updated via a MapReduce job. The job could be executed intra-day, but depending on load-strategy it could still potentially be out of sync with the main data table.
+
+See mapreduce.example.readwrite for more information.
+
+=== Dual-Write Secondary Index
+
+Another strategy is to build the secondary index while publishing data to the cluster (e.g., write to data table, write to index table). If this is approach is taken after a data table already exists, then bootstrapping will be needed for the secondary index with a MapReduce job (see secondary.indexes.periodic).
+
+=== Summary Tables
+
+Where time-ranges are very wide (e.g., year-long report) and where the data is voluminous, summary tables are a common approach. These would be generated with MapReduce jobs into another table.
+
+See mapreduce.example.summary for more information.
+
+=== Coprocessor Secondary Index
+
+Coprocessors act like RDBMS triggers. These were added in 0.92. For more information, see coprocessors
+
+
+== Case studies 
+
+Some initiatic examples can be found at :
+
+http://hbase.apache.org/1.2/book.html#schema.casestudies
+
+(If this is a bit confusing, take an hour and watch Lars George’s excellent video about understanding HBase schema design: http://www.youtube.com/watch?v=_HLoH_PgrLk).
+
+https://www.eduonix.com/blog/bigdata-and-hadoop/learn-develop-effective-data-models-hbase/
+
+
 
 
 === DBA Tips
@@ -632,50 +946,125 @@ There are many different data sets, with different access patterns and service-l
 
   
   
-  
-== Installation TIPS
+== Fancy stuff
+
+=== Time To Live (TTL)
+
+ColumnFamilies can set a TTL length in seconds, and HBase will automatically delete rows once the expiration time is reached. This applies to all versions of a row - even the current one. The TTL time encoded in the HBase for the row is specified in UTC.
+
+Store files which contains only expired rows are deleted on minor compaction. Setting hbase.store.delete.expired.storefile to false disables this feature. Setting minimum number of versions to other than 0 also disables this.
+
+See HColumnDescriptor for more information.
+
+Recent versions of HBase also support setting time to live on a per cell basis. See HBASE-10560 for more information. Cell TTLs are submitted as an attribute on mutation requests (Appends, Increments, Puts, etc.) using Mutation#setTTL. If the TTL attribute is set, it will be applied to all cells updated on the server by the operation. There are two notable differences between cell TTL handling and ColumnFamily TTLs:
 
 [TIP]
-====
- . ssh
- . dns
- . loopback entry
- . ntp
- . ulimit
-====
+ Cell TTLs are expressed in units of milliseconds instead of seconds.
 
-=== _ssh_
+[TIP]
+   A cell TTLs cannot extend the effective lifetime of a cell beyond a ColumnFamily level TTL setting.
 
-HBase uses the Secure Shell (ssh) command and utilities extensively to communicate between cluster nodes. Each server in the cluster must be running ssh so that the Hadoop and HBase daemons can be managed. You must be able to connect to all nodes via SSH, including the local node, from the Master as well as any backup Master, using a shared key rather than a password. You can see the basic methodology for such a set-up in Linux or Unix systems at "Procedure: Configure Passwordless SSH Access". If your cluster nodes use OS X, see the section, SSH: Setting up Remote Desktop and Enabling Self-Login on the Hadoop wiki.
+  
+  
+= Comming from the relational world
 
-=== _DNS_
+Reference : https://mapr.com/blog/guidelines-hbase-schema-design/
 
-HBase uses the local hostname to self-report its IP address. Both forward and reverse DNS resolving must work in versions of HBase previous to 0.92.0. The hadoop-dns-checker tool can be used to verify DNS is working correctly on the cluster. The project README file provides detailed instructions on usage.
+There is no one-to-one mapping from relational databases to HBase. In relational design, the focus and effort is around describing the entity and its interaction with other entities; the queries and indexes are designed later.
 
-=== _Loopback IP_
-
-Prior to hbase-0.96.0, HBase only used the IP address 127.0.0.1 to refer to localhost, and this could not be configured. See Loopback IP for more details.
-
-=== _ NTP_
-
-The clocks on cluster nodes should be synchronized. A small amount of variation is acceptable, but larger amounts of skew can cause erratic and unexpected behavior. Time synchronization is one of the first things to check if you see unexplained problems in your cluster. It is recommended that you run a Network Time Protocol (NTP) service, or another time-synchronization mechanism, on your cluster, and that all nodes look to the same service for time synchronization. See the Basic NTP Configuration at The Linux Documentation Project (TLDP) to set up NTP.===_Limits on Number of Files and Processes (ulimit)_
-
-=== _ulimit_
-Apache HBase is a database. It requires the ability to open a large number of files at once. Many Linux distributions limit the number of files a single user is allowed to open to 1024 (or 256 on older versions of OS X). You can check this limit on your servers by running the command ulimit -n when logged in as the user which runs HBase. See the Troubleshooting section for some of the problems you may experience if the limit is too low. You may also notice errors such as the following:
-2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Exception increateBlockOutputStream java.io.EOFException
-2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Abandoning block blk_-6935524980745310745_1391901
-
-It is recommended to raise the ulimit to at least 10,000, but more likely 10,240, because the value is usually expressed in multiples of 1024. Each ColumnFamily has at least one StoreFile, and possibly more than six StoreFiles if the region is under load. The number of open files required depends upon the number of ColumnFamilies and the number of regions. The following is a rough formula for calculating the potential number of open files on a RegionServer.
-Calculate the Potential Number of Open Files
-
-   (StoreFiles per ColumnFamily) x (regions per RegionServer)
-
-For example, assuming that a schema had 3 ColumnFamilies per region with an average of 3 StoreFiles per ColumnFamily, and there are 100 regions per RegionServer, the JVM will open 3 * 3 * 100 = 900 file descriptors, not counting open JAR files, configuration files, and others. Opening a file does not take many resources, and the risk of allowing a user to open too many files is minimal.
-
-Another related setting is the number of processes a user is allowed to run at once. In Linux and Unix, the number of processes is set using the ulimit -u command. This should not be confused with the nproc command, which controls the number of CPUs available to a given user. Under load, a ulimit -u that is too low can cause OutOfMemoryError exceptions. See Jack Levin's major HDFS issues thread on the hbase-users mailing list, from 2011.
+With HBase, you have a “query-first” schema design; all possible queries should be identified first, and the schema model designed accordingly. You should design your HBase schema to take advantage of the strengths of HBase. Think about your access patterns, and design your schema so that the data that is read together is stored together. Remember that HBase is designed for clustering.
 
 
+ * Distributed data is stored and accessed together
+ * It is query-centric, so focus on how the data is read
+ * Design for the questions
 
+== Normalization
+
+In a relational database, you normalize the schema to eliminate redundancy by putting repeating information into a table of its own. This has the following benefits:
+
+ * You don’t have to update multiple copies when an update happens, which makes writes faster.
+ * You reduce the storage size by having a single copy instead of multiple copies.
+
+However, this causes joins. Since data has to be retrieved from more tables, queries can take more time to complete.
+
+In this example below, we have an order table which has one-to-many relationship with an order items table. The order items table has a foreign key with the id of the corresponding order.
+
+image::Hbase-Normalisation.png[Hbase Normalisation]
+
+== De Normalisation
+
+In a de-normalized datastore, you store in one table what would be multiple indexes in a relational world. De-normalization can be thought of as a replacement for joins. Often with HBase, you de-normalize or duplicate data so that data is accessed and stored together.
+
+=== Parent-Child Relationship–Nested Entity
+
+Here is an example of denormalization in HBase, if your tables exist in a one-to-many relationship, it’s possible to model it in HBase as a single row. In the example below, the order and related line items are stored together and can be read together with a get on the row key. This makes the reads a lot faster than joining tables together.
+
+image:Hbase_nested_entity.png[Hbase nested entity]
+
+The rowkey corresponds to the parent entity id, the OrderId. There is one column family for the order data, and one column family for the order items. The Order Items are nested, the Order Item IDs are put into the column names and any non-identifying attributes are put into the value.
+
+This kind of schema design is appropriate when the only way you get at the child entities is via the parent entity.
+
+=== Many-to-Many Relationship in an RDBMS
+
+Here is an example of a many-to-many relationship in a relational database. These are the query requirements:
+
+ * Get name for user x
+ * Get title for book x
+ * Get books and corresponding ratings for userID x
+ * Get all userIDs and corresponding ratings for book y
+
+
+image::Hbase-bookStore.png[Hbase - book store example]
+
+=== Many-to-Many Relationship in HBase
+
+The queries that we are interested in are:
+
+ * Get books and corresponding ratings for userID x
+ * Get all userIDs and corresponding ratings for book y
+
+For an entity table, it is pretty common to have one column family storing all the entity attributes, and column families to store the links to other entities.
+
+The entity tables are as shown below:
+
+image::Hbase-bookStoreHbase.png[The book store in hbase]
+
+
+== Generic Data, Event Data, and Entity-Attribute-Value
+
+Generic data that is schemaless is often expressed as name value or entity attribute value. In a relational database, this is complicated to represent. A conventional relational table consists of attribute columns that are relevant for every row in the table, because every row represents an instance of a similar object. A different set of attributes represents a different type of object, and thus belongs in a different table. The advantage of HBase is that you can define columns on the fly, put attribute names in column qualifiers, and group data by column families.
+
+Here is an example of clinical patient event data. The Row Key is the patient ID plus a time stamp. The variable event type is put in the column qualifier, and the event measurement is put in the column value. OpenTSDB is an example of variable system monitoring data.
+
+image::Hbase-GenericDataEvent.png[Generic data event]
+
+== Self-Join Relationship – HBase
+
+A self-join is a relationship in which both match fields are defined in the same table.
+
+Consider a schema for twitter relationships, where the queries are: which users does userX follow, and which users follow userX? Here’s a possible solution: The userids are put in a composite row key with the relationship type as a separator. For example, Carol follows Steve Jobs and Carol is followed by BillyBob. This allows for row key scans for everyone carol:follows or carol:followedby
+
+Below is the example Twitter table:
+image::Hbase-twitterExample.png[Twitter Example]
+
+
+== Tree, Graph Data
+
+Here is an example of an adjacency list or graph, using a separate column for each parent and child:
+
+image::Hbase-Graph.png[Hbase graph]
+
+Each row shows a node, and the row key is equal to the node id. There is a column family for parent p, and a column family children c. The column qualifiers are equal to the parent or child node ids, and the value is equal to the type to node. This allows to quickly find the parent or children nodes from the row key.
+
+You can see there are multiple ways to represent trees, the best way depends on your queries.
+
+== Inheritance Mapping
+
+In this online store example, the type of product is a prefix in the row key. Some of the columns are different, and may be empty depending on the type of product. This allows to model different product types in the same table and to scan easily by product type.
+
+image::Hbase-InheritanceMapping.png[InheritanceMapping]
 
 
 = Programming with hbase
@@ -1182,10 +1571,6 @@ public class HBaseExample
 
 == PHP
 
-== Toolings
 
-==== YCSB
-
-https://github.com/brianfrankcooper/YCSB/wiki
 
 
