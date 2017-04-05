@@ -1,7 +1,10 @@
 ﻿= HBase  
 :toc:
 
-== What's HBASE
+
+== Introduction
+
+=== What's HBASE
 
 A non-relational (NoSQL) database that runs on top of HDFS
 
@@ -46,44 +49,42 @@ Apache HBase provides random, real time access to your data in Hadoop. It was cr
     Indexed and sorted only on key, but RDBMS can be indexed on some arbitrary field
     No built-in authentication or permissions
 
-== Versions 
+=== Versions 
 
  * 2.0.0 (soon)
- * 1.3.0 (latest)
- * 1.2.4 (stable)
+ * 1.3.0 (latest) : http://www-eu.apache.org/dist/hbase/1.3.0/hbase-1.3.0-bin.tar.gz
+ * 1.2.5 (stable) : http://www-eu.apache.org/dist/hbase/stable/hbase-1.2.5-bin.tar.gz
 
-== Introduction 
+=== Documentations
 
-HBase quick start, good practices 
-
-From official references 
+.From official references 
 
  * http://hbase.apache.org/book.html
  * Download link : http://www.apache.org/dyn/closer.cgi/hbase/
 
-From tutorials
+.From tutorials
 
- *  http://www.guru99.com/hbase-tutorials.html
+ * http://www.guru99.com/hbase-tutorials.html
  * http://hortonworks.com/apache/hbase/
  * https://hbase.apache.org/book.html
  
-From Pro and cons
+.From Pro and cons
  
  * https://www.packtpub.com/mapt/book/big-data-and-business-intelligence/9781783985944/1/ch01lvl1sec16/hbase-pros-and-cons
  * http://www.cyanny.com/2014/03/13/hbase-architecture-analysis-part-3-pros-cons/
  * http://stackoverflow.com/questions/22542307/hbase-what-are-the-pros-and-cons-of-using-one-column-with-a-list-of-values-vs
  * http://www.slideshare.net/EdurekaIN/no-sql-databases-35591065
 
-Data Model 
+.Data Model 
 
  * http://jimbojw.com/#understanding%20hbase
  * http://0b4af6cdc2f0c5998459-c0245c5c937c5dedcca3f1764ecc9b2f.r43.cf2.rackcdn.com/9353-login1210_khurana.pdf
  
-Performance
+.Performance
 
  * https://db-blog.web.cern.ch/blog/zbigniew-baranowski/2017-01-performance-comparison-different-file-formats-and-storage-engines
  
-Tips 
+.Tips 
 
  * https://www.dynamicyield.com/2015/05/apache-hbase-for-the-win-2/
  * http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
@@ -93,12 +94,17 @@ Tips
  * https://dzone.com/articles/handling-big-data-hbase-part-5
  * http://www.slideshare.net/lhofhansl/h-base-tuninghbasecon2015ok
 
-== Key concepts
+ 
+ 
+== Hbase basics and Key concepts
 
  
-=== Understanding HBASE and BigTable (from Jim R. Wilson)
+=== Understanding HBASE and BigTable 
 
-May 2008
+
+[NOTE]
+.From Jim R.Wilson, May 2008
+-----
 
 The hardest part about learning HBase (the open source implementation of Google's BigTable), is just wrapping your mind around the concept of what it actually is.
 
@@ -124,8 +130,10 @@ Along those lines, the HBaseArchitecture page of the Hadoop wiki posits that:
 Although all of that may seem rather cryptic, it makes sense once you break it down a word at a time. I like to discuss them in this sequence: map, persistent, distributed, sorted, multidimensional, and sparse.
 
 Rather than trying to picture a complete system all at once, I find it easier to build up a mental framework piecemeal, to ease into it...
+-----
 
-==== map
+
+=== map
 
 At its core, HBase/BigTable is a map. Depending on your programming language background, you may be more familiar with the terms associative array (PHP), dictionary (Python), Hash (Ruby), or Object (JavaScript).
 
@@ -144,11 +152,11 @@ Using JavaScript Object Notation, here's an example of a simple map where all th
 }
 ----
 
-==== persistent
+=== persistent
 
 Persistence merely means that the data you put in this special map "persists" after the program that created or accessed it is finished. This is no different in concept than any other kind of persistent storage such as a file on a filesystem. Moving along...
 
-==== distributed
+=== distributed
 
 HBase and BigTable are built upon distributed filesystems so that the underlying file storage can be spread out among an array of independent machines.
 
@@ -158,7 +166,7 @@ Data is replicated across a number of participating nodes in an analogous manner
 
 For the purpose of this article, we don't really care which distributed filesystem implementation is being used. The important thing to understand is that it is distributed, which provides a layer of protection against, say, a node within the cluster failing.
 
-==== sorted
+=== sorted
 
 Unlike most map implementations, in HBase/BigTable the key/value pairs are kept in strict alphabetical order. That is to say that the row for the key "aaaaa" should be right next to the row with key "aaaab" and very far from the row with key "zzzzz".
 Continuing our JSON example, the sorted version looks like this:
@@ -183,7 +191,7 @@ Continuing the domain example, the row for the domain "mail.jimbojw.com" would b
 
 It's important to note that the term "sorted" when applied to HBase/BigTable does not mean that "values" are sorted. There is no automatic indexing of anything other than the keys, just as it would be in a plain-old map implementation.
 
-==== multidimensional
+=== multidimensional
 
 Up to this point, we haven't mentioned any concept of "columns", treating the "table" instead as a regular-old hash/map in concept. This is entirely intentional. The word "column" is another loaded word like "table" and "base" which carries the emotional baggage of years of RDBMS experience.
 
@@ -304,13 +312,13 @@ If an application asks for a given row at a given timestamp, HBase will return c
 
 Using our imaginary HBase table, querying for the row/column of "aaaaa"/"A:foo" will return "y" while querying for the row/column/timestamp of "aaaaa"/"A:foo"/10 will return "m". Querying for a row/column/timestamp of "aaaaa"/"A:foo"/2 will return a null result.
 
-==== sparse
+=== sparse
 
 The last keyword is sparse. As already mentioned, a given row can have any number of columns in each column family, or none at all. The other type of sparseness is row-based gaps, which merely means that there may be gaps between keys.
 
 This, of course, makes perfect sense if you've been thinking about HBase/BigTable in the map-based terms of this article rather than perceived similar concepts in RDBMS's.
 
-==== And that's about it
+=== And that's about it
 
 Well, I hope that helps you understand conceptually what the HBase data model feels like.
 
@@ -330,10 +338,11 @@ My choice :
 
  * centos 7
  * installation in my user home dir
- * configuration  of the data dir inside the _conf/hbase-site.xml_ file (see example bellow)
  * ensure java is installed, and JAVA_HOME is configured. export JAVA_HOME=/usr 
+ * configuration  of the data dir inside the _conf/hbase-site.xml_ file (see example bellow)
 
-....
+.conf/hbase-site.xml
+ ....
  <configuration>
   <property>
     <name>hbase.rootdir</name>
@@ -348,16 +357,19 @@ My choice :
 
 === Start hbase
 
-to start hbase simply run the startup script _bin/start-hbase.sh_
+To start hbase simply run the startup script _bin/start-hbase.sh_
 From this point you can access the administrative page : _lynx localhost:16010_ 
 if you want to access it from an other server, you need to configure the firewall
 
 ....
 sudo firewall-cmd --get-active-zones   #to list the zone where you have a firewall applicable
+
 #need to configure it for all zone. Take care if you are in a dmz, or a secure area
 sudo firewall-cmd --zone=public --add-port=16010/tcp --permanent
 sudo firewall-cmd --reload
 ....
+
+In case you are using virtualbox or a similar tool, you need also to map the ports to your VM.
 
 === Connect to your local instance
 
@@ -406,16 +418,22 @@ COLUMN                            CELL
  _disable 'test'_ 
 ====
 
+=== basics commands
+
+ * _list_  will list all tables
+ * _describe '<TableName>'_ will describe the table 
+ 
+
 === Stop hbase
 
 simply run _./bin/stop-hbase.sh_
 
+
+
 == Over Hadoop, 
 
 
-
-
-if you want to move to hdfs :
+if you want to move to hdfs, first, you'll have to install Hadoop, and then tell HBase to use it :
 ....
 <property>
   <name>hbase.rootdir</name>
@@ -430,7 +448,7 @@ Warning, if there's already an HBase directory, hbase will try to do a migration
 image::HbaseOverHadoop.png[HBase over hadoop]
 
 
-== Now, let's go to an hbase cluster (we'll not discuss about hadoop cluster here ... )
+== Pseudo HBase cluster (we'll not discuss about hadoop cluster here ... )
 
 === First, separate zookeeper from the HBase master 
 
@@ -480,7 +498,10 @@ it's not installed by default with openJDK, you need to install the devel module
 
 
 
-=== You need 3 hosts to do such setup
+=== Real HBASE cluster
+
+
+You need 4 hosts to do such setup
 
 == Configuration tips
 
@@ -530,19 +551,20 @@ Another related setting is the number of processes a user is allowed to run at o
 
 == Ports 
 
-TODO: list ports number and usage
-
-    http://localhost:16010/master-status for the Master Server
-    http://localhost:9095/thrift.jsp for the thrift UI
-    http://localhost:8085/rest.jsp for the REST server UI
-    http://localhost:16010/zk.jsp for the embedded Zookeeper
+ * http://yourhost:16010/master-status for the Master Server
+ * http://yourhost:9095/thrift.jsp for the thrift UI (if activated)
+ * http://yourhost:8085/rest.jsp for the REST server UI (if activated)
+ * http://yourhost:16010/zk.jsp for the embedded Zookeeper
 
 
 == Metrics 
 
 ref : http://blog.cloudera.com/blog/2011/04/hbase-dos-and-donts/
+
 You should also keep the number of regions to a reasonable number based on memstore size and amount of RAM and the RegionServer JVM should be limited to 12GB of java heap to minimize long GC pauses. 
+
 For example a machine with 36GB of RAM that is also running a DataNode daemon could handle approximately 100 regions with active writes and a memstore of 48MB each.
+
 That allows enough headroom for DataNode and RegionServer memory requirements, Linux file buffer space and a reasonable flush size for each RegionServer.
 
 
@@ -555,6 +577,7 @@ appdynamique
 === NAgios [See Installing Nagios]
 
 ==== Server side Specific configuration 
+
 
 
 ==== Client side specific configuration 
@@ -1090,6 +1113,40 @@ You can see there are multiple ways to represent trees, the best way depends on 
 In this online store example, the type of product is a prefix in the row key. Some of the columns are different, and may be empty depending on the type of product. This allows to model different product types in the same table and to scan easily by product type.
 
 image::Hbase-InheritanceMapping.png[InheritanceMapping]
+
+
+
+== Let's use a bit our installation
+
+
+=== Create a musicband table
+
+=== populate some data
+
+=== populate far more and observe
+
+==== what's happening on write side
+
+image::PerformanceDisk.png[HBase on disk]
+
+image::PerformanceDisk_Compact.png[HBase on disk with automatic compaction ]
+
+immage::HBase_RegionAfterSplit.png[Split result]
+
+
+
+=== conclusion
+
+
+==== Linear write time
+
+ put 'musicband', 'U2-Paris-1980-7', 'show:Number', '7'
+ 0 row(s) in 0.0042 seconds
+ ....
+ ...
+ put 'musicband', 'U2-Paris-1980-999997', 'show:Number', '999997'
+ 0 row(s) in 0.0040 seconds
+
 
 
 = Programming with hbase
