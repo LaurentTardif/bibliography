@@ -342,15 +342,15 @@ My choice :
  * configuration  of the data dir inside the _conf/hbase-site.xml_ file (see example bellow)
 
 .conf/hbase-site.xml
- ....
+....
  <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>file:///opt/hbase/hbase</value>
+    <value>file://home/cnam/data/hbase</value>
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>
-    <value>/opt/hbase/zookeeper</value>
+    <value>/home/cnam/data/zookeeper</value>
   </property>
 </configuration>
 ....  
@@ -370,6 +370,12 @@ sudo firewall-cmd --reload
 ....
 
 In case you are using virtualbox or a similar tool, you need also to map the ports to your VM.
+
+=== Result 
+
+
+image::HBaseDeploiement\Diapositive2.png[REsult]
+
 
 === Connect to your local instance
 
@@ -448,7 +454,16 @@ Warning, if there's already an HBase directory, hbase will try to do a migration
 image::HbaseOverHadoop.png[HBase over hadoop]
 
 
-== Pseudo HBase cluster (we'll not discuss about hadoop cluster here ... )
+
+image::HBaseDeploiement\Diapositive3.png[REsult]
+
+image::HBaseDeploiement\Diapositive4.png[REsult]
+
+
+== Pseudo HBase cluster
+
+[NOTE]
+ we'll not discuss about hadoop cluster here ... 
 
 === First, separate zookeeper from the HBase master 
 
@@ -460,6 +475,12 @@ Update the _conf/hbase-site.xml_ with :
   <value>true</value>
 </property>
 ....
+
+=== Result 
+
+
+image::HBaseDeploiement\Diapositive5.png[REsult]
+
 
 === How to check it's working 
 
@@ -485,6 +506,11 @@ it's not installed by default with openJDK, you need to install the devel module
  libguestfs-java-devel.x86_64                        1:1.32.7-3.el7.centos.2                   updates
  libvirt-java-devel.noarch                           0.4.9-4.el7                               base   
 
+and then
+
+ yum install java-1.8.0-openjdk-devel.x86_64
+ 
+
 ==== run jps command
 
  [admin@localhost hbase]$ jps
@@ -496,16 +522,24 @@ it's not installed by default with openJDK, you need to install the devel module
  10718 HRegionServer
  12494 Jps
 
-
-
 === Real HBASE cluster
-
 
 You need 4 hosts to do such setup
 
 == Configuration tips
 
 A few configuration recommendations include disabling auto-compaction (by default it happens every 24 hours from the time you start HBase) and schedule it to run every day at an off-peak time. You should also configure compression (such as LZO) and explicitly put the correctly configured HBase conf directory in your CLASSPATH.
+
+== Documentation 
+
+
+== Result
+
+image::HBaseDeploiement\Diapositive7.png[REsult]
+
+
+image::HBaseDeploiement\Diapositive6.png[REsult with port number]
+
 
 
 == Installation TIPS
@@ -570,20 +604,111 @@ That allows enough headroom for DataNode and RegionServer memory requirements, L
 
 == Monitoring
 
-introscope ...
+you can use lot of tooling to do it. The keys in hbase cluster is to:
+ * be able to indentify hot-spot among the HRegionServer
+ * be able to identify some read of write pattern having generating hotspot
+ 
+Example of application : 
+ * introscope
+ * appdynamique 
 
-appdynamique 
+=== Nagios [See Installing Nagios]
 
-=== NAgios [See Installing Nagios]
+A good starting set of plugins can be found at : git clone https://github.com/harisekhon/nagios-plugins
 
-==== Server side Specific configuration 
-
-
-
-==== Client side specific configuration 
+check_hbase_*.pl - various HBase monitoring utilities using Thrift + Stargate APIs, checking Masters / Backup Masters, RegionServers, table availability (exists, is enabled, and has minimum number of column families), number of expected table regions, unassigned table regions, regions stuck in transition, region count balance across RegionServers, compaction in progress (by table and by regionserver), number of regions in transition, longest current region migration time, hbck status and any inconsistencies, cell content vs optional regex + thresholds, table write and read back of unique generated values with write/read/delete latency checks against all detected column families, table write spray and read back of unique values across all regions for all column families with write/read/delete latency checks, gather metrics
 
 
 
+== Let's use a bit our installation
+
+
+=== Create a musicband table
+
+ create 'musicband', 'informations','show'
+
+ hbase(main):004:0> describe 'musicband'
+ Table musicband is ENABLED
+ musicband
+ COLUMN FAMILIES DESCRIPTION
+ {NAME => 'informations', BLOOMFILTER => 'ROW', VERSIONS => '1', IN_MEMORY => 'false', KEEP_DELETED_CELLS => 'FALSE', DATA_BLOCK_ENCODING => 'NONE', TTL => 'FOREVER', COMPRESSION => 'NONE', MIN_VERSIONS => '0', BLOCKCACHE => 'true', BLOCKSIZE => '65536', REPLICATION_SCOPE => '0'}
+ {NAME => 'show', BLOOMFILTER => 'ROW', VERSIONS => '1', IN_MEMORY => 'false', KEEP_DELETED_CELLS => 'FALSE', DATA_BLOCK_ENCODING => 'NONE', TTL => 'FOREVER', COMPRESSION => 'NONE', MIN_VERSIONS => '0', BLOCKCACHE => 'true', BLOCKSIZE => '65536', REPLICATION_SCOPE => '0'}
+ 2 row(s) in 0.1130 seconds
+
+ 
+=== Create some data
+
+ hbase(main):006:0>  put 'musicband', 'The core' , 'informations:Year', '1999'
+ hbase(main):007:0>  put 'musicband', 'The core' , 'informations:Style', 'Jazz'
+ hbase(main):008:0>  put 'musicband', 'The core' , 'informations:Country', 'Norway'
+ 
+ hbase(main):009:0> scan 'musicband' , {COLUMN => 'informations'}
+ ROW                                COLUMN+CELL
+  The core                          column=informations:Country, timestamp=1491408111337, value=Norway
+  The core                          column=informations:Lead, timestamp=1491407996565, value=Espen Aalberg
+  The core                          column=informations:Style, timestamp=1491408102049, value=Jazz
+  The core                          column=informations:Year, timestamp=1491408074355, value=1999
+  U2                                column=informations:Name, timestamp=1491396362728, value=U2
+  U2                                column=informations:Singer, timestamp=1491396400135, value=Bono
+  U2                                column=informations:Style, timestamp=1491396460243, value=Rock
+  U2                                column=informations:Year, timestamp=1491396452455, value=1976
+ 2 row(s) in 0.0920 seconds
+ 
+ 
+=== populate some data
+
+Let's do a linear massive import in order to see what's happening.
+
+   for i in `seq 1 10` ; do echo put "'musicband'", "'U2-Paris-1980-$i'", "'show:Number'", "'$i'" >> insertNotSoMassive.txt; done
+  ./hbase shell < insertNotSoMassive.txt
+
+=== populate far more and observe
+
+Let's do a linear massive import in order to see what's happening.
+
+   for i in `seq 10 1000000` ; do echo put "'musicband'", "'U2-Paris-1980-$i'", "'show:Number'", "'$i'" >> insertMassive.txt; done
+  ./hbase shell < insertMassive.txt
+
+==== what's happening on write side
+
+image::PerformanceDisk.png[HBase on disk]
+
+.Automatic split happening on regular basis
+image::PerformanceDisk_Compact.png[HBase on disk with automatic compaction ]
+
+.Region after the split
+image::HBase_RegionAfterSplit.png[Split result]
+
+=== doing some queries
+
+.scan the information column 
+ hbase(main):027:0> scan 'musicband' , {COLUMNS=>'informations',LIMIT=>2}
+ ROW                                COLUMN+CELL
+  U2                                column=informations:Name, timestamp=1491396362728, value=U2
+  U2                                column=informations:Singer, timestamp=1491396400135, value=Bono
+  U2                                column=informations:Style, timestamp=1491396460243, value=Rock
+  U2                                column=informations:Year, timestamp=1491396452455, value=1976
+ 1 row(s) in 0.0940 seconds
+
+.scan the show column (the one with one million entries)
+ hbase(main):028:0> scan 'musicband' , {COLUMNS=>'show',LIMIT=>2}
+ ROW                                COLUMN+CELL
+  Paris-1980-1                      column=show:Number, timestamp=1491397656171, value=1
+  Paris-1980-10                     column=show:Number, timestamp=1491397656512, value=10
+ 2 row(s) in 0.0310 seconds
+
+.start at row 300000 ...
+
+ hbase(main):012:0> scan 'musicband' , {COLUMNS=>'show',STARTROW => 'Paris-1980-300000', LIMIT=>2}
+ ROW                                COLUMN+CELL
+  Paris-1980-4                      column=show:Number, timestamp=1491397656329, value=4
+  Paris-1980-5                      column=show:Number, timestamp=1491397656360, value=5
+ 2 row(s) in 0.0200 seconds
+
+[TIP]
+Take care of the alphabetical order
+
+=== conclusion
 
 = Hbase 
 
@@ -1115,27 +1240,6 @@ In this online store example, the type of product is a prefix in the row key. So
 image::Hbase-InheritanceMapping.png[InheritanceMapping]
 
 
-
-== Let's use a bit our installation
-
-
-=== Create a musicband table
-
-=== populate some data
-
-=== populate far more and observe
-
-==== what's happening on write side
-
-image::PerformanceDisk.png[HBase on disk]
-
-image::PerformanceDisk_Compact.png[HBase on disk with automatic compaction ]
-
-immage::HBase_RegionAfterSplit.png[Split result]
-
-
-
-=== conclusion
 
 
 ==== Linear write time
