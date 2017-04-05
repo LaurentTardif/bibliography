@@ -58,4 +58,7 @@ add the following content to display the current date :
 
 .Update security of SELinux 
 
-  sudo chcon -R --type=httpd_sys_content_t /var/spool/nagios 
+ wget http://repo.nuxref.com/centos/7/en/x86_64/custom/nuxref-release-1.0.0-3.el7.nuxref.noarch.rpm
+ rpm -ivh nuxref-release-1.0.0-3.el7.nuxref.noarch.rpm 
+ systemctl start nagios
+ 

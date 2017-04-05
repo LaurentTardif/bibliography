@@ -532,6 +532,11 @@ Another related setting is the number of processes a user is allowed to run at o
 
 TODO: list ports number and usage
 
+    http://localhost:16010/master-status for the Master Server
+    http://localhost:9095/thrift.jsp for the thrift UI
+    http://localhost:8085/rest.jsp for the REST server UI
+    http://localhost:16010/zk.jsp for the embedded Zookeeper
+
 
 == Metrics 
 
@@ -547,7 +552,14 @@ introscope ...
 
 appdynamique 
 
-NAgios
+=== NAgios [See Installing Nagios]
+
+==== Server side Specific configuration 
+
+
+==== Client side specific configuration 
+
+
 
 
 = Hbase 
