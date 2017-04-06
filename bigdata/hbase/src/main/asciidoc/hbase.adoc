@@ -526,14 +526,60 @@ and then
 
 You need 4 hosts to do such setup
 
-== Configuration tips
+==== Configuration tips
 
 A few configuration recommendations include disabling auto-compaction (by default it happens every 24 hours from the time you start HBase) and schedule it to run every day at an off-peak time. You should also configure compression (such as LZO) and explicitly put the correctly configured HBase conf directory in your CLASSPATH.
 
-== Documentation 
+==== Documentation procedure
 
 
-== Result
+To summarize the cluster installation, you need at least for hbase :
+ 
+ * a Master
+ * A secondary master (will do something only when primary master is down (warning : different than hadoop)), so it can be on a region server for a minimal installation.
+ * 2 Region server
+ * 3 instance of zookeeper (on the master, and the region server)
+ 
+First stop hbase if it's running.
+
+ 
+Update configuration files 
+
+. hbase-site.xml 
+-----
+ <property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+ </property>
+ <property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://YourHbaseMaster:9000/hbase</value>
+ </property>
+ <property>
+  <name>hbase.zookeeper.quorum</name>
+  <value>node-a.example.com,node-b.example.com,node-c.example.com</value>
+ </property>
+ <property>
+   <name>hbase.zookeeper.property.dataDir</name>
+   <value>/usr/local/zookeeper</value>
+ </property>
+-----
+
+.Create a new file conf/backup-masters, 
+  node-b.example.com.
+
+.conf/regionservers 
+  node-b.example.com
+  node-c.example.com
+
+
+Then copy the hbase repository to all nodes involved.
+In theory you need to syncrhonise only the conf repository, but it will avoid to untar hbase+copy conf on all host.
+
+[WARNING] 
+  Ensure ssh work smoothly among all the boxes 
+
+==== Result
 
 image::HBaseDeploiement\Diapositive7.png[REsult]
 
@@ -605,10 +651,12 @@ That allows enough headroom for DataNode and RegionServer memory requirements, L
 == Monitoring
 
 you can use lot of tooling to do it. The keys in hbase cluster is to:
+
  * be able to indentify hot-spot among the HRegionServer
  * be able to identify some read of write pattern having generating hotspot
  
 Example of application : 
+
  * introscope
  * appdynamique 
 
@@ -616,7 +664,7 @@ Example of application :
 
 A good starting set of plugins can be found at : git clone https://github.com/harisekhon/nagios-plugins
 
-check_hbase_*.pl - various HBase monitoring utilities using Thrift + Stargate APIs, checking Masters / Backup Masters, RegionServers, table availability (exists, is enabled, and has minimum number of column families), number of expected table regions, unassigned table regions, regions stuck in transition, region count balance across RegionServers, compaction in progress (by table and by regionserver), number of regions in transition, longest current region migration time, hbck status and any inconsistencies, cell content vs optional regex + thresholds, table write and read back of unique generated values with write/read/delete latency checks against all detected column families, table write spray and read back of unique values across all regions for all column families with write/read/delete latency checks, gather metrics
+_check_hbase_*.pl_ - various HBase monitoring utilities using Thrift + Stargate APIs, checking Masters / Backup Masters, RegionServers, table availability (exists, is enabled, and has minimum number of column families), number of expected table regions, unassigned table regions, regions stuck in transition, region count balance across RegionServers, compaction in progress (by table and by regionserver), number of regions in transition, longest current region migration time, hbck status and any inconsistencies, cell content vs optional regex + thresholds, table write and read back of unique generated values with write/read/delete latency checks against all detected column families, table write spray and read back of unique values across all regions for all column families with write/read/delete latency checks, gather metrics
 
 
 
