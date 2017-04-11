@@ -1,0 +1,90 @@
+<project>
+	<parent>
+		<groupId>org.ouelcum.bibliography</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1</version>
+		<relativePath>../../parent/pom.xml</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ouelcum.bibliography.docker</groupId>
+	<artifactId>azure</artifactId>
+	<name>azure</name>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>1.5.3</version>
+				<executions>
+					<execution>
+						<id>output-html</id>              
+						<phase>generate-resources</phase> 
+						<goals>
+							<goal>process-asciidoc</goal> 
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<backend>html</backend>
+					<outputDirectory>target/docs/asciidoc</outputDirectory>
+					<resources>
+						<resource>
+							<!-- (Mandatory) Directory to copy from. Paths are relative to maven's ${baseDir} -->
+							<directory>src/main/asciidoc</directory>
+							<!-- (Optional) Directory to copy to. By default uses the option `outputDirectory` -->
+							<targetPath>target/docs/asciidoc2</targetPath>
+							<!-- (Optional) NOTE: SVN, GIT and other version control files are excluded by default, there's no need to add them -->
+							<excludes>
+								<exclude>**/.txt</exclude>
+							</excludes>
+							<!-- (Optional) If not set, includes all files but default exceptions mentioned -->
+							<includes>
+								<include>**/*.jpg</include>
+								<include>**/*.gif</include>
+							</includes>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<distributionManagement>
+		<site>
+			<id>www.yourcompany.com</id>
+			<url>scp://www.yourcompany.com/www/docs/project/azure</url>
+		</site>
+	</distributionManagement>
+	<reporting>
+		<excludeDefaults>true</excludeDefaults>
+		<outputDirectory>${project.build.directory}/site</outputDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<dependencyDetailsEnabled>true</dependencyDetailsEnabled>
+					<dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>scm</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
+</project>

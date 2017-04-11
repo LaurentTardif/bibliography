@@ -41,7 +41,7 @@
 
 	<modules>
 		<module>bigdata</module>
-		<module>docker</module>
+		<module>cloud</module>
 		<module>git</module>
 		<module>maven</module>
 		<module>monitoring</module>
