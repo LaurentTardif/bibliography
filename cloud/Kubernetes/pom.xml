@@ -6,9 +6,9 @@
 		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.ouelcum.bibliography.docker</groupId>
-	<artifactId>azure</artifactId>
-	<name>azure</name>
+	<groupId>org.ouelcum.bibliography.kubernetes</groupId>
+	<artifactId>kubernetes</artifactId>
+	<name>kubernetes</name>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
@@ -59,7 +59,7 @@
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
-			<url>scp://www.yourcompany.com/www/docs/project/azure</url>
+			<url>scp://www.yourcompany.com/www/docs/project/kubernetes</url>
 		</site>
 	</distributionManagement>
 	<reporting>

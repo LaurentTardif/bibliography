@@ -69,5 +69,6 @@
 	<modules>
 		<module>dockerfull</module>
 		<module>azure</module>
+		<module>Kubernetes</module>
 	</modules>
 </project>
