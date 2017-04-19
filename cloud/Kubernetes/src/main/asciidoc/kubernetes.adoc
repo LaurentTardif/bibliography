@@ -28,6 +28,7 @@ No we need in the VM the virutalBox tools ...
  sudo yum install kernel-devel
  
  sudo yum install VirtualBox-5.1
+ sudo usermod -a -G vboxusers admin
 
 == Installation
 

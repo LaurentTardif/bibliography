@@ -1,0 +1,299 @@
+= Docker Swarm
+:toc:
+
+From 
+
+ * https://blogs.technet.microsoft.com/virtualization/2017/02/09/overlay-network-driver-with-support-for-docker-swarm-mode-now-available-to-windows-insiders-on-windows-10/
+ * https://blogs.technet.microsoft.com/virtualization/2016/10/18/use-docker-compose-and-service-discovery-on-windows-to-scale-out-your-multi-service-container-application/
+ * https://docs.docker.com/engine/swarm/swarm-tutorial/
+
+
+
+== Initialisation
+
+=== Create 3 WM with docker install on ubuntu
+
+.Create the following env
+
+ * Manager1 : 10.0.0.4
+ * Worker1 : 10.0.0.6
+ * Worker2 : 10.0.0.7
+
+.install Docker
+
+   10  sudo apt-get -y install   apt-transport-https   ca-certificates   curl
+   11  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+   12  sudo add-apt-repository        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) \
+       stable"
+   13  sudo add-apt-repository        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) \
+       stable"
+   14  sudo add-apt-repository        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) \
+       stable"
+   15  sudo apt-get update
+   16  sudo apt-get -y install docker-ce
+   17  sudo docker run hello-world
+
+
+
+=== Create the manager 
+
+ docker swarm init --advertise-addr 10.0.1.4
+
+the output is :
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join \
+    --token SWMTKN-1-4x06s3aolybg94zbmisy96u78vy7ljykrd1rhus4mymy0boqgm-4ukintkmvm2dc29wit22aij1k \
+    10.0.1.4:2377
+
+So, now we run on each worker : 
+
+  sudo docker swarm join \
+  >     --token SWMTKN-1-4x06s3aolybg94zbmisy96u78vy7ljykrd1rhus4mymy0boqgm-4ukintkmvm2dc29wit22aij1k \
+  >     10.0.1.4:2377
+
+  This node joined a swarm as a worker.
+
+
+  
+  
+On he master we can run 
+
+  sudo docker  info
+
+  Containers: 1
+   Running: 0
+   Paused: 0
+   Stopped: 1
+   Images: 1
+   Server Version: 17.03.1-ce
+   Storage Driver: aufs
+   Root Dir: /var/lib/docker/aufs
+   Backing Filesystem: extfs
+   Dirs: 3
+     Dirperm1 Supported: true
+   Logging Driver: json-file
+   Cgroup Driver: cgroupfs
+   Plugins:
+   Volume: local
+   Network: bridge host macvlan null overlay
+   Swarm: active
+   NodeID: tv37hon4o84vi050bw4dcdqac
+   Is Manager: true
+   ClusterID: 2hafb0id9ww0vpyx347fe5r73
+   Managers: 1
+     Nodes: 3
+   Orchestration:
+     Task History Retention Limit: 5
+   Raft:
+     Snapshot Interval: 10000
+     Number of Old Snapshots to Retain: 0
+     Heartbeat Tick: 1
+     Election Tick: 3
+   Dispatcher:
+    Heartbeat Period: 5 seconds
+    CA Configuration:
+    Expiry Duration: 3 months
+   Node Address: 10.0.1.4
+   Manager Addresses:
+     10.0.1.4:2377
+   Runtimes: runc
+   Default Runtime: runc
+   Init Binary: docker-init
+   containerd version: 4ab9917febca54791c5f071a9d1f404867857fcc
+    runc version: 54296cf40ad8143b62dbcaa1d90e520a2136ddfe
+    init version: 949e6fa
+    Security Options:
+    apparmor
+ seccomp
+  Profile: default
+  Kernel Version: 4.4.0-71-generic
+  Operating System: Ubuntu 16.04.2 LTS
+  OSType: linux
+  Architecture: x86_64
+  CPUs: 4
+  Total Memory: 6.804 GiB
+  Name: CRP-INT01-SA
+  ID: LLYQ:UATR:XIHI:NLEA:DHD4:4LOW:A2PZ:TAVT:KVH4:O6QJ:I4KZ:VZKM
+  Docker Root Dir: /var/lib/docker
+  Debug Mode (client): false
+  Debug Mode (server): false
+  Registry: https://index.docker.io/v1/
+  WARNING: No swap limit support
+  Experimental: false
+  Insecure Registries:
+   127.0.0.0/8
+  Live Restore Enabled: false
+
+  
+.node ls 
+
+  sudo docker node ls
+  ID                           HOSTNAME      STATUS  AVAILABILITY  MANAGER STATUS
+  ckc64s0d137fz94lxu074m91i    CRP-INT03-SA  Ready   Active
+  tv37hon4o84vi050bw4dcdqac *  CRP-INT01-SA  Ready   Active        Leader
+  yw03fjxl41nxds5f4wex2vu6e    CRP-INT02-SA  Ready   Active
+  
+  
+  
+=== Running a service
+
+
+On the master : 
+
+ sudo docker service create --replicas 1 --name helloworld alpine ping docker.com
+
+To check : 
+ 
+ sudo docker service ls 
+ ID            NAME        MODE        REPLICAS  IMAGE
+ v7pbmretbuz3  helloworld  replicated  1/1       alpine:latest
+
+  
+To inspect : 
+
+ sudo docker service inspect --pretty helloworld
+
+ ID:             v7pbmretbuz3u17qivdlc5n0n
+ Name:           helloworld
+ Service Mode:   Replicated
+ Replicas:      1
+ Placement:
+ UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Max failure ratio: 0
+ ContainerSpec:
+ Image:         alpine:latest@sha256:58e1a1bb75db1b5a24a462dd5e2915277ea06438c3f105138f97eb53149673c4
+ Args:          ping docker.com
+ Resources:
+ Endpoint Mode:  vip
+  
+ .To know where it's running
+vinstrument@CRP-INT01-SA:~$ sudo docker service ps helloworld
+ID            NAME          IMAGE          NODE          DESIRED STATE  CURRENT STATE          ERROR  PORTS
+ob6bm314jeob  helloworld.1  alpine:latest  CRP-INT03-SA  Running        Running 4 minutes ago
+ 
+=== Scalling a service
+
+ sudo docker service scale helloworld=5
+ 
+.Run a ps
+
+ sudo docker service ps helloworld
+
+  ID            NAME          IMAGE          NODE          DESIRED STATE  CURRENT STATE                    ERROR  PORTS
+ ob6bm314jeob  helloworld.1  alpine:latest  CRP-INT03-SA  Running        Running 5 minutes ago
+ ehrdtruwdgrb  helloworld.2  alpine:latest  CRP-INT02-SA  Running        Starting less than a second ago
+ fwe7s3l7md5i  helloworld.3  alpine:latest  CRP-INT01-SA  Running        Preparing 2 seconds ago
+ jufc56oh3gle  helloworld.4  alpine:latest  CRP-INT01-SA  Running        Preparing 3 seconds ago
+ 52tgu48uu91k  helloworld.5  alpine:latest  CRP-INT03-SA  Running        Running 1 second ago
+ 
+=== delete a service
+
+ vinstrument@CRP-INT01-SA:~$ sudo docker service rm helloworld
+ helloworld
+ vinstrument@CRP-INT01-SA:~$ sudo docker service ps helloworld
+ Error: No such service: helloworld
+ 
+ 
+=== Preparing a rolling update
+
+ sudo  docker service create --replicas 3 --name redis --update-delay 10s  redis:3.0.6
+
+ vinstrument@CRP-INT01-SA:~$ sudo docker service ps redis
+   ID            NAME     IMAGE        NODE          DESIRED STATE  CURRENT STATE             ERROR  PORTS
+   t9efa7j9j6hp  redis.1  redis:3.0.6  CRP-INT03-SA  Running        Preparing 15 seconds ago
+   ykhr6gx1bvy9  redis.2  redis:3.0.6  CRP-INT01-SA  Running        Preparing 15 seconds ago
+   bmlk34rv7yfq  redis.3  redis:3.0.6  CRP-INT02-SA  Running        Preparing 15 seconds ago
+
+.doing the update
+
+ vinstrument@CRP-INT01-SA:~$ sudo docker service update --image redis:3.0.7 redis
+ redis
+ vinstrument@CRP-INT01-SA:~$ sudo docker service ps redis
+ ID            NAME         IMAGE        NODE          DESIRED STATE  CURRENT STATE                    ERROR  PORTS
+ lhs0ua95v975  redis.1      redis:3.0.7  CRP-INT03-SA  Running        Preparing 2 seconds ago
+ t9efa7j9j6hp   \_ redis.1  redis:3.0.6  CRP-INT03-SA  Shutdown       Shutdown less than a second ago
+ ykhr6gx1bvy9  redis.2      redis:3.0.6  CRP-INT01-SA  Running        Running 2 minutes ago
+ bmlk34rv7yfq  redis.3      redis:3.0.6  CRP-INT02-SA  Running        Running 2 minutes ago
+  
+At the end of the update 
+
+vinstrument@CRP-INT01-SA:~$ sudo docker service ps redis
+ID            NAME         IMAGE        NODE          DESIRED STATE  CURRENT STATE                ERROR  PORTS
+lhs0ua95v975  redis.1      redis:3.0.7  CRP-INT03-SA  Running        Running 47 seconds ago
+t9efa7j9j6hp   \_ redis.1  redis:3.0.6  CRP-INT03-SA  Shutdown       Shutdown about a minute ago
+d4m3k90tvm11  redis.2      redis:3.0.7  CRP-INT01-SA  Running        Running 13 seconds ago
+ykhr6gx1bvy9   \_ redis.2  redis:3.0.6  CRP-INT01-SA  Shutdown       Shutdown 35 seconds ago
+lnlmxtd7ymq1  redis.3      redis:3.0.7  CRP-INT02-SA  Running        Preparing 2 seconds ago
+bmlk34rv7yfq   \_ redis.3  redis:3.0.6  CRP-INT02-SA  Shutdown       Shutdown 1 second ago
+  
+=== drain a node
+
+ vinstrument@CRP-INT01-SA:~$ sudo docker node update --availability drain CRP-INT03-SA
+ CRP-INT03-SA
+ vinstrument@CRP-INT01-SA:~$ sudo docker node ls
+ ID                           HOSTNAME      STATUS  AVAILABILITY  MANAGER STATUS
+ ckc64s0d137fz94lxu074m91i    CRP-INT03-SA  Ready   Drain
+ tv37hon4o84vi050bw4dcdqac *  CRP-INT01-SA  Ready   Active        Leader
+ yw03fjxl41nxds5f4wex2vu6e    CRP-INT02-SA  Ready   Active
+
+ vinstrument@CRP-INT01-SA:~$ sudo docker service ps redis
+ ID            NAME         IMAGE         NODE          DESIRED STATE  CURRENT STATE           ERROR  PORTS
+ u3wv1kl92n03  redis.1      redis:latest  CRP-INT01-SA  Running        Running 2 seconds ago
+ usdf0usvi1fn   \_ redis.1  redis:latest  CRP-INT03-SA  Shutdown       Shutdown 3 seconds ago
+ lhs0ua95v975   \_ redis.1  redis:3.0.7   CRP-INT03-SA  Shutdown       Shutdown 2 minutes ago
+ t9efa7j9j6hp   \_ redis.1  redis:3.0.6   CRP-INT03-SA  Shutdown       Shutdown 5 minutes ago
+ n5ap36j4zczx  redis.2      redis:latest  CRP-INT01-SA  Running        Running 2 minutes ago
+ d4m3k90tvm11   \_ redis.2  redis:3.0.7   CRP-INT01-SA  Shutdown       Shutdown 3 minutes ago 
+ ykhr6gx1bvy9   \_ redis.2  redis:3.0.6   CRP-INT01-SA  Shutdown       Shutdown 4 minutes ago 
+ tzhggj65j3bn  redis.3      redis:latest  CRP-INT02-SA  Running        Running 2 minutes ago
+ lnlmxtd7ymq1   \_ redis.3  redis:3.0.7   CRP-INT02-SA  Shutdown       Shutdown 2 minutes ago
+ bmlk34rv7yfq   \_ redis.3  redis:3.0.6   CRP-INT02-SA  Shutdown       Shutdown 4 minutes ago 
+
+=== re activate a node
+
+ sudo docker node update --availability active CRP-INT03-SA
+
+
+== Swarm routing mesh 
+
+=== creating a new service 
+
+ sudo docker service create  --name my-web  --publish 8080:80 --replicas 2 nginx
+
+image::ingress-routing-mesh.png[Network]
+
+You can publish a port for an existing service using the following command:
+ $ docker service update \
+  --publish-add <PUBLISHED-PORT>:<TARGET-PORT> \
+  <SERVICE>
+  
+=== Configure an external load balancer
+You can configure an external load balancer to route requests to a swarm service. For example, you could configure HAProxy to balance requests to an nginx service published to port 8080.  
+  
+image::ingress-lb.png[external load balancer]
+
+You can configure the load balancer to balance requests between every node in the swarm even if there are no tasks scheduled on the node. For example, you could have the following HAProxy configuration in /etc/haproxy/haproxy.cfg:
+global
+        log /dev/log    local0
+        log /dev/log    local1 notice
+...snip...
+
+ # Configure HAProxy to listen on port 80
+ frontend http_front
+   bind *:80
+   stats uri /haproxy?stats
+   default_backend http_back
+
+ # Configure HAProxy to route requests to swarm nodes on port 8080
+ backend http_back
+   balance roundrobin
+   server node1 192.168.99.100:8080 check
+   server node2 192.168.99.101:8080 check
+   server node3 192.168.99.102:8080 check
