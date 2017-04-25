@@ -29,6 +29,10 @@
 				</executions>
 				<configuration>
 					<backend>html</backend>
+					<attributes>
+						<sectnums>true</sectnums>
+						<toc>left</toc>
+					</attributes>
 					<outputDirectory>target/docs/asciidoc</outputDirectory>
 					<resources>
 						<resource>

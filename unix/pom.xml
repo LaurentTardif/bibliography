@@ -11,27 +11,54 @@
 	<name>unix</name>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
-     
+
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
 			<url>scp://www.yourcompany.com/www/docs/project/unix/</url>
 		</site>
 	</distributionManagement>	 
-	 
+
 	<build>
 		<plugins>
 			<plugin>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>${maven-site-plugin.version}</version>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>1.5.3</version>
 				<executions>
 					<execution>
-						<id>attach-descriptor</id>
+						<id>output-html</id>              
+						<phase>generate-resources</phase> 
 						<goals>
-							<goal>attach-descriptor</goal>
+							<goal>process-asciidoc</goal> 
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<backend>html</backend>
+					<attributes>
+						<sectnums>true</sectnums>
+						<toc>left</toc>
+					</attributes>
+					<outputDirectory>target/docs/asciidoc</outputDirectory>
+					<resources>
+						<resource>
+							<!-- (Mandatory) Directory to copy from. Paths are relative to maven's ${baseDir} -->
+							<directory>src/main/asciidoc</directory>
+							<!-- (Optional) Directory to copy to. By default uses the option `outputDirectory` -->
+							<targetPath>target/docs/asciidoc2</targetPath>
+							<!-- (Optional) NOTE: SVN, GIT and other version control files are excluded by default, there's no need to add them -->
+							<excludes>
+								<exclude>**/.txt</exclude>
+							</excludes>
+							<!-- (Optional) If not set, includes all files but default exceptions mentioned -->
+							<includes>
+								<include>**/*.jpg</include>
+								<include>**/*.gif</include>
+							</includes>
+						</resource>
+					</resources>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -64,8 +91,8 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	
+
+
 	<modules>
 		<module>system</module>
 	</modules>
