@@ -12,3 +12,10 @@ From
 == quick start unix commands 
 
 image::LinuxPerformanceTools.jpg[LinuxPerformanceTools]
+
+
+== Install a NFS server
+
+=== On ubuntu 
+
+ * sudo apt-get install nfs-kernel-server
