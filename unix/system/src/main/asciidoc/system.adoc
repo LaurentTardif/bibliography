@@ -70,3 +70,43 @@ On the server side :
 on the client side :
  
  ls /nfs/artifactory_data 
+
+== Install prostgres server
+
+ sudo apt-get install postgresql postgresql-contrib
+
+ * Default user is postgres
+ * command line is psql
+ * default port 5432
+ * configuration of remote access : vi /etc/postgresql/9.5/main/pg_hba.conf 
+	
+ host    all             all             10.0.0.1/32            md5
+
+ * configuration of listening address and ports  vi /etc/postgresql/9.5/main/postgresql.conf
+
+  listen_addresses = 'localhost,10.0.0.6'
+
+  
+== SSH multiplexing
+
+ 0
+down vote
+	
+
+The easiest way to configure your system to use single ssh sessions by default with multiplexing.
+
+This can be done by creating a folder for the sockets:
+
+mkdir ~/.ssh/controlmasters
+
+And then adding the following to your .ssh configuration:
+
+Host *
+    ControlMaster auto
+    ControlPath ~/.ssh/controlmasters/%r@%h:%p.socket
+    ControlMaster auto
+    ControlPersist 10m
+
+Now, you do not need to modify any of your code. This allows multiple calls to ssh and scp without creating multiple sessions, which is useful when there needs to be more interaction between your local and remote machines.
+
+Thanks to @terminus's answer, http://www.cyberciti.biz/faq/linux-unix-osx-bsd-ssh-multiplexing-to-speed-up-ssh-connections/ and https://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing.

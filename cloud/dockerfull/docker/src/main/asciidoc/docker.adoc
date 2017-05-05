@@ -179,3 +179,14 @@ Status: Downloaded newer image for ouelcum/docker-whale:1.0
         \    \        __/
           \____\______/
 ....
+
+
+== from an IT point of view
+
+=== daemon.json 
+
+This file located in /etc/docker/ allow to configure docker daemon behavior
+
+.reconfigure default path (/var/lib/docker) 
+ "graph": "/mnt/docker-data",
+ "storage-driver": "overlay"
