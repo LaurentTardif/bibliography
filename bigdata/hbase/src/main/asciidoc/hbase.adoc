@@ -874,6 +874,22 @@ As I discussed several times, that HFile is the main persistent storage in an HB
  * The trailer is a pointer which points to the HFile’s meta block . It is written at the end of the committed file. It contains information about timestamp and bloom filters.
  * Bloom Filter helps in searching key value pairs, it skips the file which does not contain the required rowkey. Timestamp also helps in searching a version of the file, it helps in skipping the data.
 
+.Linear write time
+
+
+ put 'musicband', 'U2-Paris-1980-7', 'show:Number', '7'
+ 0 row(s) in 0.0042 seconds
+ ....
+ ...
+ put 'musicband', 'U2-Paris-1980-999997', 'show:Number', '999997'
+ 0 row(s) in 0.0040 seconds
+
+
+
+= Programming with hbase
+
+ 
+ 
 === Read Mechanism
 
 As discussed in our search mechanism, first the client retrieves the location of the Region Server from .META Server if the client does not have it in its cache memory. Then it goes through the sequential steps as follows: 
@@ -1253,7 +1269,7 @@ The entity tables are as shown below:
 image::Hbase-bookStoreHbase.png[The book store in hbase]
 
 
-== Generic Data, Event Data, and Entity-Attribute-Value
+=== Generic Data, Event Data, and Entity-Attribute-Value
 
 Generic data that is schemaless is often expressed as name value or entity attribute value. In a relational database, this is complicated to represent. A conventional relational table consists of attribute columns that are relevant for every row in the table, because every row represents an instance of a similar object. A different set of attributes represents a different type of object, and thus belongs in a different table. The advantage of HBase is that you can define columns on the fly, put attribute names in column qualifiers, and group data by column families.
 
@@ -1261,17 +1277,18 @@ Here is an example of clinical patient event data. The Row Key is the patient ID
 
 image::Hbase-GenericDataEvent.png[Generic data event]
 
-== Self-Join Relationship – HBase
+=== Self-Join Relationship – HBase
 
 A self-join is a relationship in which both match fields are defined in the same table.
 
 Consider a schema for twitter relationships, where the queries are: which users does userX follow, and which users follow userX? Here’s a possible solution: The userids are put in a composite row key with the relationship type as a separator. For example, Carol follows Steve Jobs and Carol is followed by BillyBob. This allows for row key scans for everyone carol:follows or carol:followedby
 
 Below is the example Twitter table:
+
 image::Hbase-twitterExample.png[Twitter Example]
 
 
-== Tree, Graph Data
+=== Tree, Graph Data
 
 Here is an example of an adjacency list or graph, using a separate column for each parent and child:
 
@@ -1281,27 +1298,13 @@ Each row shows a node, and the row key is equal to the node id. There is a colum
 
 You can see there are multiple ways to represent trees, the best way depends on your queries.
 
-== Inheritance Mapping
+=== Inheritance Mapping
 
 In this online store example, the type of product is a prefix in the row key. Some of the columns are different, and may be empty depending on the type of product. This allows to model different product types in the same table and to scan easily by product type.
 
 image::Hbase-InheritanceMapping.png[InheritanceMapping]
 
 
-
-
-==== Linear write time
-
- put 'musicband', 'U2-Paris-1980-7', 'show:Number', '7'
- 0 row(s) in 0.0042 seconds
- ....
- ...
- put 'musicband', 'U2-Paris-1980-999997', 'show:Number', '999997'
- 0 row(s) in 0.0040 seconds
-
-
-
-= Programming with hbase
 
 
 
