@@ -236,7 +236,226 @@ Full example is here :
 http://hadoop.apache.org/docs/r2.7.3/hadoop-project-dist/hadoop-common/ClusterSetup.html
 
 
-Web Interfaces
+===  etc/hadoop/hadoop-env.sh 
+
+Among value to configure : 
+
+ * JAVA_HOME 
+ * HADOOP_PREFIX=/path/to/hadoop
+
+do not forget to export it :
+ 
+  export HADOOP_PREFIX
+  export JAVA_HOME
+
+  
+=== etc/hadoop/core-site.xml
+
+
+[format="csv", options="header"]
+|===
+Parameter,Value,Notes
+fs.defaultFS , NameNode URI , hdfs://host:port/
+io.file.buffer.size ,131072, Size of read/write buffer used in SequenceFiles. 
+|===  
+
+
+=== etc/hadoop/hdfs-site.xml
+
+
+.Configurations for NameNode:
+
+[format="csv", options="header"]
+|===
+Parameter ,	Value ,	Notes
+dfs.namenode.name.dir ,	Path on the local filesystem where the NameNode stores the namespace and transactions logs persistently. ,	If this is a comma-delimited list of directories then the name table is replicated in all of the directories, for redundancy.
+dfs.hosts / dfs.hosts.exclude ,	List of permitted/excluded DataNodes. ,	If necessary, use these files to control the list of allowable datanodes.
+dfs.blocksize ,	268435456 ,	HDFS blocksize of 256MB for large file-systems.
+dfs.namenode.handler.count ,	100 	,More NameNode server threads to handle RPCs from large number of DataNodes.
+|===  
+
+.Configurations for DataNode:
+
+[format="csv", options="header"]
+|===
+Parameter,Value,Notes
+dfs.datanode.data.dir,Comma separated list of paths on the local filesystem of a DataNode where it should store its blocks. ,If this is a comma-delimited list of directories, then data will be stored in all named directories, typically on different devices.
+|===  
+
+=== etc/hadoop/yarn-site.xml
+	
+	
+.Configurations for ResourceManager and NodeManager:
+
+[format="csv", options="header"]
+|===
+Parameter ,	Value, 	Notes
+yarn.acl.enable ,	true / false 	,Enable ACLs? Defaults to false.
+yarn.admin.acl ,	Admin ACL ,	ACL to set admins on the cluster. ACLs are of for comma-separated-usersspacecomma-separated-groups. Defaults to special value of * which means anyone. Special value of just space means no one has access.
+yarn.log-aggregation-enable ,	false ,	Configuration to enable or disable log aggregation 
+|===
+
+.Configurations for ResourceManager:
+
+[format="csv", options="header"]
+|===
+Parameter 	,Value ,	Notes
+yarn.resourcemanager.address ,	ResourceManager host:port for clients to submit jobs. ,	host:port If set, overrides the hostname set in yarn.resourcemanager.hostname.
+yarn.resourcemanager.scheduler.address ,	ResourceManager host:port for ApplicationMasters to talk to Scheduler to obtain resources. ,	host:port If set, overrides the hostname set in yarn.resourcemanager.hostname.
+yarn.resourcemanager.resource-tracker.address ,	ResourceManager host:port for NodeManagers. ,	host:port If set, overrides the hostname set in yarn.resourcemanager.hostname.
+yarn.resourcemanager.admin.address ,	ResourceManager host:port for administrative commands. ,	host:port If set, overrides the hostname set in yarn.resourcemanager.hostname.
+yarn.resourcemanager.webapp.address ,	ResourceManager web-ui host:port. 	host:port If set, overrides the hostname set in yarn.resourcemanager.hostname.
+yarn.resourcemanager.hostname ,	ResourceManager host. 	host Single hostname that can be set in place of setting all yarn.resourcemanager*address resources., Results in default ports for ResourceManager components.
+yarn.resourcemanager.scheduler.class ,	ResourceManager Scheduler class. 	,CapacityScheduler (recommended), FairScheduler (also recommended), or FifoScheduler
+yarn.scheduler.minimum-allocation-mb ,	Minimum limit of memory to allocate to each container request at the Resource Manager. ,	In MBs
+yarn.scheduler.maximum-allocation-mb ,	Maximum limit of memory to allocate to each container request at the Resource Manager. ,	In MBs
+yarn.resourcemanager.nodes.include-path / yarn.resourcemanager.nodes.exclude-path
+|===
+
+
+.Configurations for NodeManager:
+
+[format="csv", options="header"]
+|===
+Parameter ,	Value ,	Notes
+yarn.nodemanager.resource.memory-mb ,	Resource i.e. available physical memory, in MB, for given NodeManager ,	Defines total available resources on the NodeManager to be made available to running containers
+yarn.nodemanager.vmem-pmem-ratio ,	Maximum ratio by which virtual memory usage of tasks may exceed physical memory ,	The virtual memory usage of each task may exceed its physical memory limit by this ratio. The total amount of virtual memory used by tasks on the NodeManager may exceed its physical memory usage by this ratio.
+yarn.nodemanager.local-dirs 	,Comma-separated list of paths on the local filesystem where intermediate data is written. ,	Multiple paths help spread disk i/o.
+yarn.nodemanager.log-dirs ,	Comma-separated list of paths on the local filesystem where logs are written. ,	Multiple paths help spread disk i/o.
+yarn.nodemanager.log.retain-seconds ,	10800 ,	Default time (in seconds) to retain log files on the NodeManager Only applicable if log-aggregation is disabled.
+yarn.nodemanager.remote-app-log-dir ,	/logs ,	HDFS directory where the application logs are moved on application completion. Need to set appropriate permissions. Only applicable if log-aggregation is enabled.
+yarn.nodemanager.remote-app-log-dir-suffix, 	logs ,	Suffix appended to the remote log dir. Logs will be aggregated to ${yarn.nodemanager.remote-app-log-dir}/${user}/${thisParam} Only applicable if log-aggregation is enabled.
+yarn.nodemanager.aux-services ,	mapreduce_shuffle, 	Shuffle service that needs to be set for Map Reduce applications.
+|===
+
+.Configurations for History Server (Needs to be moved elsewhere):
+[format="csv", options="header"]
+|===
+Parameter ,	Value ,	Notes
+yarn.log-aggregation.retain-seconds ,	-1 ,	How long to keep aggregation logs before deleting them. -1 disables. Be careful; set this too small and you will spam the name node.
+yarn.log-aggregation.retain-check-interval-seconds 	,-1 ,	Time between checks for aggregated log retention. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful, set this too small and you will spam the name node.
+|===
+
+
+
+
+=== etc/hadoop/mapred-site.xml
+
+.Configurations for MapReduce Applications:
+[format="csv", options="header"]
+|===
+Parameter ,	Value 	,Notes
+mapreduce.framework.name ,	yarn ,	Execution framework set to Hadoop YARN.
+mapreduce.map.memory.mb ,	1536 ,	Larger resource limit for maps.
+mapreduce.map.java.opts ,	-Xmx1024M ,	Larger heap-size for child jvms of maps.
+mapreduce.reduce.memory.mb, 	3072 ,	Larger resource limit for reduces.
+mapreduce.reduce.java.opts ,	-Xmx2560M 	,Larger heap-size for child jvms of reduces.
+mapreduce.task.io.sort.mb ,	512 ,	Higher memory-limit while sorting data for efficiency.
+mapreduce.task.io.sort.factor ,	100 ,	More streams merged at once while sorting files.
+mapreduce.reduce.shuffle.parallelcopies ,	50 ,	Higher number of parallel copies run by reduces to fetch outputs from very large number of maps.
+|===
+
+.Configurations for MapReduce JobHistory Server:
+[format="csv", options="header"]
+|===
+Parameter ,	Value ,	Notes
+mapreduce.jobhistory.address ,	MapReduce JobHistory Server host:port ,	Default port is 10020.
+mapreduce.jobhistory.webapp.address ,	MapReduce JobHistory Server Web UI host:port ,	Default port is 19888.
+mapreduce.jobhistory.intermediate-done-dir ,	/mr-history/tmp 	,Directory where history files are written by MapReduce jobs.
+mapreduce.jobhistory.done-dir ,	/mr-history/done ,	Directory where history files are managed by the MR JobHistory Server. 
+|===
+
+=== Slaves File
+
+List all slave hostnames or IP addresses in your etc/hadoop/slaves file, one per line. 
+Helper scripts (described below) will use the etc/hadoop/slaves file to run commands on many hosts at once. 
+It is not used for any of the Java-based Hadoop configuration. In order to use this functionality, ssh trusts (via either passphraseless ssh or some other means, such as Kerberos) must be established for the accounts used to run Hadoop.
+
+=== Share configuration files
+
+Once all the necessary configuration is complete, distribute the files to the HADOOP_CONF_DIR directory on all the machines. This should be the same directory on all machines.
+
+In general, it is recommended that HDFS and YARN run as separate users. In the majority of installations, HDFS processes execute as ‘hdfs’. YARN is typically using the ‘yarn’ account.
+
+
+== Start the cluster
+
+To start a Hadoop cluster you will need to start both the HDFS and YARN cluster.
+
+The first time you bring up HDFS, it must be formatted. Format a new distributed filesystem as hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/bin/hdfs namenode -format <cluster_name>
+
+Start the HDFS NameNode with the following command on the designated node as hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_CONF_DIR --script hdfs start namenode
+
+Start a HDFS DataNode with the following command on each designated node as hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/hadoop-daemons.sh --config $HADOOP_CONF_DIR --script hdfs start datanode
+
+If etc/hadoop/slaves and ssh trusted access is configured (see Single Node Setup), all of the HDFS processes can be started with a utility script. As hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/start-dfs.sh
+
+Start the YARN with the following command, run on the designated ResourceManager as yarn:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemon.sh --config $HADOOP_CONF_DIR start resourcemanager
+
+Run a script to start a NodeManager on each designated host as yarn:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemons.sh --config $HADOOP_CONF_DIR start nodemanager
+
+Start a standalone WebAppProxy server. Run on the WebAppProxy server as yarn. If multiple servers are used with load balancing it should be run on each of them:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemon.sh --config $HADOOP_CONF_DIR start proxyserver
+
+If etc/hadoop/slaves and ssh trusted access is configured (see Single Node Setup), all of the YARN processes can be started with a utility script. As yarn:
+
+ [yarn]$ $HADOOP_PREFIX/sbin/start-yarn.sh
+
+Start the MapReduce JobHistory Server with the following command, run on the designated server as mapred:
+
+ [mapred]$ $HADOOP_PREFIX/sbin/mr-jobhistory-daemon.sh --config $HADOOP_CONF_DIR start historyserver
+
+
+== Stop the cluster
+
+Stop the NameNode with the following command, run on the designated NameNode as hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_CONF_DIR --script hdfs stop namenode
+
+Run a script to stop a DataNode as hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/hadoop-daemons.sh --config $HADOOP_CONF_DIR --script hdfs stop datanode
+
+If etc/hadoop/slaves and ssh trusted access is configured (see Single Node Setup), all of the HDFS processes may be stopped with a utility script. As hdfs:
+
+ [hdfs]$ $HADOOP_PREFIX/sbin/stop-dfs.sh
+
+Stop the ResourceManager with the following command, run on the designated ResourceManager as yarn:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemon.sh --config $HADOOP_CONF_DIR stop resourcemanager
+
+Run a script to stop a NodeManager on a slave as yarn:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemons.sh --config $HADOOP_CONF_DIR stop nodemanager
+
+If etc/hadoop/slaves and ssh trusted access is configured (see Single Node Setup), all of the YARN processes can be stopped with a utility script. As yarn:
+
+ [yarn]$ $HADOOP_PREFIX/sbin/stop-yarn.sh
+
+Stop the WebAppProxy server. Run on the WebAppProxy server as yarn. If multiple servers are used with load balancing it should be run on each of them:
+
+ [yarn]$ $HADOOP_YARN_HOME/sbin/yarn-daemon.sh --config $HADOOP_CONF_DIR stop proxyserver
+
+Stop the MapReduce JobHistory Server with the following command, run on the designated server as mapred:
+
+ [mapred]$ $HADOOP_PREFIX/sbin/mr-jobhistory-daemon.sh --config $HADOOP_CONF_DIR stop historyserver
+
+
+=== Web Interfaces
+
 Once the Hadoop cluster is up and running check the web-ui of the components as described below:
 
 
