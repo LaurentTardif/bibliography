@@ -68,5 +68,6 @@
 	
 	<modules>
 		<module>nagios</module>
+		<module>prometheus</module>
 	</modules>
 </project>

@@ -1,0 +1,64 @@
+= NAGIOS 
+:toc:
+
+== Introduction 
+
+quick start for nagios monitoring tools  
+From 
+
+ * http://www.tecmint.com/install-nagios-in-linux/
+ * https://www.server-world.info/en/note?os=CentOS_7&p=nagios
+
+ *
+
+== Global architecture 
+
+image::NRPE_Direct_Checks.png[NRPE_Direct_Checks]
+
+image::nsca.png[nsca]
+
+
+== Installation 
+
+.Install apache and php
+
+  sudo yum -y install httpd 
+  sudo systemctl start httpd 
+  sudo systemctl enable httpd 
+  sudo firewall-cmd --add-service=http --permanent 
+  sudo firewall-cmd --reload
+    
+  sudo yum -y install php php-mbstring php-pear 
+  sudo systemctl restart httpd
+  sudo vi /var/www/html/index.php 
+  
+add the following content to display the current date :
+
+[Source, php]
+-----
+  <html>
+    <body>
+		<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: center;">
+			<?php
+				print Date("Y/m/d");
+			?>
+		</div>
+	</body>
+</html>
+-----
+  
+.Install nagios and nagios plugins
+
+  sudo yum -y install epel-release 
+  sudo yum --enablerepo=epel -y install nagios nagios-plugins-{ping,disk,users,procs,load,swap,ssh,http} 
+  sudo htpasswd /etc/nagios/passwd nagiosadmin 
+  sudo systemctl start nagios
+  sudo systemctl enable nagios
+  sudo systemctl restart httpd
+
+.Update security of SELinux 
+
+ wget http://repo.nuxref.com/centos/7/en/x86_64/custom/nuxref-release-1.0.0-3.el7.nuxref.noarch.rpm
+ rpm -ivh nuxref-release-1.0.0-3.el7.nuxref.noarch.rpm 
+ systemctl start nagios
+ 
