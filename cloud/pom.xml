@@ -70,5 +70,6 @@
 		<module>dockerfull</module>
 		<module>azure</module>
 		<module>Kubernetes</module>
+		<module>terraform</module>
 	</modules>
 </project>
