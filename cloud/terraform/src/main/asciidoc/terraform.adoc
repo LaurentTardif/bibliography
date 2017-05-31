@@ -9,7 +9,157 @@
 
 From : 
 
+ * https://www.terraform.io/intro/getting-started/build.html
+ * https://www.terraform.io/docs/providers/azurerm/r/availability_set.html
+ * https://www.terraform.io/docs/providers/azurerm/index.html
+ * https://doics.co/2015/08/13/using-terraform-with-microsoft-azure/
  * 
  
+ 
+ 
 == Installation
+
+The installation is pretty simple, we got a zip file, with a binary. That's it.
+
+=== Configuration
+
+The terraform file need to be in the same directory than the terraform binary. 
+
+=== Azure configuration 
+
+.Creating Credentials 
+
+Azure requires that an application is added to Azure Active Directory to generate the client_id, client_secret, and tenant_id needed by Terraform (subscription_id can be recovered from your Azure account details).
+There are two high-level tasks to complete. The first is to create an App Registration with Azure Active Directory. You can do this in either the New ARM portal (http://portal.azure.com) or the older 'Classic' portal (http://manage.windowsazure.com).
+The second task is to grant permissions for the Application Registration in your Subscription.
+To create the App Registration using the New ARM portal:
+
+* Select *Azure Active Directory* from the left pane 
+* Select the *App Registrations* tile from the Overview Section 
+* Click *Endpoints* at the top of the App Registrations blade. This will display a list of URIs. Extract the GUID from the bottom URI for *OAUTH 2.0 AUTHORIZATION ENDPOINT.* This is the *tenant_id* 
+* Select Add from the top of the blade. 
+* Add a friendly name for the application e.g. Terraform. Choose *Web App / API* for Application Type 
+* Add a valid URI as the Sign-on URL. This isn't used and can be anything e.g. http://terra.form. 
+* Click Create at the bottom to create the App Registration 
+* Choose your new App Registration to show details 
+* You should now be on the blade for your App Registration. At the top, notice the "Application ID" GUID. You'll use this as the client_id If the Settings blade for your Application Registration is not showing, click on All Settings 
+* Click on *Keys*.  Enter a name for your key in *Key description* and choose an expiration duration. When you click Save at the top of the blade, the key value will be displayed. Once it is displayed, you then use this as the value for client_secret. This will disappear once you move off the page 
+* Click Required Permissions.
+* Click Add.   This will allow us to add permission to use the Windows Azure Service Management API to the App Registration. 
+  * On Step 1, choose Windows Azure Service Management API. 
+  * Click Select. On Step 2, check the box next to "Access Azure Service Management as organization users". 
+  * Click Select. Click Done to finish adding the permission. 
+
+  
+Note : for some strange reason i need to create the resource group, add the application with permission "contributor"  
+  
+== Creation of the first environement
+
+=== Create the configuration file
+
+.Integration ENV
+
+ # Configure the Microsoft Azure Provider
+ provider "azurerm" {
+  subscription_id = "XX"
+  client_id       = "XX"
+  client_secret   = "XX"
+  tenant_id       = "XX"
+ }
+
+ 
+ # Create a resource group
+ resource "azurerm_resource_group" "B0006_CRP_teraform_INT" {
+   name     = "B0006_CRP_teraform_INT"
+   location = "westeurope"
+ }
+
+ # Create a virtual network in the web_servers resource group
+ resource "azurerm_virtual_network" "teraform_INT" {
+   name                = "teraform_INT_virtualNetwork"
+   address_space       = ["10.0.0.0/16"]
+   location            = "westeurope"
+   resource_group_name = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+ }
+
+ resource "azurerm_subnet" "teraform_INT" {
+  name                 = "teraform_INT_subnet"
+  resource_group_name  = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+  virtual_network_name = "${azurerm_virtual_network.teraform_INT.name}"
+  address_prefix       = "10.0.2.0/24"
+ }
+
+ resource "azurerm_network_interface" "teraform_INT" {
+  name                = "teraform_INT_networlInterface"
+  location            = "westeurope"
+  resource_group_name = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.teraform_INT.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+ }
+
+ resource "azurerm_storage_account" "teraform_INT" {
+  name                = "teraformstorageaccount"
+  resource_group_name = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+  location            = "westeurope"
+  account_type        = "Standard_LRS"
+
+  tags {
+    environment = "integration"
+  }
+ }
+
+ resource "azurerm_storage_container" "teraform_INT" {
+  name                  = "teraformintcontainer"
+  resource_group_name   = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+  storage_account_name  = "${azurerm_storage_account.teraform_INT.name}"
+  container_access_type = "private"
+ }
+
+ resource "azurerm_virtual_machine" "teraform_INT" {
+  name                  = "teraform_INT_virtualMachine1"
+  location              = "westeurope"
+  resource_group_name   = "${azurerm_resource_group.B0006_CRP_teraform_INT.name}"
+  network_interface_ids = ["${azurerm_network_interface.teraform_INT.id}"]
+  vm_size               = "Standard_A0"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "14.04.2-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.teraform_INT.primary_blob_endpoint}${azurerm_storage_container.teraform_INT.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "XXXXXXXXXXXXXX"
+    admin_password = "YYYYYYYYYYYYYY"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags {
+    environment = "integraton"
+  }
+}
+
+=== plan and create
+
+
+ terraform plan
+ terraform apply
+ terraform show
+ terraform destroy
 
