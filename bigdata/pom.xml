@@ -67,9 +67,10 @@
 	
 	
 	<modules>
+		<module>Apache Family</module>
 		<module>bigdata</module>
 		<module>database</module>
-		
+		<module>kafka</module>	
 		<module>hadoop</module>
 		<module>hbase</module>
 		<module>cassandra</module>

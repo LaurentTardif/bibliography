@@ -1,0 +1,31 @@
+﻿= Apache Family  
+:toc:
+
+= sqoop
+
+http://sqoop.apache.org/
+Apache Sqoop(TM) is a tool designed for efficiently transferring bulk data between Apache Hadoop and structured datastores such as relational databases.
+
+Sqoop successfully graduated from the Incubator in March of 2012 and is now a Top-Level Apache project: More information
+
+Latest stable release is 1.4.6 (download, documentation). Latest cut of Sqoop2 is 1.99.7 (download, documentation). Note that 1.99.7 is not compatible with 1.4.6 and not feature complete, it is not intended for production deployment.
+
+
+= kafka
+
+
+
+
+
+= Flume
+
+
+Concernant flume le retour qu'on a sur la SUP est plutôt bon, c'est très fiable (on a très rarement des problèmes avec cette brique) et scalable (nous on en a 4 en parallèle qui dépile du jms)
+Pour la "plus value" je sais pas trop quoi dire, ça dépend par rapport à quoi tu compares
+Mais on peut quand même dire que le flume connait de nombreux connecteurs qui te permettent de te brancher à beaucoup de choses : jms, kafka, hbase, avro, hdfs....
+Et qu'il est fait pour éviter de perdre des événements (cf. la gestion des transactions des file-channel). Nous on a quand même mis ces file-channel en RAID1 pour plus de sécurité (et d'après la doc il faut absolument éviter de mettre ces file-channel sur un NAS)
+Aujourd'hui peut-être que la suite kafka (kafka connect, kafka stream), pourrait être une alternative
+
+Je crois aussi qu'historiquement flume permettait d'enrichire nos evenements entrants
+
+= Hot topics
