@@ -28,6 +28,7 @@
 					</execution>
 				</executions>
 				<configuration>
+					<sourceHighlighter>highlightjs</sourceHighlighter>
 					<backend>html</backend>
 					<outputDirectory>target/docs/asciidoc</outputDirectory>
 					<attributes>

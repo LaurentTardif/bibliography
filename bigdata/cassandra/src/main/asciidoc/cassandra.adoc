@@ -1,16 +1,16 @@
 ﻿= Cassandra  
 :toc:
 
-= What's Cassandra
+== What's Cassandra
 
  Cassandra is a column-family system, offering near-linear scaling across commodity clusters
  
-= Hot topics
+== Hot topics
 
-== Communication / cqlsh / 
+=== Communication / cqlsh / 
 
 
-== Data modelling
+=== Data modelling
 
 .Data modeling is a process that involves	
  * Collection and analysis of data requirements in an information system	
@@ -20,7 +20,7 @@
  * Design and speciﬁcation of a database schema	
  * Schema optimization and data indexing techniques 
  
-=== Key steps
+==== Key steps
 
 .Understand data and application queries
  * Data may or may not exist in some format (RDBMS, XML, CSV, …)	
@@ -30,7 +30,7 @@
  * Implement the design using CQL
  ** Optimizations concerning data types, keys, partition sizes, ordering	
 
-=== Modeling data
+==== Modeling data
 
  * Modeling principle 1: “Know your data”
  ** Key and cardinality constraints are fundamental to schema design
@@ -41,7 +41,7 @@
  * Modeling principle 4: “Duplicate data”
  ** Better to duplicate than to join
 
-==== Know your data
+===== Know your data
 
 .Key and cardinality constraints are fundamental to schema design
 * What are entities in a model?
@@ -56,7 +56,7 @@ User posts Review, Venue features Artifact, Artifact IsA Presentation
  Artifact appears in exactly one Venue 
  Venue features many Artifacts
 
-==== Know your queries
+===== Know your queries
 
 Queries drive schema design
 Organizing data such that queries are efficient
@@ -72,7 +72,7 @@ Find information for a specified user (retrieve one row/partition)
 Find all reviews for a specified user (retrieve many rows in one partition)
 Not always possible or desirable (very large partitions)
 
-==== Nest data
+===== Nest data
 
 Data nesting is the main data modeling technique
 “Partition per query” frequently requires organizing multiple entities (usually of the same type) under one entity (usually of a different type)
@@ -85,7 +85,7 @@ Collection columns
 Technically, using composite partition keys is the third mechanism
 Supports less efficient “partition+ per query”
 
-==== Duplicate data
+===== Duplicate data
 
 Better to duplicate than to join
 “Partition per query” and data nesting result in data duplication
