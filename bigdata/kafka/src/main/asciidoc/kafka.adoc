@@ -481,22 +481,150 @@ Looking beyond the scope of this concrete example, what Kafka Streams is doing h
 You can now stop the console consumer, the console producer, the Wordcount application, the Kafka broker and the Zookeeper server in order via Ctrl-C.
 
 
+== Exactly once in Kafka 
+
+Now, I know what some of you are thinking. Exactly-once delivery is impossible, it comes at too high a price to put it to practical use, or that I’m getting all this entirely wrong! You’re not alone in thinking that. Some of my industry colleagues recognize that exactly-once delivery is one of the hardest problems to solve in distributed systems.
+
+=== Overview of messaging semantics
+
+In a distributed system, the computers that make up the system can always fail independently of one another. In the case of Kafka, an individual broker can crash, or a network failure can happen while the producer is sending a message to a topic. Depending on the action the producer takes to handle such a failure, you can get different semantics:
+
+*At least once semantics*: if the producer receives an acknowledgement (ack) from the Kafka broker and acks=all, it means that the message has been written exactly once to the Kafka topic. However, if a producer ack times out or receives an error, it might retry sending the message assuming that the message was not written to the Kafka topic. If the broker had failed right before it sent the ack but after the message was successfully written to the Kafka topic, this retry leads to the message being written twice and hence delivered more than once to the end consumer. And everybody loves a cheerful giver, but this approach can lead to duplicated work and incorrect results.
+
+*At most once semantics*: if the producer does not retry when an ack times out or returns an error, then the message might end up not being written to the Kafka topic, and hence not delivered to the consumer. In most cases it will be, but in order to avoid the possibility of duplication, we accept that sometimes messages will not get through.
+
+*Exactly once semantics*: even if a producer retries sending a message, it leads to the message being delivered exactly once to the end consumer. Exactly-once semantics is the most desirable guarantee, but also a poorly understood one. This is because it requires a cooperation between the messaging system itself and the application producing and consuming the messages. For instance, if after consuming a message successfully you rewind your Kafka consumer to a previous offset, you will receive all the messages from that offset to the latest one, all over again. This shows why the messaging system and the client application must cooperate to make exactly-once semantics happen.
+
+=== Failures that must be handled
+
+To describe the challenges involved in supporting exactly-once delivery semantics, let’s start with a simple example.
+
+Suppose there is a single-process producer application that sends the message “Hello Kafka” to a single-partition Kafka topic called “EoS.” Further suppose that a single-instance consumer application on the other end pulls data from the topic and prints the message. In the happy path where there are no failures, this works well, and the message “Hello Kafka” is written to the EoS topic partition only once. The consumer pulls the message, processes it, and commits the message offset to indicate that it has completed its processing. It will not receive it again, even if the consumer application fails and restarts.
+
+However, we all know that we can’t count on the happy path. At scale, even unlikely failure scenarios are things that end up happening all the time.
+
+*A broker can fail*: Kafka is a highly available, persistent, durable system where every message written to a partition is persisted and replicated some number of times (we will call it n). As a result, Kafka can tolerate n-1 broker failures, meaning that a partition is available as long as there is at least one broker available. Kafka’s replication protocol guarantees that once a message has been written successfully to the leader replica, it will be replicated to all available replicas.
+
+*The producer-to-broker RPC can fail*: Durability in Kafka depends on the producer receiving an ack from the broker. Failure to receive that ack does not necessarily mean that the request itself failed. The broker can crash after writing a message but before it sends an ack back to the producer. It can also crash before even writing the message to the topic. Since there is no way for the producer to know the nature of the failure, it is forced to assume that the message was not written successfully and to retry it. In some cases, this will cause the same message to be duplicated in the Kafka partition log, causing the end consumer to receive it more than once.
+
+*The client can fail*: Exactly-once delivery must account for client failures as well. But how can we know that a client has actually failed and is not just temporarily partitioned from the brokers or undergoing an application pause? Being able to tell the difference between a permanent failure and a soft one is important; for correctness, the broker should discard messages sent by a zombie producer. Same is true for the consumer; once a new client instance has been started, it must be able to recover from whatever state the failed instance left behind and begin processing from a safe point. This means that consumed offsets must always be kept in sync with produced output.
+
+=== Exactly-once semantics in Apache Kafka, explained
+
+Prior to 0.11.x, Apache Kafka supported at-least once delivery semantics and in-order delivery per partition. As you can tell from the example above, that means producer retries can cause duplicate messages. In the new exactly-once semantics feature, we’ve strengthened Kafka’s processing semantics in three different and interrelated ways.
+
+==== Idempotence: Exactly-once in order semantics per partition
+
+An idempotent operation is one which can be performed many times without causing a different effect than only being performed once. The producer send operation is now idempotent. In the event of an error that causes a producer retry, the same message—which is still sent by the producer multiple times—will only be written to the Kafka log on the broker once. For a single partition, Idempotent producer sends remove the possibility of duplicate messages due to producer or broker errors. To turn on this feature and get exactly-once semantics per partition—meaning no duplicates, no data loss, and in-order semantics—configure your producer to set “enable.idempotence=true”.
+
+How does this feature work? Under the covers it works in a way similar to TCP; each batch of messages sent to Kafka will contain a sequence number which the broker will use to dedupe any duplicate send. Unlike TCP, though—which provides guarantees only within a transient in-memory connection—this sequence number is persisted to the replicated log, so even if the leader fails, any broker that takes over will also know if a resend is a duplicate. The overhead of this mechanism is quite low: it’s just a few extra numeric fields with each batch of messages. As you will see later in this article, this feature add negligible performance overhead over the non-idempotent producer.
+
+==== Transactions: Atomic writes across multiple partitions
+
+Second, Kafka now supports atomic writes across multiple partitions through the new transactions API. This allows a producer to send a batch of messages to multiple partitions such that either all messages in the batch are eventually visible to any consumer or none are ever visible to consumers. This feature also allows you to commit your consumer offsets in the same transaction along with the data you have processed, thereby allowing end-to-end exactly-once semantics. Here’s an example code snippet to demonstrate the use of the transactions API — 
+
+[source,java]
+-----
+producer.initTransactions();
+try {
+  producer.beginTransaction();
+  producer.send(record1);
+  producer.send(record2);
+  producer.commitTransaction();
+} catch(ProducerFencedException e) {
+  producer.close();
+} catch(KafkaException e) {
+  producer.abortTransaction();
+}
+-----
+
+The code snippet above describes how you can use the new Producer APIs to send messages atomically to a set of topic partitions. It is worth noting that a Kafka topic partition might have some messages that are part of a transaction while others that are not.
+
+So on the Consumer side, you have two options for reading transactional messages, expressed through the “isolation.level” consumer config:
+
+*read_committed*: In addition to reading messages that are not part of a transaction, also be able to read ones that are, after the transaction is committed.
+
+*read_uncommitted*: Read all messages in offset order without waiting for transactions to be committed. This option is similar to the current semantics of a Kafka consumer.
+
+To use transactions, you need to configure the Consumer to use the right “isolation.level”, use the new Producer APIs, and set a producer config “transactional.id” to some unique ID. This unique ID is needed to provide continuity of transactional state across application restarts.  
+
+==== The real deal: Exactly-once stream processing in Apache Kafka
+
+Building on idempotency and atomicity, exactly-once stream processing is now possible through the Streams API in Apache Kafka. All you need to make your Streams application employ exactly-once semantics, is to set this config “processing.guarantee=exactly_once”. This causes all of the processing to happen exactly once; this includes making both the processing and also all of the materialized state created by the processing job that is written back to Kafka, exactly once.
+
+This is why the exactly-once guarantees provided by Kafka’s Streams API are the strongest guarantees offered by any stream processing system so far. It offers end-to-end exactly-once guarantees for a stream processing application that extends from the data read from Kafka, any state materialized to Kafka by the Streams app, to the final output written back to Kafka. Stream processing systems that only rely on external data systems to materialize state support weaker guarantees for exactly-once stream processing. Even when they use Kafka as a source for stream processing and need to recover from a failure, they can only rewind their Kafka offset to reconsume and reprocess messages, but cannot rollback the associated state in an external system, leading to incorrect results when the state update is not idempotent.”
+
+Let me explain that in a little more detail. The critical question for a stream processing system is “does my stream processing application get the right answer, even if one of the instances crashes in the middle of processing?” The key, when recovering a failed instance, is to resume processing in exactly the same state as before the crash.
+
+Now, stream processing is nothing but a read-process-write operation on a Kafka topic; a consumer reads messages from a Kafka topic, some processing logic transforms those messages or modifies state maintained by the processor, and a producer writes the resulting messages to another Kafka topic. Exactly-once stream processing is simply the ability to execute a read-process-write operation exactly one time. In this case, “getting the right answer” means not missing any input messages or producing any duplicate output. This is the behavior users expect from an exactly-once stream processor.
+
+There are many other failure scenarios to consider besides the simple one we’ve discussed so far:
+
+The stream processor might take input from multiple source topics, and the ordering across these source topics is not deterministic across multiple runs. So if you re-run your stream processor that takes input from multiple source topics, it might produce different results.
+
+Likewise the stream processor might produce output to multiple destination topics. If the producer cannot do an atomic write across multiple topics, then the producer output can be incorrect if writes to some (but not all) partitions fail.
+
+The stream processor might aggregate or join data across multiple inputs using the managed state facilities the Streams API provides. If one of the instances of the stream processor fails, then you need to be able to rollback the state materialized by that instance of the stream processor. On restarting the instance, you also need to be able to resume processing and recreate its state.
+
+The stream processor might look up enriching information in an external database or by calling out to a service that is updated out of band. Depending on an external service makes the stream processor fundamentally non-deterministic; if the external service changes its internal state between two runs of the stream processor, it leads to incorrect results downstream. However, if handled correctly, this should not lead to entirely incorrect results. It should just lead to the stream processor output belonging to a set of legal outputs. More on this later in the blog.
+
+Failure and restart, especially when combined with non-deterministic operations and changes to the persistent state computed by the application, may result not only in duplicates but in incorrect results. For example, if one stage of processing is computing a count of the number of events seen, then a duplicate in an upstream processing stage may lead to an incorrect count downstream. So we must qualify the phrase “exactly once stream processing.” It refers to consuming from a topic, materializing intermediate state in a Kafka topic and producing to one, not all possible computations done on a message using the Streams API. Some computations (for example, depending on an external service or consuming from multiple source topics) are fundamentally non-deterministic.
+
+The correct way to think of exactly-once stream processing guarantees for deterministic operations is to ensure that the output of a read-process-write operation would be the same as it would if the stream processor saw each message exactly one time—as it would in a case where no failure occurred.”
+	
+
 == Comparing messages brocker
 
 === Kafka vs flume
 
+==== History
+
+Back in 2010 (IIRC), LinkedIn wanted to move to something different to handle event log processing because the existing system was fragile, not very scalable, and used XML (!) as the format.  Flume(v1) was still very much in its early days.  Cloudera was invited over to talk about Flume to see if it would meet our needs.  Two big points came out of that discussion:
+Flume was extremely hard to manage because it didn't multiplex connections.  It was essentially one socket per log type.  This was thought to be sort of ridiculous, especially given that syslog and other daemons had been doing this for a very long time.  To add to the overhead, Flume required that there be a different configuration file per socket that was opened.
+We wanted a client pull rather than a  push to client for various reasons, many of which Jay Kreps and others from the Kafka team have documented elsewhere.  It was asked if Flume could be modified to reverse the polarity a bit.  The answer was (mostly) no.  ("Patches accepted!")
+	
+	
+==== More detailed 
+
+1. I believe Kafka provides back pressure to prevent overflowing a broker. I don't believe Flume, Flume NG supports the same. Kafka brokers default to storing events for two weeks on disk.
+
+2. To get data out of Flume, you use a sink, which writes to your target store (HDFS, HBase, Cassandra etc). Flume will re-try connections to your sinks if they are offline. Because Flume pushes data, you have to do some interesting work to sink data to two data stores.. which requires replicating your channels, one for each sink. Start with figure 1: Architecture of Flume NG : Apache Flume
+
+3. With Kafka you pull data, so each consumer has and manages it's own read pointer. This allows a large number of consumers of each Kafka queue, that pull data at their own pace.
+
+4. With this, you could deliver your event streams to HBase, Cassandra, Storm, Hadoop, RDBMS all in parallel.
+
+5. With Kafka 0.8+ you get replication of your event data. If you lose a broker node, others will take up the slack to delivery your events without loss.
+With Flume & FlumeNG, and a File channel, if you loose a broker node you will lose access to those events until you recover that disk. The database channel with Flume is reported too slow for any production use cases at volume.
+
+To me, event availability is a huge consideration in designing an real-time architecture that will be always on.
+
+Additional considerations:
+
+1. For enterprises, they very often want commercial support and this is an important consideration.  Flume is supported by a number of Hadoop distribution providers.
+
+2. Flume supports some content based event routing.
+3. Flume has a number of pre-built collectors. Kafka provides just the messaging.
+
+Both systems support high volumes of data.
+
+It often boils down to choosing either:
+a) Commercially supported out of the box offering sinking data to HDFS vs.
+b) Multi-consumer ultra-high availability messaging system.
+
+==== General 	
 
 Flume and Kakfa both can act as the event backbone for real-time event processing. Some features are overlapping between the two and there are some confusions about what should be used in what use cases. This post tries to elaborate on the pros and cons of both products and the use cases that they fit the best.
 
 Flume and Kafka are actually two quite different products. Kafka is a general purpose publish-subscribe model messaging system, which offers strong durability, scalability and fault-tolerance support. It is not specifically designed for Hadoop. Hadoop ecosystem is just be one of its possible consumers.
 
-image::KafkaOverview.png
+image::KafkaOverview.png[Kafka]
 
 Image taken from http://kafka.apache.org
 
 Flume is a distributed, reliable, and available system for efficiently collecting, aggregating, and moving large amounts of data from many different sources to a centralized data store, such as HDFS or HBase. It is more tightly integrated with Hadoop ecosystem. For example, the flume HDFS sink integrates with the HDFS security very well. So its common use case is to act as a data pipeline to ingest data into Hadoop.
 
-image:FlumeOverview.png
+image::FlumeOverview.png[Flume]
 
 Image taken from https://blogs.apache.org/flume/entry/flume_ng_architecture
 
@@ -515,7 +643,97 @@ Kafka does not provider native support for message processing. So mostly likely 
 
 The good news is that the latest trend is to use both together to get the best of both worlds. For example, Flume in CDH 5.2 starts to accept data from Kafka via the KafkaSource and push to Kafka using the KafkaSink. Also CDH 5.3 (the latest release) adds Kafka Channel support, which addresses the event durability issue mentioned above.
 
+=== Summary of main use cases
+
+Flume’s main use-case is to ingest data into Hadoop. It is tightly integrated with Hadoop’s monitoring system, file system, file formats, and utilities such a Morphlines. A lot of the Flume development effort goes into maintaining compatibility with Hadoop. Sure, Flume’s design of sources, sinks and channels mean that it can be used to move data between other systems flexibly, but the important feature is its Hadoop integration.
+
+Kafka’s main use-case is a distributed publish-subscribe messaging system. Most of the development effort is involved with allowing subscribers to read exactly the messages they are interested in, and in making sure the distributed system is scalable and reliable under many different conditions. It was not written to stream data specifically for Hadoop, and using it to read and write data to Hadoop is significantly more challenging than it is in Flume.
+
+To summarize:
+Use Flume if you have an non-relational data sources such as log files that you want to stream into Hadoop.
+Use Kafka if you need a highly reliable and scalable enterprise messaging system to connect many multiple systems, one of which is Hadoop.
+
+
+
 == Kafka VS RabittMQ
+
+=== First discution
+
+==== Introduction 
+
+RabbitMQ is a “traditional” message broker that implements variety of messaging protocols. It was one of the first open source message brokers to achieve a reasonable level of features, client libraries, dev tools, and quality documentation. RabbitMQ was originally developed to implement AMQP, an open wire protocol for messaging with powerful routing features. While Java has messaging standards like JMS, it’s not helpful for non-Java applications that need distributed messaging which is severely limiting to any integration scenario, microservice or monolithic. With the advent of AMQP, cross-language flexibility became real for open source message brokers.
+
+Apache Kafka is developed in Scala and started out at LinkedIn as a way to connect different internal systems. At the time, LinkedIn was moving to a more distributed architecture and needed to reimagine capabilities like data integration and realtime stream processing, breaking away from previously monolithic approaches to these problems. Kafka is well adopted today within the Apache Software Foundation ecosystem of products and is particularly useful in event-driven architecture. 
+Kafka presumes that producers generate a massive stream of events on their own timetable - there's no room for throttling producers because consumers are slow, since the data is too massive. The whole job of Kafka is to provide the "shock absorber" between the flood of events and those who want to consume them in their own way -- some online, others offline - only batch consuming on an hourly or even daily basis.
+
+==== Architecture and design 
+
+RabbitMQ is designed as a general purpose message broker, employing several variations of point to point, request/reply and pub-sub communication styles patterns.  It uses a smart broker / dumb consumer model, focused on consistent delivery of messages to consumers that consume at a roughly similar pace as the broker keeps track of consumer state.  It is mature, performs well when configured correctly, is well supported (client libraries Java, .NET, node.js, Ruby, PHP and many more languages) and has dozens of plugins available that extend it to more use cases and integration scenarios.
+
+image::RabbitMQOverview.png[RabbitMQ]
+
+Communication in RabbitMQ can be either synchronous or asynchronous as needed.  Publishers send messages to exchanges, and consumers retrieve messages from queues. Decoupling producers from queues via exchanges ensures that producers aren't burdened with hardcoded routing decisions.  RabbitMQ also offers a number of distributed deployment scenarios (and does require all nodes be able to resolve hostnames). It can be setup for multi-node clusters to cluster federation and does not have dependencies on external services (but some cluster formation plugins can use AWS APIs, DNS, Consul, etcd).  
+
+Apache Kafka is designed for high volume publish-subscribe messages and streams, meant to be durable, fast, and scalable. At its essence, Kafka provides a durable message store, similar to a log, run in a server cluster, that stores streams of records in categories called topics.
+
+image::KafkaArchitecture.png[Kafka architecture]
+
+Every message consists of a key, a value, and a timestamp.  Nearly the opposite of RabbitMQ, Kafka employs a dumb broker and uses smart consumers to read its buffer.  Kafka does not attempt to track which messages were read by each consumer and only retain unread messages; rather, Kafka retains all messages for a set amount of time, and consumers are responsible to track their location in each log (consumer state). Consequently, with the right developer talent creating the consumer code, Kafka can support a large number of consumers and retain large amounts of data with very little overhead.   As the diagram above shows, Kafka does require external services to run - in this case Apache Zookeeper, which is often regarded as non-trivial to understand, setup and operate.    
+
+==== Requirements and Use Cases
+
+Many developers begin exploring messaging when they realize they have to connect lots of things together, and other integration patterns such as shared databases are not feasible or too dangerous.
+
+Apache Kafka includes the broker itself, which is actually the best known and the most popular part of it, and has been designed and prominently marketed towards stream processing scenarios. In addition to that, Apache Kafka has recently added Kafka Streams which positions itself as an alternative to streaming platforms such as Apache Spark, Apache Flink, Apache Beam/Google Cloud Data Flow. The documentation does a good job of discussing popular use cases like Website Activity Tracking, Metrics, Log Aggregation, Stream Processing, Event Sourcing and Commit logs. One of those use cases it describes is messaging, which can generate some confusion.  So let’s unpack that a bit and get some clarity on which messaging scenarios are best for Kafka for, like:
+
+    Stream from A to B without complex routing, with maximal throughput (100k/sec+), delivered in partitioned order at least once.
+    When your application needs access to stream history, delivered in partitioned order at least once.  Kafka is a durable message store and clients can get a “replay” of the event stream on demand, as opposed to more traditional message brokers where once a message has been delivered, it is removed from the queue.
+    Kafka's durable storage, one it's Stream Processing
+    Event Sourcing
+
+RabbitMQ is a general purpose messaging solution, often used to allow web servers to respond to requests quickly instead of being forced to perform resource-heavy procedures while the user waits for the result. It’s also good for distributing a message to multiple recipients for consumption or for balancing loads between workers under high load (20k+/sec).  When your requirements extend beyond throughput, RabbitMQ has a lot to offer: features for reliable delivery, routing, federation, HA, security, management tools and other features.  Let’s examine some scenarios best for RabbitMQ, like:
+
+    Your application needs to work with any combination of existing protocols like AMQP 0-9-1, STOMP, MQTT, AMQP 1.0.
+    You need a finer-grained consistency control/guarantees on a per-message basis (dead letter queues, etc.) However, Kafka has recently added better support for transactions. 
+    Your application needs variety in point to point, request / reply, and publish/subscribe messaging
+    Complex routing to consumers, integrate multiple services/apps with non-trivial routing logic
+
+RabbitMQ can also effectively address several of Kafka’s strong uses cases above, but with the help of additional software. RabbitMQ is often used with Apache Cassandra when application needs access to stream history, or with the LevelDB plugin for applications that need an “infinite” queue, but neither feature ships with RabbitMQ itself.
+
+
+==== Developer Experience
+
+RabbitMQ officially supports Java, Spring, .NET, PHP, Python, Ruby, JavaScript, Go, Elixir, Objective-C, Swift - with many other clients and devtools via community plugins. The RabbitMQ client libraries are mature and well documented.
+
+Apache Kafka has made strides in this area, and while it only ships a Java client, there is a growing catalog of community open source clients, ecosystem projects, and well as an adapter SDK allowing you to build your own system integration.  Much of the configuration is done via .properties files or programmatically.
+
+The popularity of these two options has a strong influence on many other software providers who  make sure that RabbitMQ and Kafka work well with or on their technology.
+
+Developer experience...it's not right to brush over the support that we provide in Spring Kafka, Spring Cloud Stream, etc. 
+
+==== Security and operations
+
+Both are strengths of RabbitMQ.  RabbitMQ management plugin provides an HTTP API, a browser-based UI for management and monitoring, plus CLI tools for operators. External tools like CollectD, Datadog, or New Relic are required for longer term monitoring data storage. RabbitMQ also provides API and tools for monitoring, audit and application troubleshooting.  Besides support for TLS, RabbitMQ ships with RBAC backed by a built-in data store, LDAP or external HTTPS-based providers and supports authentication using x509 certificate instead of username/password pairs. Additional authentication methods can be fairly straightforwardly developed with plugins.
+
+These domains pose a challenge for Apache Kafka.  On the security front, the recent Kafka 0.9 release added TLS, JAAS role based access control and kerberos/plain/scram auth, using a CLI to manage security policy.  This made a substantial improvement on earlier versions where you could only lock down access at the network level, which didn’t work well for sharing or multi-tenancy.
+
+Kafka uses a management CLI comprised of shell scripts, property files and specifically formatted JSON files. Kafka Brokers, Producers and Consumers emit metrics via Yammer/JMX but do not maintain any history, which pragmatically means using a 3rd party monitoring system.  Using these tools, operations is able manage partitions and topics, check consumer offset position, and use the HA and FT capabilities that Apache Zookeeper provides for Kafka. While many view the requirement for Zookeeper with a high degree of skepticism, it does confer clustering benefits for Kafka users.
+
+For example, a 3-node Kafka cluster the system is functional even after 2 failures.  However if you want to support as many failures in Zookeeper you need an additional 5 Zookeeper nodes as Zookeeper is a quorum based system and can only tolerate N/2+1 failures. These obviously should not be co-located with the Kafka nodes - so to stand up a 3 node Kafka system you need ~ 8 servers.  Operators must take the properties of the ZK cluster into account when reasoning about the availability of any Kafka system, both in terms of resource consumption and design.
+
+==== Peformances 
+
+Kafka shines here by design: 100k/sec performance is often a key driver for people choosing Apache Kafka.  
+
+Of course, message per second rates are tricky to state and quantify since they depend on so much including your environment and hardware, the nature of your workload, which delivery guarantees are used (e.g. persistent is costly, mirroring even more so), etc.
+
+20K messages per second is easy to push through a single Rabbit queue, indeed rather more than that isn't hard, with not much demanded in the way of guarantees. The queue is backed by a single Erlang lightweight thread that gets cooperatively scheduled on a pool of native OS threads - so it  becomes a natural choke point or bottleneck as a single queue is never going to do more work than it can get CPU cycles to work in.
+
+Increasing the messages per second often comes down to properly exploiting the parallelism available in one's environment by doing such things as breaking traffic across multiple queues via clever routing (so that different queues can be running concurrently). When RabbitMQ achieved 1 million message per second case basically came down entirely to doing that judiciously - but was achieved using lot of resources, around 30 RabbitMQ nodes.  Most RabbitMQ users enjoy excellent performance with clusters made up of anywhere from three to seven RabbitMQ nodes.
+
+=== Decision tree
+
+image::apache-kafka-vs-rabbitmq-fit-for-purpose-decision-tree.jpg[Decision tree]
 
 
 
