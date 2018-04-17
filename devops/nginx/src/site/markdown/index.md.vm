@@ -1,0 +1,11 @@
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+<head>
+    <title>Welcome to ${project.name}</title>
+</head>
+ 
+$h1 Welcome to ${project.name} in version ${project.version}
+
+Currently we have nginx proxy for artifactory, and some common traps documented
