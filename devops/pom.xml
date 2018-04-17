@@ -43,5 +43,9 @@
 		<module>git</module>
 		<module>maven</module>
 		<module>monitoring</module>
-	</modules>
+		<module>ansible</module>
+		<module>chocolatey</module>
+		<module>nginx</module>
+		<module>summary</module>
+		</modules>
 </project>

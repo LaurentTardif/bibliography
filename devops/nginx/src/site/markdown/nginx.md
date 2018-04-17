@@ -43,7 +43,9 @@ ie :
 	  
 
 	  
-### When the URI is changed inside a proxied location using the rewrite directive, and this same configuration will be used to process a request (break):
+### Special case 
+
+When the URI is changed inside a proxied location using the rewrite directive, and this same configuration will be used to process a request (break):
 
     location /name/ {
         rewrite    /name/([^/]+) /users?name=$1 break;

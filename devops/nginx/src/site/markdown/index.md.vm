@@ -9,3 +9,9 @@
 $h1 Welcome to ${project.name} in version ${project.version}
 
 Currently we have nginx proxy for artifactory, and some common traps documented
+
+| Nginx			   | Artifactory | docker  | npm  | jar  |
+|------------------|:-----------:|:-------:|------|------|
+| proxy            |   4         | x       | x    | x    |
+| proxy            |   5.X       | x       | x    | x    |
+| proxy            |   5.X(HA)   | x       | x    | x    |
