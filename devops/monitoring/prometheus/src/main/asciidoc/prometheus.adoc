@@ -20,6 +20,45 @@ image::NRPE_Direct_Checks.png[NRPE_Direct_Checks]
 
 
 
+=== Sub projects 
+
+ * Prometheus serveur : collect and store metrics, expose API, evaluate alerting rules
+ * alert manager : aggregade and deduplicate alerts , send notification
+ * Exporters and clients : exports metrics from machine and application
+ 
+=== Metric 
+
+  * Description / TYPE / Name value
+
+ex : 
+```
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 1.289432e+06  
+```
+
+ * it's time series labels : times series = metric name + labels 
+ * samples : times-series + timestamps (milleseconds) + float value 
+ * no down sampling, we can use an external storage (influx DB)
+ 
+ 
+==== PromQL
+
+ * syntax : request_total 
+ * request_total{op="read"}     //instantanous vector
+ * request_total{op="read"}[5m] //range vector (last 5 minutes)
+ * rate (failure_total[5]) / rate (request_total_total[5m])
+ 
+ 
+
+
+=== basic design 
+
+ * exporter : use to collect metrics with a service not designed to be used with prometheus
+ * services : designed to be used directly by prometheus
+ * Prometheus : service discovery (k8s, files,...), retrieval of informations, alerting rules => send message to alert manager, API (for grafana), and a local storage 
+
+ 
 == Installation 
 
 

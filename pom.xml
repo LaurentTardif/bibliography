@@ -40,11 +40,10 @@
 	</distributionManagement>
 
 	<modules>
+		<module>parent</module>
 		<module>bigdata</module>
 		<module>cloud</module>
-		<module>git</module>
-		<module>maven</module>
-		<module>monitoring</module>
+		<module>devops</module>
 		<module>unix</module>
 	</modules>
 </project>

@@ -1,0 +1,67 @@
+= Maven
+:toc:
+
+== Introduction 
+
+quick start on maven 
+From 
+
+ * http://maven.apache.org/plugins/maven-deploy-plugin/usage.html
+ *
+
+== Configuration
+ 
+=== distrubution server in the settings.xml file 
+ 
+This configuration can be defined for the PC (maven settings file) or for the user (use settings file)
+
+....
+ [...]
+  <distributionManagement>
+    <repository>
+      <id>internal.repo</id>
+      <name>MyCo Internal Repository</name>
+      <url>Host to Company Repository</url>
+    </repository>
+  </distributionManagement>
+[...]
+....
+ 
+you can now defined credentials :
+ 
+....
+[...] 
+ <servers>
+    [...]
+    <server>
+      <id>internal.repo</id>
+      <username>maven</username>
+      <password>foobar</password>
+
+   </server>
+   [...]
+</servers>
+[...]
+....
+
+and now, simply by using maven deploy, you can distribute it.
+You can also override some behavior with the command :
+
+....
+  mvn deploy:deploy-file -Durl=http://myrepo/maven \
+                       -DrepositoryId=some.id \
+                       -Dfile=your-artifact-1.0.jar \
+                       [-DpomFile=your-pom.xml] \
+                       [-DgroupId=org.some.group] \
+                       [-DartifactId=your-artifact] \
+                       [-Dversion=1.0] \
+                       [-Dpackaging=jar] \
+                       [-Dclassifier=test] \
+                       [-DgeneratePom=true] \
+                       [-DgeneratePom.description="My Project Description"] \
+                       [-DrepositoryLayout=legacy] \
+                       [-DuniqueVersion=false]
+....
+ 
+ 
+ 
