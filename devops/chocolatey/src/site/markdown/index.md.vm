@@ -6,4 +6,9 @@
     <title>Welcome to ${project.name}</title>
 </head>
  
+%{toc|section=2|fromDepth=2|toDepth=3}
+
 $h1 Welcome to ${project.name} in version ${project.version}
+
+## foo
+### foo2

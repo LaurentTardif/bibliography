@@ -30,6 +30,8 @@
 
     <menu name="Overview">
       <item name="Chocolatey" href="Chocolatey.html" />
+      <item name="Pro version" href="pro.html" />
+      <item name="Runtime" href="runtime.html" />
     </menu>
 
 	<menu ref="modules" />

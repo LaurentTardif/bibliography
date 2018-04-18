@@ -1,5 +1,8 @@
 # Ansible 
 
+<!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
+
+
 ## Ansible on windows 
 
 * Gather facts on Windows hosts
