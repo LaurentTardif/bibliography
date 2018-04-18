@@ -1,4 +1,4 @@
-<project name="Chocolatey">
+<project name="puppet">
 
   <skin>
     <groupId>org.apache.maven.skins</groupId>
@@ -8,7 +8,7 @@
 
 
 <bannerLeft>
-    <name>Chocolatey</name>
+    <name>puppet</name>
     <src>http://maven.apache.org/images/apache-maven-project-2.png</src>
     <href>http://maven.apache.org/</href>
   </bannerLeft>
@@ -29,13 +29,8 @@
     <body>
 
     <menu name="Overview">
-      <item name="Chocolatey" href="Chocolatey.html" />
-      <item name="Pro version" href="pro.html" />
-      <item name="Runtime" href="runtime.html" />
-	  <item name="PuppetChocolatey" href="PuppetChocolatey.html"/>
-	  <item name="Automated Internationalisation" href="automated.html"/>
-	  <item name="Questions and best practices" href="Questions.html"/>
-	</menu>
+      <item name="puppet" href="puppet.html" />
+    </menu>
 
 	<menu ref="modules" />
 	

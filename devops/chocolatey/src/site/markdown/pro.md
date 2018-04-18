@@ -3,7 +3,7 @@
 
 <!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
 
-## Packag throttle
+## Package throttle
 
 
 By default, Chocolatey downloads packages and any resources the packages use as fast as it can. In most cases, this is exactly the behavior you want. However, low bandwidth areas would be overwhelmed with this behavior and so you need to slow Chocolatey down. Package Throttle covers these low bandwidth scenarios automatically.
