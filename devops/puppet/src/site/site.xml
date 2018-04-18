@@ -30,7 +30,9 @@
 
     <menu name="Overview">
       <item name="puppet" href="puppet.html" />
-    </menu>
+	  <item name="BestPractices_CommonTraps" href="BestPractices_CommonTraps.html" />
+	  <item name="questions" href="questions.html" />
+	</menu>
 
 	<menu ref="modules" />
 	
