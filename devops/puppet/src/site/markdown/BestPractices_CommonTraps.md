@@ -400,7 +400,10 @@ Minimalistic roles and profiles proved to be the winner for us. A good design wi
 
 ### Hiera
 
-We like Hiera. We endorse Puppetlabs answer to the question Q: **Why Hiera?**, A: **To make Puppet better**, as detailed here https://docs.puppetlabs.com/hiera/1/
+We like Hiera. We endorse Puppetlabs answer to the question 
+
+Q: **Why Hiera?**, 
+A: **To make Puppet better**, as detailed here https://docs.puppetlabs.com/hiera/1/
 
 Hierarchy is equally important as the Roles/Profiles pattern. Hiera allows separation of your configuration data from your code, therefore allowing your Puppet code to be reused without significant or any rework.
 

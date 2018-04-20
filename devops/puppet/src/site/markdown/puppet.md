@@ -6,11 +6,20 @@
 ## puppet family
 
 * **puppet discovery** (facter ? )  : The first step in your journey to pervasive automation is knowing what you have. Puppet Discovery shows you everything that s running across your on-premises and cloud infrastructure, and even what s in your containers, and lets you take action to bring it all under management.
-* ** pupper entreprise** : puppet :)
+* **pupper entreprise** : puppet :)
 * **Puppet Pipelines** makes continuous delivery easy by meeting you where you are. It automates the way you build and deploy applications and containers running on any cloud and on prem.
-* **uppet Bolt** Troubleshoot systems, deploy one-off changes, and execute sequenced actions in a procedural way.
+* **Puppet Bolt** Troubleshoot systems, deploy one-off changes, and execute sequenced actions in a procedural way.
 
 ## Architecture overview 
+
+### global
+
+![Architecture overview](./images/puppetArchi.png "Architecture Overview")
+
+### Run 
+
+![run overview](./images/PuppetRun.jpg "Run")
+
 
 ### Catalogs
 
@@ -101,7 +110,7 @@ This is done via:
 *    Automatic Parameter Lookup for classes included in the catalog
 *    Explicit lookup calls 
 
-Hiera’s hierarchical lookups follow a “defaults, with overrides” pattern, meaning you specify common data once, and override it in situations where the default won’t work. Hiera uses Puppet’s facts to specify data sources, so you can structure your overrides to suit your infrastructure. While using facts for this purpose is common, data-sources may well be defined without the use of facts.
+Hiera’s hierarchical lookups follow a **defaults, with overrides** pattern, meaning you specify common data once, and override it in situations where the default won’t work. Hiera uses Puppet’s facts to specify data sources, so you can structure your overrides to suit your infrastructure. While using facts for this purpose is common, data-sources may well be defined without the use of facts.
 
 Puppet 5 comes with support for JSON, YAML, and EYAML files.
 
