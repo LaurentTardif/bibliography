@@ -1,0 +1,504 @@
+    1  cd /root/
+    2  ll
+    3  cd k8s_w
+    4  ls
+    5  cd Lab3/
+    6  ll
+    7  kubectl del po watch nginx-c2fqd
+    8  kubectl del po nginx-c2fqd
+    9  kubectl delete po nginx-c2fqd
+   10  kubectl apply -f pod--looks-like-a-nginx--3.3.yml 
+   11  kubectl label looks-like-nginx app=nginx
+   12  kubectl label po looks-like-nginx app=nginx
+   13  kubectl label po looks-like-a-nginx app=nginx
+   14  kubectl label po looks-like-a-nginx app=nginx --owerwrite
+   15  kubectl label po looks-like-a-nginx app=nginx 
+   16  kubectl label po looks-like-a-nginx app=nginx --owerwrite=true
+   17  kubectl label po looks-like-a-nginx app=nginx --overwrite=true
+   18  kubectl label po looks-like-a-nginx app=nginx --overwrite
+   19  kubectl scale nginx 5
+   20  kubectl scale --replicas=5 nginx 
+   21  kubectl scale --replicas=5 po nginx 
+   22  kubectl scale --replicas=5 rs nginx 
+   23  kubectl scale --replicas=1 rs nginx 
+   24  kubectl scale --replicas=10 rs nginx 
+   25  kubectl scale --replicas=3 rs nginx 
+   26  kubectl describe nginx-bplnj
+   27  kubectl describe po nginx-bplnj
+   28  kubectl delete -help
+   29  kubectl delete rsd -help
+   30  kubectl delete rs -help
+   31  kubectl delete rs -hel
+   32  kubectl delete rs nginx
+   33  kubectl scale --replicas=3 rs nginx 
+   34  kubectl apply -f rs--nginx-simple--3.2.yml 
+   35  kubectl delete rs nginx --help
+   36  kubectl delete rs nginx --cascade=false
+   37  minikube --version
+   38  minikube version
+   39  kubectl version
+   40  vi /etc/apt/sources.list
+   41  vi /etc/apt/sources.list.d/vscode.list 
+   42  kubectl apply -f ds-ssd-tp-3.4.yml 
+   43  kubectl get ds
+   44  kubectl get po
+   45  kubectl label -help
+   46  kubectl label node disk=ssd
+   47  kubectl label node --all disk=ssd 
+   48  kubectl get po
+   49  kubectl get node
+   50  kubectl label node minikube disk=ssd 
+   51  kubectl get po
+   52  kubectl log ssd-monitor-x5g5c
+   53  kubectl label node minikube disk=hdd --overwrite
+   54  kubectl get po
+   55  dir
+   56  kubectl apply -f job--compute-pi--3.5.yml 
+   57  kubectl get po
+   58  kubectl logs pi-cgxdj
+   59  kubectl get po
+   60  kubectl logs pi-cgxdj
+   61  kubectl explain job
+   62  kubectl explain job.specs
+   63  kubectl explain job.spec
+   64  kubectl explain job
+   65  kubectl explain job.metadata
+   66  kubectl explain job.spec
+   67  kubectl apply -f job--compute-pi--3.5.yml 
+   68  kubectl explain job.spec
+   69  kubectl apply -f job--compute-pi--3.5.yml 
+   70  kubectl explain job.spec.completions
+   71  kubectl apply -f job--compute-pi--3.5.yml 
+   72  kubectl delete pi
+   73  kubectl delete jobs pi
+   74  kubectl apply -f job--compute-pi--3.5.yml 
+   75  kubectl delete pi
+   76  kubectl apply -f job--compute-pi--3.5.yml --force
+   77  kubectl delete pi
+   78  kubectl delete jobs pi
+   79  kubectl apply -f job--compute-pi--3.5.yml --force
+   80  kubectl delete jobs pi
+   81  kubectl apply -f job--compute-pi--3.5.yml --force
+   82  kubectl delete jobs pi
+   83  ld
+   84  cd ../Lab4
+   85  ll
+   86  kubectl apply -f rs--whoami--4.1.yml 
+   87  ll
+   88  rvho "" >  service--whoami--int.yml
+   89  echo "" >  service--whoami--int.yml
+   90  kubectl apply -f service--whoami--int.yml 
+   91  curl whoami-int:80
+   92  kubectl get service whoami-int
+   93  curl 10.100.237.200:8080
+   94  curl 10.100.237.200:80
+   95  kubectl 
+   96  kubectl  ssh
+   97  minicube ssh
+   98  minikube ssh
+   99  kubectl apply -f service--whoami--int.yml 
+  100  kubectl delete node whoami*
+  101  kubectl delete pod whoami*
+  102  kubectl delete pod whoami-8vd9m
+  103  kubectl delete service whoami-int
+  104  kubectl apply -f service--whoami--int.yml 
+  105  minikube ssh
+  106  kubectl delete pods whoami-gxjq7
+  107  kubectl scale service whoami-int --scale=4
+  108  kubectl scale service whoami-int --replicas=4
+  109  kubectl scale service 'whoami-int' --replicas=4
+  110  kubectl scale service whoami-int --replicas=4
+  111  kubectl scale --replicas=4 service whoami-int 
+  112  kubectl scale --replicas=4 whoami-int 
+  113  kubectl scale --replicas=4 services whoami-int 
+  114  kubectl scale --replicas=4 SERVICE whoami-int 
+  115  kubectl scale --replicas=4  whoami-int 
+  116  kubectl scale --replicas=4  whoami-int --all
+  117  kubectl scale --replicas=4  services whoami-int 
+  118  kubectl scale --replicas=4  rs whoami
+  119  ll
+  120  chmod 777 *
+  121  ll
+  122  kubectl scale --replicas=1  rs whoami
+  123  kubectl delete service whoami-int
+  124  kubectl delete pod whoami-v28b2
+  125  kubectl apply -f service--whoami--int.yml 
+  126  minikube ssh
+  127  kubectl scale --replicas=2  rs whoami
+  128  ll
+  129  cp service--whoami--int.yml service--guestbook--int.yml 
+  130  ll
+  131  chown zenika:zenika *
+  132  ll
+  133  kubectl apply -f rs--guestbook-storage--4.2.yml 
+  134  kubectl apply -f service--guestbook--int.yml 
+  135  kubectl apply -f pod--gateway.yml 
+  136  docker ps
+  137  kubectl exec gateway bash
+  138  kubectl exec gateway bash -c
+  139  kubectl exec gateway /bin/bash
+  140  kubectl exec gateway /bin/bash -e
+  141  kubectl exec gateway "/bin/bash -e"
+  142  kubectl exec gateway "/bin/sh"
+  143  kubectl exec gateway "ls"
+  144  kubectl exec gateway "curl 10.106.70.172/api/v1/hello-world"
+  145  kubectl exec gateway "curl http://10.106.70.172/api/v1/hello-world"
+  146  kubectl exec gateway "curl http://10.106.70.172:8080/admin/info"
+  147  kubectl exec gateway "curl http://10.106.70.172:8000/admin/info"
+  148  kubectl exec gateway "ping 10.106.70.172"
+  149  kubectl exec gateway "ls"
+  150  kubectl exec gateway "ls bin/"
+  151  kubectl exec gateway "ls /bin"
+  152  kubectl exec gateway "ls "
+  153  kubectl exec gateway "ls"
+  154  kubectl exec gateway 'ls /bin'
+  155  kubectl exec pod gateway 'ls /bin'
+  156  kubectl exec pods gateway 'ls /bin'
+  157  kubectl exec  gateway 'ls /bin'
+  158  kubectl exec  gateway "ls"
+  159  kubectl exec gateway "curl http://10.106.70.172:8000/admin/info"
+  160  kubectl exec gateway curl http://10.106.70.172:8000/admin/info
+  161  kubectl exec gateway curl http://10.106.70.172:8000/
+  162  kubectl exec gateway env
+  163  kubectl exec gateway cat /etc/hosts
+  164  kubectl exec gateway cat /etc/resolv.conf 
+  165  kubectl exec endpoints whoami
+  166  kubectl get  endpoints whoami
+  167  kubectl get  endpoints 
+  168  kubectl get  endpoints whoami-int 
+  169  kubectl get  endpoints whoami-int  -o yaml
+  170  kubectl scale --replicas=4  rs whoami
+  171  kubectl get  endpoints whoami-int  -o yaml
+  172  kubectl scale --replicas=1 rs whoami
+  173  kubectl get  endpoints whoami-int  -o yaml
+  174  kubectl get svc whoami-int
+  175  kubectl delete svc whozmi-int
+  176  kubectl delete svc whoami-int
+  177  kubectl apply -f service--whoami--int.yml 
+  178  kubectl get svc whoami-int
+  179  kubectl delete svc whoami-int
+  180  kubectl apply -f service--whoami--int.yml 
+  181  kubectl get svc whoami-int
+  182  curl 10.109.224.101:32475
+  183  curl 10.109.224.101:80
+  184  curl whoami-int:32475
+  185  curl 10.109.224.101:80
+  186  kubectl get svc whoami-int
+  187  kubectl get node
+  188  kubectl get node --all
+  189* kubectl get 
+  190  kubectl get node -a
+  191  kubectl get node -w
+  192  kubectl get svc -w
+  193  kubectl get node -a
+  194  minicube
+  195  minikube
+  196  minikube 
+  197  minikube  ip
+  198  kubectl get node -a
+  199  kubectl get svc
+  200  curl 192.168.99.100:32475
+  201  kubectl apply -f ingress--trafik-ui--4.6.yml 
+  202  kubectl apply -f ingress-controller--traefik--4.6.yml 
+  203  curl 192.168.99.100/dashboard/#/
+  204  curl 192.168.99.100/dashboard/
+  205  kubectl delete guestbook-storage
+  206  kubectl delete guestbook-storage -all
+  207  kubectl delete guestbook-storage 
+  208  kubectl get svc
+  209  kubectl delete guestbook-int whoami-int
+  210  kubectl delete svc guestbook-int whoami-int
+  211  kubectl delete pods guestbook-storage-h6ln5 liveness-http kubia-liveness nginx-8m76d whoami-4fgpp
+  212  kubectl get rs
+  213  kubectl delete rs guestbook-storage
+  214  kubectl delete pods nginx-vmfrh nginx-x5rcs
+  215  kubectl get ingress
+  216  kubectl apply -f ingress-controller--traefik--4.6.yml 
+  217  kubectl apply -f ingress--trafik-ui--4.6.yml 
+  218  kubectl get ingress
+  219  minikube  ip
+  220  kubectl get pods
+  221  kubectl get pods --all
+  222  kubectl get pods -a
+  223  kubectl get --all-namespaces pods 
+  224  kubectl logs traefik-ingress-controller-5b67d5984-xwgk4
+  225  kubectl logs kube-system/traefik-ingress-controller-5b67d5984-xwgk4
+  226  kubectl logs kube-systemtraefik-ingress-controller-5b67d5984-xwgk4
+  227  kubectl logs help
+  228  kubectl logs -help
+  229  kubectl logs kube-systemtraefik-ingress-controller-5b67d5984-xwgk4
+  230  kubectl get --all-namespaces pods 
+  231  kubectl logs --namespace=kube-system kube-systemtraefik-ingress-controller-5b67d5984-xwgk4
+  232  kubectl logs --namespace kube-system kube-systemtraefik-ingress-controller-5b67d5984-xwgk4
+  233  kubectl logs --namespace kube-system traefik-ingress-controller-5b67d5984-xwgk4
+  234  kubectl logs -help
+  235  kubectl apply -f https://raw.githubusercontent.com/containous/traefik/master/examples/k8s/traefik-rbac.yaml
+  236  kubectl logs --namespace kube-system traefik-ingress-controller-5b67d5984-xwgk4
+  237  kubectl logs --namespace kube-system traefik-ingress-controller-5b67d5984-xwgk4 -f
+  238  kubectl apply -f service--whoami--int.yml 
+  239  ll
+  240  cp ingress-controller--traefik--4.6.yml ingress-controller--whoami--4.6.yml 
+  241  cp ingress--trafik-ui--4.6.yml ingress--whoami--4.6.yml 
+  242  ll
+  243  chown zenika:zenika *
+  244  ll
+  245  kubectl apply -f ingress-controller--whoami--4.6.yml 
+  246  kubectl apply -f ingress--whoami--4.6.yml 
+  247  kubectl get pods
+  248  kubectl get ingress
+  249  kubectl get ingress 
+  250  kubectl get ingresses
+  251  kubectl get 
+  252  kubectl get svc
+  253  kubectl apply -f ingress--whoami--4.6.yml 
+  254  kubectl delete whoami-int
+  255  kubectl delete services whoami-int
+  256  kubectl apply -f service--whoami--int.yml 
+  257  kubectl apply -f ingress--whoami--4.6.yml 
+  258  kubectl get pods
+  259  kubectl delete pods whoami-ingress-controller-55d7567c4d-7kcv2
+  260  kubectl apply -f ingress--whoami--4.6.yml 
+  261  kubectl get pods
+  262  kubectl apply -f ingress--whoami--4.6.yml 
+  263  kubectl delete pods whoami-ingress-controller-55d7567c4d-q7m2v
+  264  kubectl get pods
+  265  kubectl get deployements
+  266  kubectl get deployement
+  267  kubectl get dep
+  268  kubectl get d
+  269  kubectl apply -f ingress--whoami--4.6.yml 
+  270  kubectl get ing
+  271  kubectl describe whoami
+  272  kubectl describe ingress whoami
+  273  kubectl describe ingress whoami -o yaml
+  274  kubectl describe ingress whoami -o yml
+  275  kubectl describe ingress whoami
+  276  kubectl scale whoami --replicas=4
+  277  kubectl scale rs whoami --replicas=4
+  278  kubectl apply -f ingress--whoami--4.6.yml 
+  279  kubectl exec gateway curl --head whoami-int:8080/health
+  280  kubectl exec gateway curl whoami-int:8080/health
+  281  kubectl exec gateway curl whoami-int:80/health
+  282  kubectl get endpoints whoami-int --output jsonpath='{.subsets[0].addresses[*].ip}' | kubectl exec --stdin
+  283* kubectl get endpoints whoami-int --output jsonpath='{.subsets[0].addres
+  284  kubectl scale whoami --replicas=1
+  285  kubectl scale svc whoami --replicas=1
+  286  kubectl scale svc whoami-int --replicas=1
+  287  kubectl get svc
+  288  kubectl scale svc whoami-int --replicas=1
+  289  kubectl scale svc --replicas=1 whoami-int 
+  290  kubectl scale --replicas=1 svc whoami-int 
+  291  kubectl scale --help
+  292  kubectl scale --replicas=1   svc whoami-int
+  293  kubectl scale --replicas=1 rs whoami-int
+  294  kubectl scale --replicas=1 rs whoami
+  295  kubectl exec gateway curl -s 
+  296  kubectl get endpoints whoami-int --output jsonpath='{.subsets[0].addresses[*].ip}' 
+  297  kubectl exec gateway curl -s --data 500 172.17.0.11/health
+  298  kubectl exec gateway "curl -s --data 500 172.17.0.11/health"
+  299  kubectl exec gateway curl -s --data 500 172.17.0.11/health
+  300  kubectl exec gateway curl -s --data 500 http://172.17.0.11/health
+  301  kubectl exec gateway curl http://172.17.0.11/health
+  302  kubectl exec gateway curl -i http://172.17.0.11/health
+  303  kubectl exec gateway curl -a http://172.17.0.11/health
+  304  kubectl exec gateway curl -h http://172.17.0.11/health
+  305  kubectl exec gateway curl  http://172.17.0.11/health
+  306  curl
+  307  curl --h
+  308  curl -h
+  309  kubectl exec gateway curl --head http://172.17.0.11/health
+  310  kubectl exec gateway curl "--head http://172.17.0.11/health"
+  311  kubectl exec gateway curl --head http://172.17.0.11/health
+  312  kubectl exec gateway -- curl --head http://172.17.0.11/health
+  313  kubectl exec gateway -- curl -s --data 500 http://172.17.0.11/health
+  314  kubectl exec gateway -- curl --head http://172.17.0.11/health
+  315  kubectl exec gateway -- curl -s --data 200 http://172.17.0.11/health
+  316  kubectl exec gateway -- env
+  317* 
+  318  kubectl apply -f pod--dnsutils--4.8.yml 
+  319  kubectl exec dnsutils nslookup whoami-int
+  320  kubectl explain service.spec
+  321  kubectl apply -f service--whoami--int-headless.yml 
+  322  kubectl exec dnsutils nslookup whoami-int-headless
+  323  kubectl exec dnsutils nslookup whoami-int
+  324  kubectl scale --replicas =whoami 
+  325  kubectl scale --replicas=4 whoami 
+  326  kubectl scale --replicas=4 rs whoami 
+  327  kubectl exec dnsutils nslookup whoami-int
+  328  kubectl exec dnsutils nslookup whoami-int-headless
+  329  kubectl exec dnsutils nslookup whoami-int
+  330  kubectl exec dnsutils nslookup whoami-int-headless
+  331  kubectl exec dnsutils nslookup whoami-int
+  332  cd ../Lab5/
+  333  ll
+  334* 
+  335  kubectl scale --replicas=2 whoami 
+  336  kubectl scale --replicas=2 rs whoami 
+  337  kubectl exec shared-vol-pod bash
+  338  kubectl exec shared-vol-pod /bin/bash
+  339  kubectl exec shared-vol-pod ls /data
+  340  kubectl exec shared-vol-pod -- ls /data
+  341  kubectl exec -- shared-vol-pod ls /data
+  342  kubectl exec shared-vol-pod --  ls /data
+  343  kubectl exec shared-vol-pod --  ls 
+  344  kubectl exec shared-vol-pod --  curl localhost:80
+  345  kubectl exec shared-vol-pod --  ls 
+  346  kubectl exec shared-vol-pod --  ls /vzr/log/nginx 
+  347  kubectl exec shared-vol-pod --  ls /var/log/nginx 
+  348  kubectl exec shared-vol-pod --  ls /data
+  349  kubectl exec shared-vol-pod -c shell --  ls /data
+  350  kubectl exec shared-vol-pod -c shell --  tail -f  /data/access.log
+  351  kubectl delete shared-vol-pod
+  352  kubectl delete pod shared-vol-pod
+  353  kubetcl apply -f pod--shared-hostPath-bootstrap--5.2.yml 
+  354  kubectl
+  355  kubetcl apply -f pod--shared-hostPath-bootstrap--5.2.yml 
+  356  kubectl help
+  357  kubetcl apply -f pod--shared-hostPath-bootstrap--5.2.yml 
+  358  kubetcl apply -h
+  359  kubetcl apply help
+  360  kubetcl apply 
+  361  kubetcl 
+  362  kubetcl help
+  363  kubetcl 
+  364  kubetcl
+  365  kubectl apply -f pod--shared-hostPath-bootstrap--5.2.yml 
+  366  clear
+  367  kubectl apply -f pod--shared-hostPath-bootstrap--5.2.yml 
+  368  kubetcl exec shared-hostpath-vol-pod -- ls /data
+  369  kubectl exec shared-hostpath-vol-pod -- ls /data
+  370  kubectl exec shared-hostpath-vol-pod -- ls /var/log/nginx
+  371  kubectl exec shared-hostpath-vol-pod -c shell -- ls /var/log/nginx
+  372  kubectl exec shared-hostpath-vol-pod -c shell -- ls /data
+  373  kubectl exec shared-hostpath-vol-pod -c log2hfs - ls /data
+  374  kubectl exec shared-hostpath-vol-pod -c log2hfs - curl localshot
+  375  kubectl exec shared-hostpath-vol-pod -c log2hostfs - curl localshot
+  376  kubectl exec shared-hostpath-vol-pod -c log2hostfs -- curl localshot
+  377  kubectl apply -f pv--my-hostpath-pv--5.3.yml 
+  378  kubectl apply -f pvc--firstclaim--5.3.yml 
+  379  kubectl explain pod.spec.containers
+  380  kubectl explain pod.spec.volumes
+  381  kubectl explain pod.spec.volumes.persistentVolumeClaim
+  382  kubectl apply -f pod--use-pvc-bootstrap--5.3.yml 
+  383  kubectl exec pod-pv ls
+  384  kubectl exec pod-pv -c shell ls
+  385  kubectl exec pod-pv -c shell ls /data
+  386  minikube
+  387  minikube shell
+  388  minikube ssh
+  389  kubectl delete pod-pv
+  390  kubectl delete pod-pv --all
+  391  kubectl delete pod pod-pv 
+  392  kubectl delete pod pshared-hostpath-vol-pod
+  393  kubectl get pod
+  394  kubectl delete pod  shared-hostpath-vol-pod
+  395  kubectl get pod
+  396  cd ..
+  397  cd Lab6/
+  398  ll
+  399  ls configs/
+  400  touch configMap.yml
+  401  chown zenika.zenika configMap.yml 
+  402  kubectl create configmap game-config --from-file=configs/game.properties 
+  403  kubectl get configmap 
+  404  kubectl get configmap  game-config
+  405  kubectl get configmap  game-config life
+  406  kubectl get configmap  game-config/life
+  407  kubectl get configmap  game-config
+  408  kubectl create configmap special-config --from-file=configMap.yml 
+  409  kubectl get configmap  special-config 
+  410  kubectl apply -f pod--cm-one-venv--6.1.yml 
+  411  kubectl pods
+  412  kubectl get pods
+  413  kubectl logs pod-with-cm-one-venv
+  414  kubectl describe pod-with-cm-one-venv
+  415  kubectl describe po pod-with-cm-one-venv
+  416  kubectl get configmap  special-config 
+  417  kubectl describe configmap  special-config 
+  418  kubectl delete configmap special-config
+  419  kubectl create configmap special-config --from-file=configMap.yml 
+  420  kubectl describe configmap  special-config 
+  421  kubectl delete pod pod-with-cm-one-venv
+  422  kubectl apply -f pod--cm-one-venv--6.1.yml 
+  423  kubectl logs pod-with-cm-one-venv
+  424  kubectl describe pod-with-cm-one-venv
+  425  kubectl describe pod pod-with-cm-one-venv
+  426  kubectl describe configmap  special-config 
+  427  kubectl delete configmap special-config
+  428  kubectl apply -f configMap.yml 
+  429  kubectl delete pod pod-with-cm-one-venv
+  430  kubectl describe configmap  special-config 
+  431  kubectl apply -f pod--cm-one-venv--6.1.yml 
+  432  kubectl delete pod pod-with-cm-one-venv
+  433  kubectl apply -f pod--cm-one-venv--6.1.yml 
+  434  kubectl describe pod pod-with-cm-one-venv
+  435  cd ..
+  436  cd Lab7a
+  437  cd Lab7
+  438  dir
+  439  kubectl apply -f deploy--kubia-v1--7.1.yml 
+  440  kubectl create -f workspaces/Lab7/deploy--kubia-v1--7.1.yml --record
+  441  kubectl create -f deploy--kubia-v1--7.1.yml --record
+  442  kubectl -f svc--kubia.yml 
+  443  kubectl apply -f svc--kubia.yml 
+  444  kubectl exec gateway -- while true; do curl http://kubia-svc; sleep 1; echo; done
+  445  kubectl exec -- gateway while true; do curl http://kubia-svc; sleep 1; echo; done
+  446  kubectl exec -- gateway curl http://kubia-svc
+  447  kubectl exec  gateway -- curl http://kubia-svc
+  448  kubectl apply -f deploy--kubia-v1--7.1.yml 
+  449  kubectl rollout status deployment kubia
+  450  curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+  451  chmod 700 get_helm.sh
+  452  ./get_helm.sh
+  453  helm init
+  454  helm version
+  455  kubectl create namespace guestbook
+  456  cd ..
+  457  cd Lab8
+  458  ll
+  459  cd guestbook/
+  460  ll
+  461  cat values.yaml 
+  462  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  463  ll
+  464  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  465  ll
+  466  more requirements.yaml 
+  467  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  468* 
+  469  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  470  helm repos
+  471  helm repo
+  472  helm repo list
+  473  grep flannel *
+  474  grep flannel */*
+  475  grep flanel */*
+  476  grep flanel *
+  477  get logs tiller
+  478  kubectl  get logs tiller
+  479  kubectl logs tiller
+  480  kubectl logs tiller --namespace kube-system
+  481  kubectl logs tiller-deploy-76655dc64f-jpfjf --namespace kube-system
+  482  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  483  kubectl logs tiller-deploy-76655dc64f-jpfjf --namespace kube-system
+  484  helm init
+  485  helm init --upgrade
+  486  kubectl logs tiller-deploy-76655dc64f-jpfjf --namespace kube-system
+  487  kubectl create serviceaccount --namespace kube-system tiller
+  488  kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+  489  kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+  490  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  491  kubectl logs tiller-deploy-76655dc64f-jpfjf --namespace kube-system
+  492  kubectl logs t --namespace kube-system
+  493  kubectl logs tiller-deploy-bc6c7b6bf-8lqk6  --namespace kube-system
+  494  kubectl create serviceaccount --namespace kube-system tiller
+  495  kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+  496  kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+  497  kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}' -f
+  498  kubectl logs tiller-deploy-bc6c7b6bf-8lqk6  --namespace kube-system
+  499  helm install --set ingress.gateway.host=gb-api.$(minikube ip).xip.io --set ingress.frontend.host=gb.$(minikube ip).xip.io --namespace guestbook .
+  500  helm version
+  501  kubectl logs tiller-deploy-bc6c7b6bf-8lqk6  --namespace kube-system
+  502  kubectl version
+  503  history
+  504  history > history.txt

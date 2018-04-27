@@ -1,0 +1,39 @@
+<project name="Kubernetes">
+
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.5</version>
+  </skin>
+
+
+<bannerLeft>
+    <name>Kubernetes</name>
+    <src>http://maven.apache.org/images/apache-maven-project-2.png</src>
+    <href>http://maven.apache.org/</href>
+  </bannerLeft>
+ 
+  <bannerRight>
+    <src>http://maven.apache.org/images/maven-logo-2.gif</src>
+  </bannerRight>
+
+  <publishDate position="right"/>
+  
+  <version position="right"/>
+  
+  <poweredBy>
+    <logo name="Maven" href="http://maven.apache.org/"
+          img="http://maven.apache.org/images/logos/maven-feather.png"/>
+  </poweredBy>
+  
+    <body>
+
+    <menu name="Overview">
+      <item name="Kubernetes" href="kubernetes.html" />
+	</menu>
+
+	<menu ref="modules" />
+	
+	</body>
+  
+</project>
