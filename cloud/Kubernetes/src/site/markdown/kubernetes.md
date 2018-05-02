@@ -53,23 +53,30 @@ No we need in the VM the virutalBox tools ...
 Add-ons Mecanism to extend fonctionnalities 
 datadog ? 
 
-### commands 
-
-* run : use the command line and will create a pod
-* apply/create : use the configuration file to create the pod
-
 ### Probing
 
 * in this kind of architecture, the check must be atomic .... a WS should not say not ready if the db is not ready.
 * readyness, http, tcp, exec (ready to be use)
-* liveness 
+* liveness, kube can have a delayed start. 
+
+### common commands and parameters 
+
+* run : use the command line and will create a pod
+* apply/create : use the configuration file to create the pod
+* delete : allow to delete a resource, --cascade=true|false allow to delete recursively resources.
+* logs : allow to see logs from a running container
+s
+Most of the commands have a -w (watch) parameter. But it most useful to use the standard watch command.
    
-### describes
+
+#### describes
 
 	kubectl describe po liveness-http
 
+The ouput format can be controlled : ex -o yaml
+	
 
-### explain
+#### explain
 
 	kubectl explain pods.spec.containers.livenessProbe
 	
@@ -78,57 +85,71 @@ datadog ?
 * Probing
 * circuit breaker
 
-## Elements
+## Kube common Elements
 
 
-### Nodes 
+### Node 
 
-	server
+	it's a physical or virtual server
 
-### POD
+### POD (PO)
 	
-	set of containers running, with configuration
+	set of containers running, with configuration associated. It's a logical entity. 
 
-### Replica set
+### Replica set (RS)
 
-	control de pods via labels 
+	Allow to control the pods via labels, it's the runtime part of the POD. 
 
-### Daemon set 
+Scaling example : 
 
-	RS which run on all nodes 
+	kubectl scale --replicas=1 rs nginx 
+    kubectl scale --replicas=10 rs nginx 
+    kubectl scale --replicas=3 rs nginx 
+	
+	
+### Daemon set (DS)
 
-### namespace
+	We can see it as a RS which run on all nodes 
+
+### namespace (NS)
+
+	Logical organization that give permissions/quotas to user/pod 
 
 ### Jobs 
 
-	run an action temporary, and should finish
+	Allow to run an action temporary (clean, check, update), and should finish
 
-### Services 
+### Services  
 
-	set of pods , giving an uniq ip/port access to the outside
+	Set of pods , giving an uniq ip/port access to the outside
 
 ### Node PORT, endpoints
 
+
 ### Ingress
 
-	Export to the outside of kube
+	Allow to export a service outside of kube, can also be use to proxy an external access.
 
 ### Volume	
 
-empty dir for temporary sharing file between containers in pod 
+	empty dir for temporary sharing file between containers in pod 
 
 #### Persistent volume
 
-work with claim
+	work with claim
 
 #### Volume claim
 
-static or dynamic for clean association we should use labels
+	static or dynamic for clean association we should use labels
 
 ### ConfigMap
 
 Manage configuration (like etcd)
-A config Map is a yaml file, key/value, we can also define a file inside. It will generate a poperties file inside the pod/container.
+A config Map is a yaml file, key/value, we can also define a file inside. It will generate a properties file inside the pod/container.
+
+### secrets 
+
+not really secrets :)
 
 ### Deployment
 
@@ -136,7 +157,13 @@ A config Map is a yaml file, key/value, we can also define a file inside. It wil
 
 ## Practices
 
+### Gateway, side containers
+
+It's quite useful to have a small containers, with curl/vi/... with full access to the clean container, in same network, just exposing a shell ...
+
+
 ### Deployment strategy
+
 
 
 ### Quota
