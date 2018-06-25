@@ -255,7 +255,99 @@ Now, we have a template mechanism set up. This mechanism allow to get values fro
 It will allow to define different values  according to the environment (dev, integration, QA, prod, ...). 	
 	
 
+## Use it with docker
+
+### Simple way 
+
+Let's do a simple docker file to see how it works
+
+Dockerfile :
+
+	FROM ubuntu:18.04
+
+	ADD myScript.sh /tmp/myScript.sh
+	ADD myScript.conf /tmp/myScript.conf
+
+	CMD /tmp/myScript.sh
+
+####   Let remove a configuration 
+
+myScript.conf :
+
+	SUBJECT=RAPHAEL
+	VERB=is
+	PARENT_RELATIONSHIP=brother
+	
+
+#### Build it and run it 
+
+
+	sudo docker build .  
+	Sending build context to Docker daemon  5.859MB
+	Step 1/4 : FROM ubuntu:18.04
+	---> 113a43faa138
+	Step 2/4 : ADD myDarkScript.v5.sh /tmp/myScript.sh
+	---> Using cache
+	---> e33cab98f1be
+	Step 3/4 : ADD myScript.conf /tmp/myScript.conf
+	---> 7790a4ddc73a
+	Step 4/4 : CMD /tmp/myScript.sh
+	---> Running in 82edd519e384
+	Removing intermediate container 82edd519e384
+	---> f79114a72db3
+	Successfully built f79114a72db3
+	
+No, run it 
+
+	sudo docker run f79114a72db3
+	Hello Xtof !
+	RAPHAEL is your brother
+
+	
+The Xtof is the default value in the script, for the key "DUDE".
+
+From this point, i can configure easily my container by passing arguments at run time 
+
+	sudo docker run -e DUDE=David f79114a72db3
+	Hello David !
+	RAPHAEL is your brother
+
+There are several limitations to such approachs. Mainly it's difficult to maintain if you have many configuration to pass (btw, it's bad anyway), or to maintain consistency among all environments.
+
+
+### Now, let's do it with etcd and confd²	
+	
+#### Adding ETC / CONFD to the image
+
  	
+#### Let's run it 
+
+I need to allow my container to access my host, in order to use the ETCD server on it .... (that's for demo purpose)
+
+
+	sudo docker run --network host c5bc6d742f11
+
+
+	#Generated automatically by confd at 2018-06-25 15:24:40.635747728 +0000 UTC m=+0.012251764
+	DUDE=BETTY
+	SUBJECT=RAPHAEL
+	VERB=is
+	PARENT_RELATIONSHIP=brother
+	
+	Hello BETTY !
+	RAPHAEL is your brother
+
+First, we saw the output of the "cat /tmp/myScript.conf", in order to see the configuration file is correctly updated.
+And then, the output of the script. 
+
+Every thing is fine.
+
+## To go further
+
+In order to go further, you should not run confd in "once" mode, but in "watch" mode. It will automatically call the reload on your application if the config file change due to some new values in etcd.
+ 	
+
+	
 
 
 	
