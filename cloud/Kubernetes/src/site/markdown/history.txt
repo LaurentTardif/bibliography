@@ -1,9 +1,3 @@
-    1  cd /root/
-    2  ll
-    3  cd k8s_w
-    4  ls
-    5  cd Lab3/
-    6  ll
     7  kubectl del po watch nginx-c2fqd
     8  kubectl del po nginx-c2fqd
     9  kubectl delete po nginx-c2fqd
