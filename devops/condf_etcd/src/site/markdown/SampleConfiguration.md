@@ -2,6 +2,29 @@
 
 <!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
 
+## Configuring application
+
+There is many reason why we need to configure application. Among the most common we can say :
+	- configure some URL (jdbc pool, web service access, .... ) 
+	- configure some behavior : feature enable / disable
+	- configure some parameters depending of the system : memory, thread number, pool size, .... 
+	- configure some parameters depending of the environment : prod / QA / DEV like certifacts, ...
+	
+Ages ago, we used to store all these informations in some configuration files. 
+When moving these applications to containers (docker or other) we face some challenges.
+	
+In this document I'll will describe an approach, to make it easier to maintain in the container world, without changing the existing application.
+	
+This approach will fit pretty well for most of the configuration fields. For some specific case like URL or service I'll favor using directly the service discovery approach like Traeffik as example.
+Of if you plan to move to k8S, to use mechanism provided.
+Note : If you plan to move to K8S, simple replace the docker compose section by using the k8S POD mechanism.
+
+## Useful links 
+
+ * https://docs.docker.com/compose/compose-file/
+ * https://docs.docker.com/storage/volumes/#create-and-manage-volumes
+ 
+	
 ## Simple running application
 
 The objective of this tutorial is to migrate from an old fashion hard coded script, 
@@ -263,7 +286,8 @@ Let's do a simple docker file to see how it works
 
 Dockerfile :
 
-	FROM ubuntu:18.04
+	ARG UBUNTU_VERSION=18.04
+	FROM ubuntu:${UBUNTU_VERSION}
 
 	ADD myScript.sh /tmp/myScript.sh
 	ADD myScript.conf /tmp/myScript.conf
@@ -319,6 +343,18 @@ There are several limitations to such approachs. Mainly it's difficult to mainta
 	
 #### Adding ETC / CONFD to the image
 
+	ARG UBUNTU_VERSION=18.04
+	FROM ubuntu:${UBUNTU_VERSION}
+
+	ADD confd /tmp/confd
+	ADD conf/confd.toml /etc/confd/confd.toml
+	ADD conf/myScript.conf.toml /etc/confd/conf.d/myScript.conf.toml
+	ADD conf/myScript.conf.tmpl /etc/confd/templates/myScript.conf.tmpl
+	ADD myScript.sh /tmp/myScript.sh
+
+
+    CMD /tmp/confd -onetime -backend etcd  && cat /tmp/myScript.conf && /tmp/myScript.sh
+
  	
 #### Let's run it 
 
@@ -337,17 +373,463 @@ I need to allow my container to access my host, in order to use the ETCD server 
 	Hello BETTY !
 	RAPHAEL is your brother
 
-First, we saw the output of the "cat /tmp/myScript.conf", in order to see the configuration file is correctly updated.
+First, we saw the output of the "docker exec ..... cat /tmp/myScript.conf", in order to see the configuration file is correctly updated.
 And then, the output of the script. 
 
 Every thing is fine.
 
-## To go further
+### To go further in this way.
 
 In order to go further, you should not run confd in "once" mode, but in "watch" mode. It will automatically call the reload on your application if the config file change due to some new values in etcd.
+
+IF your configuration is not changing, you can use a multi stage build, to avoid having confd in your final image (	https://docs.docker.com/develop/develop-images/multistage-build/)
+
  	
+### Some docker /Containers  comments 
+
+From a containers point of view, this is not perfect. Indeed, in the image we have two processes running: the confd daemon and the application itsfelf.
+We may have some situation where the confd daemon die, and nobody spot it. So you may expect your configuration to change, but nothing happen.
+
+A better way to do it, it's to have a side-car container with the confd daemon, using containers volume to share the resulting configuration file.
+
+Note : you can use this approach without confd to inject your configuration in your container.
+
+#### General idea 
+
+The key idea is to do something like 
+
+New docker file : 
+	FROM ubuntu:18.04
+	
+	ADD myScript.sh /tmp/myScript.sh
+	
+	CMD cat /tmp/conf/myScript.conf && /tmp/myScript.sh
+
+
+Command :
+	docker run -v /tmp/myScript.conf:/tmp/conf/myScript.conf b6bff9f40840
+
+Output : 	
+	#Generated automatically by confd at 2018-06-25 15:57:37.914457599 +0200 CEST m=+0.010121250
+	DUDE=BETTY
+	SUBJECT=RAPHAEL
+	VERB=is
+	PARENT_RELATIONSHIP=brother
+	
+	Hello BETTY !
+	RAPHAEL is your brother
+
+#### Using dcoker compose to prepare the side-car container and the volume to share the data  	
+
+
+First, create a simple docker-compose.yml file 
+	
+	version: '3'
+	services:
+		script:
+			build: .
+			volumes :
+				- /tmp/myScript.conf:/tmp/conf/myScript.conf
+
+
+And then run *docker-compose -f docker-compose.yml up
+
+	...
+	script_1  | #Generated automatically by confd at 2018-06-25 15:57:37.914457599 +0200 CEST m=+0.010121250
+	script_1  | DUDE=BETTY
+	script_1  | SUBJECT=RAPHAEL
+	script_1  | VERB=is
+	script_1  | PARENT_RELATIONSHIP=brother
+	
+	script_1  | Hello BETTY !
+	script_1  | RAPHAEL is your brother
+	
+	bin_script_1 exited with code 0
+
+
+#### Using a side-car container and docker compose.
+
+Now, let's do it with a real side car container 
+
+
+The confd container :
+
+	ARG UBUNTU_VERSION=18.04
+	FROM ubuntu:${UBUNTU_VERSION}
+
+	ADD confd /app/confd
+	ADD conf/confd.toml /etc/confd/confd.toml
+	ADD conf/myScript.conf.toml /etc/confd/conf.d/myScript.conf.toml
+	ADD conf/myScript.conf.tmpl /etc/confd/templates/myScript.conf.tmpl
+
+	CMD /app/confd -onetime -backend etcd  && cat /tmp/myScript.conf && sleep 20 
+
+The simple script is the same. I'm just updating the compose file :
+
+	version: '3'
+	services:
+		script:
+			build: .
+			volumes :
+				- /tmp/:/tmp/conf/
+		confd:
+			build:
+			context: .
+			dockerfile: Dockerfile.confd
+			volumes :
+				- /tmp/:/tmp
+			network_mode: host
+
+I added the network element to access my etcd server, and i changed the volumes of the first container to allow updates on the configuraiton file.
+
+Now, if i'm running *docker-compose -f docker-compose.yml up* it will output : 
+
+	confd_1   | 2018-06-26T12:29:15Z localhost.localdomain /tmp2/confd[7]: DEBUG Overwriting target config /tmp/myScript.conf
+	confd_1   | 2018-06-26T12:29:15Z localhost.localdomain /tmp2/confd[7]: DEBUG Running echo done
+	confd_1   | 2018-06-26T12:29:15Z localhost.localdomain /tmp2/confd[7]: DEBUG "done\n"
+	confd_1   | 2018-06-26T12:29:15Z localhost.localdomain /tmp2/confd[7]: INFO Target config /tmp/myScript.conf has been updated
+	confd_1   | #Generated automatically by confd at 2018-06-26 12:29:15.428570512 +0000 UTC m=+0.012612208
+	confd_1   | DUDE=BETTY
+	confd_1   | SUBJECT=RAPHAEL
+	confd_1   | VERB=is
+	confd_1   | PARENT_RELATIONSHIP=brother
+
+
+	script_1  | #Generated automatically by confd at 2018-06-26 12:29:15.428570512 +0000 UTC m=+0.012612208
+	script_1  | DUDE=BETTY
+	script_1  | SUBJECT=RAPHAEL
+	script_1  | VERB=is
+	script_1  | PARENT_RELATIONSHIP=brother
+	script_1  | Hello BETTY !
+	script_1  | RAPHAEL is your brother
+	bin_script_1 exited with code 0
+
+We can noticed the generation time of the configuration file used by the container 'script_1'
+
+#### Using a volume 
+
+The new docker compose is : 
+(note : i'm using the 3.3 syntax for volume)
+
+	version: '3.3'
+	volumes:
+        mydata:
+
+	services:
+		script:
+			build: .
+			volumes :
+				- type: volume
+				  source: mydata
+				  target: /tmp/conf
+		confd:
+			build:
+				context: .
+				dockerfile: Dockerfile.confd
+			volumes :
+				- type: volume
+				  source: mydata
+				  target: /tmp
+
+    network_mode: host
+
+
+
+The output is : 
+
+	confd_1   | 2018-06-26T12:44:46Z localhost.localdomain /tmp2/confd[7]: DEBUG Overwriting target config /tmp/myScript.conf
+	confd_1   | 2018-06-26T12:44:46Z localhost.localdomain /tmp2/confd[7]: DEBUG Running echo done
+	confd_1   | 2018-06-26T12:44:46Z localhost.localdomain /tmp2/confd[7]: DEBUG "done\n"
+	confd_1   | 2018-06-26T12:44:46Z localhost.localdomain /tmp2/confd[7]: INFO Target config /tmp/myScript.conf has been updated
+	confd_1   | #Generated automatically by confd at 2018-06-26 12:44:46.741580849 +0000 UTC m=+0.013764417
+	confd_1   | DUDE=BETTY
+	confd_1   | SUBJECT=RAPHAEL
+	confd_1   | VERB=is
+	confd_1   | PARENT_RELATIONSHIP=brother
+
+	script_1  | #Generated automatically by confd at 2018-06-26 12:44:46.741580849 +0000 UTC m=+0.013764417
+	script_1  | DUDE=BETTY
+	script_1  | SUBJECT=RAPHAEL	
+	script_1  | VERB=is
+	script_1  | PARENT_RELATIONSHIP=brother
+	script_1  | Hello BETTY !
+	script_1  | RAPHAEL is your brother
+
+
+### Let mixed this approach with using the flexibility of environment variables 
+
+I'm changing a little bit my script to read first the environment variable, else the value got in the config file, if nothing found in the two first attempt, it will set a default value.
+
+	#!/bin/bash
+
+	source /tmp/conf/myScript.conf
+
+    DUDE=${DUDE:-"Xtof"}
+    SUBJECT=${SUBJECT:-"She"}
+    VERB=${VERB:-"is"}
+    # AS i'm lazy, just doing it for the last parameter.
+	PARENT_RELATIONSHIP=${PARENT_RELATIONSHIP:${PARENT_RELATIONSHIP_FROM_CONFIG:-"uncle"}}
+
+	echo "Hello ${DUDE} !"
+	echo "${SUBJECT} ${VERB} your ${PARENT_RELATIONSHIP}"
+
+
+Changing the compose file :
+
+	version: '3.3'
+	volumes:
+        mydata:
+
+	services:
+		script:
+			build: .
+			environment:
+				- PARENT_RELATIONSHIP=father in law
+			volumes :
+				- type: volume
+				  source: mydata
+				  target: /tmp/conf
+		confd:
+		build:
+			context: .
+			dockerfile: Dockerfile.confd
+		volumes :
+			- type: volume
+			  source: mydata
+			  target: /tmp
+
+		network_mode: host
+
+Now, a run of these images will give :
+
+	confd_1   | 2018-06-26T13:44:24Z localhost.localdomain /tmp2/confd[8]: DEBUG Overwriting target config /tmp/myScript.conf
+	confd_1   | 2018-06-26T13:44:24Z localhost.localdomain /tmp2/confd[8]: DEBUG Running echo done
+	confd_1   | 2018-06-26T13:44:24Z localhost.localdomain /tmp2/confd[8]: DEBUG "done\n"
+	confd_1   | 2018-06-26T13:44:24Z localhost.localdomain /tmp2/confd[8]: INFO Target config /tmp/myScript.conf has been updated
+	confd_1   | #Generated automatically by confd at 2018-06-26 13:44:24.4423676 +0000 UTC m=+0.010820386
+	confd_1   | DUDE=BETTY
+	confd_1   | SUBJECT=RAPHAEL
+	confd_1   | VERB=is
+	confd_1   | PARENT_RELATIONSHIP_FROM_CONFIG=brother
+
+	script_1  | #Generated automatically by confd at 2018-06-26 13:44:24.4423676 +0000 UTC m=+0.010820386
+	script_1  | DUDE=BETTY
+	script_1  | SUBJECT=RAPHAEL
+	script_1  | VERB=is
+	script_1  | PARENT_RELATIONSHIP_FROM_CONFIG=brother
+	script_1  | Hello BETTY !
+	script_1  | RAPHAEL is your father in law
+
+
+In this case, the variable in the docker compose file is not critical, but the value may differ from one environment to another one. So, it's not perfet.
+	
+
+### Conclusion on this approach.
+	
+This approach feet pretty well for old fashion application, with a static configuration file.
+In general I will encourage to avoid duplication :
+ - several docker file (prod/QA/DEV) is a duplication 
+ - several compose file is a duplication 
+.... 
+
+So, in this first part, I've avoid duplication by using the dev/prod/QA prefix in the variables defined in etcd, and by using the same image all over the environments.
+
+An other way to avoid this duplicatoin is to use docker-app. Let's see it quickly.
+
+## Docker App
+
+You can have more information here : https://github.com/docker/app
+
+The objective is to make easier to maintain the environment value for the different environments.
+
+
+### First, initialisation of the docker app from the compose file
+
+	docker-app init --single-file myScript
+
+It generate a myScript.dockerApp file with the following content.
+Note : i've manually extract the variable : PARENT_RELATIONSHIP_COMPOSE in the setting section. 
+
+
+	# This section contains your application metadata.
+	# Version of the application
+	version: 0.1.0
+	# Name of the application
+	name: myScript
+	# A short description of the application
+	description: 
+	# Namespace to use when pushing to a registry. This is typically your Hub username.
+	#namespace: myHubUsername
+	# List of application maitainers with name and email for each
+	maintainers:
+	- name: ouelcum
+	  email: 
+	# Specify false here if your application doesn't support Swarm or Kubernetes
+	targets:
+		swarm: true
+		kubernetes: true
+
+	--
+	# This section contains the Compose file that describes your application services.
+	version: '3.3'
+	volumes:
+        mydata:
+
+	services:
+		script:
+			build: .
+			environment:
+				- PARENT_RELATIONSHIP=${PARENT_RELATIONSHIP_COMPOSE}
+			volumes :
+				- type: volume
+				source: mydata
+				target: /tmp/conf
+		confd:
+			build:
+				context: .
+				dockerfile: Dockerfile.confd
+			volumes :
+				- type: volume
+				source: mydata
+				target: /tmp
+
+			network_mode: host
+
+	--
+	# This section contains the default values for your application settings.
+	PARENT_RELATIONSHIP_COMPOSE: father in law
+
+
+### Render it 
+
+Now, let render it to generate the compose file automatically
+
+	>$ docker-app render
+	version: "3.3"
+	services:
+	confd:
+		build:
+			context: .
+			dockerfile: Dockerfile.confd
+		network_mode: host
+		volumes:
+			- type: volume
+			source: mydata
+			target: /tmp
+	script:
+		build:
+			context: .
+		environment:
+			PARENT_RELATIONSHIP: father in law
+		volumes:
+			- type: volume
+			source: mydata
+			target: /tmp/conf
+	volumes:
+		mydata: {}
+
+So, that's good, at this point i'm able to generate my compose file from the template.
+
+### extracting variables in a settings file specific per environment 
+
+the new myScript.dockerApp is :
+
+	...
+	services:
+		script:
+			build: .
+			environment:
+				- PARENT_RELATIONSHIP=${PARENT_RELATIONSHIP_COMPOSE}
+			volumes :
+				- type: volume
+				source: mydata
+				target: /tmp/conf
+		confd:
+			build:
+				context: .
+				dockerfile: Dockerfile.confd
+			volumes :
+				- type: volume
+				source: mydata
+				target: /tmp
+
+			network_mode: host
+
+	--
+	# This section contains the default values for your application settings.
+	# 
+	{}
+
+The dev setting file is : 
+
+	PARENT_RELATIONSHIP_COMPOSE: father in law
+
+The prod setting file is : 
+
+	PARENT_RELATIONSHIP_COMPOSE: grand father
+
+Now, let's render the files 
+For the dev : 
+
+	> docker-app render -f dev.yaml 
+	version: "3.3"
+	services:
+		confd:
+			build:
+				context: .
+				dockerfile: Dockerfile.confd
+			network_mode: host
+			volumes:
+				- type: volume
+				source: mydata
+				target: /tmp
+		script:
+			build:
+				context: .
+				environment:
+					PARENT_RELATIONSHIP: father in law
+				volumes:
+					- type: volume
+					source: mydata
+					target: /tmp/conf
+		volumes:
+			mydata: {}
+
+For the production 
+		
+	> docker-app render -f prod.yml 
+	version: "3.3"
+	services:
+		confd:
+			build:
+				context: .
+				dockerfile: Dockerfile.confd
+			network_mode: host
+			volumes:
+				- type: volume
+				source: mydata
+				target: /tmp
+		script:
+			build:
+				context: .
+			environment:
+				PARENT_RELATIONSHIP: grand father
+			volumes:
+				- type: volume
+				source: mydata
+				target: /tmp/conf
+	volumes:
+		mydata: {}
 
 	
+## Conclusion 
+
+WE have mixt several approach, static and dynamic configuration. USing a key value store and  environment variables.
+
+Depending of your situation one, the other or both approache can fit. So use the one that minimise duplication and ease maintenance.
+
+
+HAve a nice day 
 
 
 	
