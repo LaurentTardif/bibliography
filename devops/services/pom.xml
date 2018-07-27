@@ -4,13 +4,13 @@
 		<groupId>org.ouelcum.bibliography</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.0.1</version>
-		<relativePath>../parent/pom.xml</relativePath>
+		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.ouelcum.bibliography</groupId>
-	<artifactId>devops</artifactId>
-	<name>devops</name>
+	<groupId>org.ouelcum.bibliography.devops</groupId>
+	<artifactId>services</artifactId>
+	<name>services</name>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
 
@@ -40,14 +40,6 @@
 	</distributionManagement>
 
 	<modules>
-		<module>git</module>
-		<module>maven</module>
-		<module>monitoring</module>
-		<module>ansible</module>
-		<module>chocolatey</module>
-		<module>nginx</module>
-		<module>services</module>
-		<module>summary</module>
-	
+		<module>configuration</module>
 	</modules>
 </project>
