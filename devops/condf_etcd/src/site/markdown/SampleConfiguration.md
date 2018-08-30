@@ -24,6 +24,8 @@ Note : If you plan to move to K8S, simple replace the docker compose section by 
  * https://docs.docker.com/compose/compose-file/
  * https://docs.docker.com/storage/volumes/#create-and-manage-volumes
  
+
+ 
 	
 ## Simple running application
 
@@ -209,6 +211,74 @@ Now, let's run the script
 
 From this point, we can start to put this logic in a docker file, and we have images than we can easily configure.
 But we'll go a bit further and we are going to use ETCD as key values store to provide values to confd.
+
+###Going further with confd 
+
+
+#### building conditional step 
+
+The confd syntax is a go template, so you can use the if then else syntax.
+
+	{{if getenv "DUDE"}}  DUDE exist {{else}} DUDE n'existe pas {{end}}
+
+
+#### Using the range functionnality 
+
+Often, you have a set of blocks that depends of the environment. A standard example, is the ldap servers definition in an apache configuration file. In dev you may have only the entreprise ldap, and in production you may have several.
+To deals with such situation a way is to use the range functionnality 
+
+First define in the etcd server some settings for 3 ldap servers, with different IP and authentification procedure 
+
+	etcdctl set /dev/myScript/services/ldap/example/IP 10.1.1.1
+	etcdctl set /dev/myScript/services/ldap/example/authent custom
+
+	etcdctl set /dev/myScript/services/ldap/prod/IP 10.2.2.2
+	etcdctl set /dev/myScript/services/ldap/prod/authent password
+
+	etcdctl set /dev/myScript/services/ldap/common/IP 10.12.45.56
+	etcdctl set /dev/myScript/services/ldap/common/authent encrypted_file
+
+	
+Secondly, let's define the template :
+
+     #FIRST we do a loop on the children of the ldap directory in the etcd configuration : 3 children : example, prod, common
+	{{range $ldapname := (lsdir "/myScript/services/ldap/")}}
+
+		#HTTPD conf we want to generate
+		<ldap_configuration ldap_server_name="{{.}}">
+		    #to ease reading, display the value we are looping over 
+			<serverName>  {{.}} </servername>
+			
+			#create a variable : IP with the value /myScript/services/ldap/prod/IP as example
+			#                    this is because getv does not support "/myScript/services/ldap/$ldapname/IP" syntax.
+			# and then, we got the value for this variable in the etcd server
+			{{ $ip := printf "/myScript/services/ldap/%s/IP" $ldapname }} <IP> {{getv $ip  }} </IP>
+			
+			#we do the same for the authentification method
+			{{ $method := printf "/myScript/services/ldap/%s/authent" $ldapname }} <Authent medod>   {{getv $method}} </Authent_method>
+		<ldap/>
+	{{end}}
+
+3rd step, run it, and look at the output 
+
+	<ldap_configuration ldap_server_name="common">
+		<serverName>  common </servername> 
+		<IP> 10.12.45.56 </IP>
+		<Authent medod>   encrypted_file </Authent_method>
+	<ldap/>
+
+	<ldap_configuration ldap_server_name="example">
+		<serverName>  example </servername> 
+		<IP> 10.1.1.1 </IP>
+		<Authent medod>   custom </Authent_method>
+	<ldap/>
+
+	<ldap_configuration ldap_server_name="prod">
+		<serverName>  prod </servername> 
+		<IP> 10.2.2.2 </IP>
+		<Authent medod>   password </Authent_method>
+	<ldap/>
+
 
 ## Using etcd
 
@@ -824,7 +894,7 @@ For the production
 	
 ## Conclusion 
 
-WE have mixt several approach, static and dynamic configuration. USing a key value store and  environment variables.
+We have mixed several approach, static and dynamic configuration. USing a key value store and  environment variables.
 
 Depending of your situation one, the other or both approache can fit. So use the one that minimise duplication and ease maintenance.
 
