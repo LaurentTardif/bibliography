@@ -36,9 +36,22 @@ in  **/etc/confd/confd.toml**
 	../etcd/etcdctl set /dev/services/example/foo father2
 
 **GET**
-	../etcd/etcdctl get /dev/services/example/foo 
+
+	../etcd/etcdctl get /dev/services/example/ 
 
 
+## DELETE values
+
+
+ Warning we need to do the export to be in version 3 of the API.
+ 
+ 
+	export ETCD_API=3
+
+	../etcd/etcdctl del /dev/services/example/foo 
+	
+	
+	
 ## installing a local cluster
 
 This will start a cluster with 3 nodes, and a proxy to redirect traffik.

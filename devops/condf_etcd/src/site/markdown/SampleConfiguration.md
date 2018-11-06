@@ -212,7 +212,7 @@ Now, let's run the script
 From this point, we can start to put this logic in a docker file, and we have images than we can easily configure.
 But we'll go a bit further and we are going to use ETCD as key values store to provide values to confd.
 
-###Going further with confd 
+### Going further with confd 
 
 
 #### building conditional step 
