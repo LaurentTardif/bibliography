@@ -27,6 +27,16 @@ in  **/etc/confd/confd.toml**
 	noop = false
 	prefix = "/dev"
 
+
+## Version 2 and version 3
+
+ warning, there's some trap, as both datamodel exist in memory
+
+ * https://hackernoon.com/notes-on-moving-from-etcd2-to-etcd3-dedb26057b90
+ * https://coreos.com/blog/announcing-etcd-3.3
+ 
+ * RUN confd -onetime -backend etcdv3 -node ${ETCD_ENDPOINTS}
+
 	
 
 ## GET and SET Value
@@ -45,10 +55,13 @@ in  **/etc/confd/confd.toml**
 
  Warning we need to do the export to be in version 3 of the API.
  
- 
-	export ETCD_API=3
+    #warning if you use API V3 for deletion, you'll use it also for put and get.
+	#if you put in V3, you can not get it in V2..... 
+	#you need also to configure confd to use it in V3.
+	
+	export ETCD_API=3  
 
-	../etcd/etcdctl del /dev/services/example/foo 
+	../etcd/etcdctl del /dev/services/example/foo \\0    //to del all subtree, it's the index position 
 	
 	
 	
