@@ -46,6 +46,7 @@
 		<module>ansible</module>
 		<module>chocolatey</module>
 		<module>nginx</module>
+		<module>security</module>
 		<module>registry</module>
 		<module>services</module>
 		<module>summary</module>
