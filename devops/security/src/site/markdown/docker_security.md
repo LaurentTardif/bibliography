@@ -171,7 +171,7 @@ Ainsi, apres chaque mise a jour de vos outils docker, faîtes attention au chang
 
 Decriee a ses debuts pour des failles de securite importantes (privileges trop importants, faiblesse du cloisonnement), l’engagement pris par Salomon Hykes et son equipe commence a porter ses fruits.
 
-    'Au fur et a mesure que nous grandissons, nous allons poursuivre notre investissement pour renforcer notre equipe de securite a travers des contributions, des outils et des processus. Cet investissement fera de Docker un outil plus sûr, l’aidant a devenir un partenaire sûr et fiable pour nos utilisateurs', DEC.2014
+    'Au fur et a mesure que nous grandissons, nous allons poursuivre notre investissement pour renforcer notre equipe de securite a travers des contributions, des outils et des processus. Cet investissement fera de Docker un outil plus sur, l’aidant a devenir un partenaire sur et fiable pour nos utilisateurs', DEC.2014
 
 Nous venons de vous presenter les premiers outils et quelques conseils pour vous assurer de la securite des infrastructures microservices,
 Nous avons rassembles une partie de ces meilleures pratiques de securite dans Elastic Detector pour une automatisation et un deploiement rapides, faites le test et partagez vos commentaires.
