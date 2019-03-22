@@ -13,17 +13,11 @@
 
 ### Docker Concepts
 
-Index: An index tracks namespaces and docker repositories. For example, Docker Hub is a centralized index for public repositories.
+* **Index**: An index tracks name-spaces and docker repositories. For example, Docker Hub is a centralized index for public repositories.
+* **Registry**: A docker registry is responsible for storing images and repository graphs. A registry typically hosts multiple docker repositories.
+* **Repository**: A docker repository is a logical collection of tags for an individual docker image, and is quite similar to a git repository. Like the git counterpart, a docker repository is identified by a URI and can either be public or private. The URI looks like: ** {registry_address}/{name-space}/{repository_name}:{tag}**
 
-Registry: A docker registry is responsible for storing images and repository graphs. A registry typically hosts multiple docker repositories.
-
-Repository: A docker repository is a logical collection of tags for an individual docker image, and is quite similar to a git repository. Like the git counterpart, a docker repository is identified by a URI and can either be public or private. The URI looks like:
-
- {registry_address}/{namespace}/{repository_name}:{tag}
-
-For example,
-
-quay.io/techtraits/image_service
+**For example** : 	quay.io/techtraits/image_service
 
 There are, however, a couple of exceptions to the above rule. First, the registry address can be omitted for repositories hosted with Docker Hub, e.g., techtraits/image_service. This works because the docker client defaults to Docker Hub if the registry address is not specified. Second, Docker Hub has a concept of official verified repositories and for such repositories, the URI is just the repository name. For example, the URI for the official Ubuntu repository is simply \“ubuntu\“.
 
@@ -38,15 +32,18 @@ Enter your username, password and email address for your Docker Hub account to l
 Similar to the command line tool, Rancher provides an easy way to connect with your registries for managing your docker deployments. To use a registry with Rancher, navigate to settings and select registries. Next, put in your registry credentials and click create to add a new registry. You can follow the same process for adding multiple registries.
 
 
-## Docker Registry
+## 1- Docker Registry
 
- Top Con
+**URL**: https://docs.docker.com/registry/
 
- *Only supports docker images
+**Top Con**
+
+ * Only supports docker images
  * Setting it up may require some work
  * Setting up the new Docker Registry 2.0 requires some more setup than usual. Especially dependencies need to be installed beforehand. 
+ * **proxy** : Can mirror Official docker registries and be used as a proxy
  
- Top Pro
+**Top Pro**
 
  * Simple to set up , https://docs.docker.com/registry/#basic-commands
  * Maintains several storage drivers to allow for different models of image retention, Currently includes in-memory, local filesystem, Azure, and S3.
@@ -54,7 +51,7 @@ Similar to the command line tool, Rancher provides an easy way to connect with y
  
 ## Coreos entreprise registry  
  
- Top Pro
+**Top Pro**
 
  * Web based UI,CoreOS Enterprise Registry also features a web based UI for managing containers.
  * Powerful auditing logs, CoreOS Enterprise Registry logs every Docker repo access. The name of the item, the action performed and the authorization of the user who made the action are all stored. Logs can also be exported in JSON format.
@@ -62,15 +59,18 @@ Similar to the command line tool, Rancher provides an easy way to connect with y
  * Has LDAP support, The Lightweight Directory Access Protocol is an application protocol for accessing and maintaining distributed directory information services over an Internet Protocol (IP) network.
  * Based on Quay.io, Base on the hosted private docker made by Quay.io which was actually acquired by CoreOS in August. Basically Enterprise Registry is Quay.io running behind a firewall.
  * Powerful team based user management, CoreOS features a powerful team based user management system, a lot like GitHub enterprise's which allows teams to be created and each user has their own level of permission. Credentials and passwords for each team member are stored safely within Docker containers. All these features allow teams to work safely and securely behind a firewall.
-
+ * **GEO replication**
+ * **security scan** with **clair** 
  
- Top Con
+**Top Con**
  
  * Pricing may change in the future, For now, the price for Enterprise Registry is set to starting at $10/month which is rather cheap compared to the service they are offering. But CoreOS has announced that they will notify their users in advance if the price model is set to change which suggests that they may be planning to change it or at least that they are taking a trial-and-error approach to their pricing and general business plan.
-
+ * can be used as mirror ? 
+ 
+ 
 ## JFROG Artifactory
 
-Top Pro
+**Top Pro**
 
  * Universal binary repository manager for Docker and any other package type, One centralized repository for any package type.
  * Can run as a Docker container, A very simple setup for trial and production deployment using Docker.
@@ -78,7 +78,7 @@ Top Pro
  * Integration with JFrog Xray, JFrog Xray enables scanning of Docker images for known vulnerabilities, license compliance issues, providing a full component graph and analysis tool.
  * Support high availability set up
 
-Top Con
+**Top Con**
 
  * Docker registry support is not available on their OSS version
 
@@ -86,51 +86,44 @@ Artifactory is an open source repository manager for binary artifacts. Unlike so
 
 Repository or a registry: For a new user, it can be a bit confusing to get started. First, you’ll notice that a docker registry is just a repository in Artifactory. Then we have to select between a local repository or a remote repository. The distinction between the two is that a local repository is hosted by Artifactory whereas a remote repository is an external repository for which Artifactory acts as a proxy. I think remote repositories can be quite useful for ensuring availability, where Artifactory provides a unified interface to all your artifacts while also acting as a cache layer for remote artifacts.
 
-To create a docker registry, select “repositories” in the Admin view and create a new local repository. Make sure you select docker as the package type for the new repository:
+To create a docker registry, select “repositories” in the Admin view and create a new local repository. Make sure you select docker as the package type for the new repository: **artifactory\_docker\_repo**
 
- artifactory\_docker\_repo
+The address for your docker registry will look like: **{account-name}-docker-{repo-name}.artifactoryonline.com**
 
-The address for your docker registry will look like:
-
- {account-name}-docker-{repo-name}.artifactoryonline.com
-
-For example, I created a “docker-local” repository in my techtraits account and got the following registry address::
-
- techtraits-docker-docker-local.artifactoryonline.com
+For example, I created a “docker-local” repository in my techtraits account and got the following registry address::**techtraits-docker-docker-local.artifactoryonline.com**
 
 Except for an awkwardly long address, your docker commands would work the same with Artifactory because it fully supports the docker registry API. For instance, I used the following commands to login, tag, push and pull images with the docker client:
 
- docker login techtraits-docker-docker-local.artifactoryonline.com
- docker tag ubuntu techtraits-docker-docker-local.artifactoryonline.com/ubuntu
- docker {push|pull} techtraits-docker-docker-local.artifactoryonline.com/ubuntu
+	docker login techtraits-docker-docker-local.artifactoryonline.com
+	docker tag ubuntu techtraits-docker-docker-local.artifactoryonline.com/ubuntu
+	docker {push|pull} techtraits-docker-docker-local.artifactoryonline.com/ubuntu
 
 Rancher doesn’t have out of the box support for Artifactory but it can be added using the “custom” registry option. Just set your email address, credentials and the repository address and you are all done. You should now be able to use Rancher to run containers from your private images hosted in an Artifactory registry.
 
-rancher\_artifactory\_registry
+	rancher\_artifactory\_registry
 
- Advanced security: Artifactory supports a suite of authentication options including LDAP, SAML and Atlassian’s Crowd. For fine-grained access control, there is support for user and group level permissions. You can also specify which group(s) a new user is added to by default. The permissions can further be controlled on a per-repository level for granular access control. For instance, in the screenshot below I have three groups, each with different access to my private repository:
+**Advanced security**: Artifactory supports a suite of authentication options including LDAP, SAML and Atlassian’s Crowd. For fine-grained access control, there is support for user and group level permissions. You can also specify which group(s) a new user is added to by default. The permissions can further be controlled on a per-repository level for granular access control. For instance, in the screenshot below I have three groups, each with different access to my private repository:
 
- artifactory\_image\_view
+	artifactory\_image\_view
 
-Summary:
+**Summary:**
 
-Workflow:
+*Workflow:*
 
- + all-in-one artifact management model
+	+ all-in-one artifact management model
+	– learning curve for new users
+	– limited insight into registry usage
 
- – learning curve for new users
- – limited insight into registry usage
-
-Authentication and authorization:
+*Authentication and authorization:*
 
  + comprehensive authentication capabilities
  + fine-grained access control
 
-Availability and performance:
+*Availability and performance:*
 
  + remote repositories for high availability
 
-Pricing:
+*Pricing:*
 
  – steep pricing 
  
@@ -138,23 +131,23 @@ Pricing:
  
 ## Sonatype Nexus
 
- Pro
+**Pro**
 
  * Easy to setup, It just takes seconds to spin-up the docker image. It supports persistent volumes and ldap.
  * Is very easy to setup, and supports multiple types of repositories including , npm and maven.
  * OSS version provides Docker registry and proxying support
 
- Top Con
+**Top Con**
 
  * Requires POSIX file system for volumes, This will not work on Windows based CIFS volumes, only POSIX compatible volume stores.
- * Their docker image lacks customizations, There isn't much customization that can be don on the docker image that they have. Specifically presetting some environment settings such as HTTP proxy authentication.
+ * Their docker image lacks customization, There isn't much customization that can be don on the docker image that they have. Specifically presetting some environment settings such as HTTP proxy authentication.
 
  
 ## Gitlab Container Registry 
 
 ## JFrog Bintray
 
-Top Pro
+**Top Pro**
 
  * Full control and security, Exercise fine-grained access control over who can view, upload to or download from your private repositories. Maintain any degree of control through a variety of means, such as IP and geographical restrictions, EULA acceptance and more. Automatically provision your organization users via API, or have them silently sign in with SAML authentication to your existing identity provider.
  * Statistics and dashboards, Great statistics on downloads of your Docker images according to tags, geo-location and more..
@@ -163,7 +156,7 @@ Top Pro
 
 ## Google registry
 
-Top Pro 
+**Top Pro **
 
  * Charged only for the storage
  * Reliable and consistent uptime, Since it's hosted on Google Cloud Platform then it's very reliable in both the uptime and the security. 
@@ -197,40 +190,39 @@ Note that Google doesn’t store a valid email address in the config because it 
 
 Behind the scenes, your images are simply stored in a Google Cloud Storage (GCS) bucket and you are only charged for GCS storage and network egress. This makes Google registry a relatively inexpensive service. High availability and fast access are other out-of-the-box benefits that you get from a GCS-based image store.
 
-Workflow: 
+**Workflow:** 
 
   While I like the idea of using GCS for storing images, the overall support for a docker based workflow is quite minimal. For instance, the registry service doesn’t support webhooks or notifications for when repositories get updated. It also doesn’t provide any insight into your registry usage. This is one area where I think Google’s docker registry service needs quite a bit of work.
 
-Security and access control: 
+**Security and access control:**
 
   Google takes a number of steps to ensure secure access to your docker images. First, it uses short-lived tokens when talking to the registry service. Second, all images are encrypted before they are written to GCS. Third, access to individual images and repositories can be restricted through GCS support for object and bucket level ACLs. Lastly, you can sync up your organization’s user directories with the Google project using Google Apps Directory Service.
 
-Summary:
-Workflow:
+**Summary:**
+**Workflow:**
 
- – incompatibility with docker client
- – minimal support for integration with build and deployment pipelines
- – limited visibility into registry usage
+	– incompatibility with docker client
+	– minimal support for integration with build and deployment pipelines
+	– limited visibility into registry usage
 
-Authentication and authorization:
+**Authentication and authorization:**
 
- + fine-grained access control with GCS ACLs
- + enhanced security through short-lived temporary auth tokens
- + support for LDAP sync
+	+ fine-grained access control with GCS ACLs
+	+ enhanced security through short-lived temporary auth tokens
+	+ support for LDAP sync
 
-Performance and availability:
+**Performance and availability:**
 
- + uses the highly available Google cloud storage layer
+	+ uses the highly available Google cloud storage layer
 
-Pricing:
+**Pricing:**
 
- + low cost 
- 
+	+ low cost 
  
  
 ## Quay.io
 
-Top Pro 
+**Top Pro** 
 
  * Acquired company, CoreOS bought Quay and redirected their energies to the CoreOS Enterprise Registry, so this product might not be here for the duration.
  * Web based UI, Quay.io has a beutiful and easy to understand web based UI.
@@ -247,44 +239,44 @@ Top Pro
     Robot accounts for build servers
     Rich notification options including email, HipChat and webhooks for repository events
 
- quay\_builds
+	quay\_builds
 
 Visualizations and more visualizations: Quay has some great visualizations for your docker images, which effectively capture the evolution of an image. Visualizations don’t end there though, as Quay also offers detailed audit trail, build logs (shown below) and usage visualizations for visibility into all aspects of your docker registry.
 
- quay\_build\_log
+	quay\_build\_log
 
 While working with Quay, I didn’t notice any performance deteriorations, which is a good sign. But since I haven’t used it for large deployments, I don’t have any further insights into how it would behave under load.
 
-Summary:
-Workflow:
+**Summary:**
+**Workflow:**
 
- + clean, intuitive and streamlined interface
- + automated builds done right
- + great visibility into your registry usage
- + webhooks and rich event notifications
+	+ clean, intuitive and streamlined interface
+	+ automated builds done right
+	+ great visibility into your registry usage
+	+ webhooks and rich event notifications
 
- Authentication and authorization:
+**Authentication and authorization:**
 
- + ability to create organizations and teams
- + fine-grained access control through permissions
+	+ ability to create organizations and teams
+	+ fine-grained access control through permissions
 
- – limited OAuth-only authentication support
+	– limited OAuth-only authentication support
 
- Pricing:
+**Pricing:**
 
- + relatively inexpensive with usage-independent pricing 
+	+ relatively inexpensive with usage-independent pricing 
  
  
 ## Amazon EC2 container registry
 
-TOP CON 
+**TOP CON** 
 
  * The access token expires after 12 hours, You have to build a more complex deployment script in order to compensate for the AWS token expiring after 12 hours.
 
-Top Pro
+**Top Pro**
 
- * Amazon ECR is integrated with Amazon EC2 Container Service (ECS), simplifying your development to production workflow.
- * Free tier, Amazon ECR, like other AWS tools has a free tier for beginners of 500MB-month storage for one year. 
+	* Amazon ECR is integrated with Amazon EC2 Container Service (ECS), simplifying your development to production workflow.
+	* Free tier, Amazon ECR, like other AWS tools has a free tier for beginners of 500MB-month storage for one year. 
  
 You probably already know that Amazon offers a hosted container service called Amazon EC2 Container Service (ECS). But the registry that Amazon provides to complete ECS tends to receive less attention. That registry, called Amazon EC2 Container Registry (ECR), is a hosted Docker container registry. It integrates with ECS. Introduced in December 2015, it is a somewhat newer registry option than most of the better-known registries, explaining why some users may not be familiar with it. ECS is not the only container registry that is compatible with ECR. ECS supports external registries, too. However, the main advantage of ECR is that it is a fully hosted and managed registry, which simplifies deployment and management. ECR also is as scalable as the rest of the ECS infrastructure -- which means it is very, very scalable. Best Use Cases: If you are a heavy user of AWS services, or plan to be, and are starting to look for a place to host private images, then ECR makes perfect sense to use. It is also a good choice if you have a large registry deployment or expect your registry to expand significantly over time; in that case, you’ll benefit from the virtually unlimited scalability of ECR.
 
@@ -308,15 +300,15 @@ You might not think of VMware as a major player in the Docker ecosystem, but the
  
 ## Docker HUB
  
- Top Pro
+**Top Pro**
  
- * Shares user accounts with the dominant public registry, Docker Hub
+	* Shares user accounts with the dominant public registry, Docker Hub
 
- Top Con
+**Top Con**
 
- * Gives no metadata about image tags beyond their name, No information about when the image was created, pushed, what Dockerfile it came from, what user(s) pushed it, etc.
- * Default to public makes it dangerous, Since by default your account will create new repositories publicly, you could fairly easily leak sensitive images with one bad push.
- * Poor user interface
+	* Gives no metadata about image tags beyond their name, No information about when the image was created, pushed, what Dockerfile it came from, what user(s) pushed it, etc.
+	* Default to public makes it dangerous, Since by default your account will create new repositories publicly, you could fairly easily leak sensitive images with one bad push.
+	* Poor user interface
  
 
 Docker Hub is an obvious choice for hosted private repositories. To get started with Docker Hub, sign up here and create a new private repository. It is very well-documented and straightforward to work with, and so I’ll skip the details. Every user is entitled to one free private repository and you can select between multiple tiers based on the number of private repositories you need. I really like that the pricing is usage independent, i.e., you are not charged for the network bandwidth used for pulling (and pushing) images.
@@ -333,44 +325,47 @@ Although useful, automated build support by Docker Hub does have a few rough edg
 
 Overall, Docker Hub works well for managing private images and automated image builds; however, on a number of occasions I noticed performance degradation when transferring images. Unfortunately without SLAs, I would be a bit concerned about using Docker Hub as the backbone for large-scale production deployments.
 
-Summary:
+**Summary:**
 
-Workflow:
+**Workflow:**
 
- + seamless integration with Github and BitBucket
- + familiar Github-esq collaboration model
- + repository links and webhooks for build automation
- + well-documented and easy to use
+	+ seamless integration with Github and BitBucket
+	+ familiar Github-esq collaboration model
+	+ repository links and webhooks for build automation
+	+ well-documented and easy to use
 
- – build repositories lack support for custom git repos
- – limited insight into registry usage
+	– build repositories lack support for custom git repos
+	– limited insight into registry usage
 
-Authentication and authorization:
+**Authentication and authorization:**
 
- + ability to create organizations
+	+ ability to create organizations
 
- – lacks fine-grained access control
- – lacks support for external authentication providers , e.g. LDAP, SAML and OAuth
+	– lacks fine-grained access control
+	– lacks support for external authentication providers , e.g. LDAP, SAML and OAuth
 
-Availability and performance:
+**Availability and performance:**
 
- – uneven performance
+	– uneven performance
 
-Pricing:
+**Pricing:**
 
- + inexpensive and usage-independent pricing 
+	+ inexpensive and usage-independent pricing 
  
  
 ## Docker Hub Entreprise
 
- Top Pro
+
+**Top Pro**
  
- * Supports LDAP
- * Comes with enterprise support for Docker Engine 1.6
+	* Supports LDAP
+	* Comes with enterprise support for Docker Engine 1.6
  
  
+##  Microsoft Container Registry
  
- 
+ The last one from microsoft, will host windows image, instead of docker hub. 
+ November 2018.
  
  
  

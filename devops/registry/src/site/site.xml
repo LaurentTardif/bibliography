@@ -1,4 +1,4 @@
-<project name="puppet">
+<project name="Docker Registries">
 
   <skin>
     <groupId>org.apache.maven.skins</groupId>
@@ -8,7 +8,7 @@
 
 
 <bannerLeft>
-    <name>puppet</name>
+    <name>Docker Registries</name>
     <src>http://maven.apache.org/images/apache-maven-project-2.png</src>
     <href>http://maven.apache.org/</href>
   </bannerLeft>
@@ -30,6 +30,7 @@
 
     <menu name="Overview">
       <item name="registry" href="registry.html" />
+      <item name="nexus" href="nexus.html" />
 	  <item name="questions" href="questions.html" />
 	</menu>
 

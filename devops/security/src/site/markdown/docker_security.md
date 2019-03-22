@@ -216,3 +216,7 @@ This is where clair-scanner comes into place. The clair-scanner does the followi
     Compares the vulnerabilities against a whitelist
     Tells you if there are vulnerabilities that are not in the whitelist and fails
     If everything is fine it completes correctly
+
+	
+	
+	
