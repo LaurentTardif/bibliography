@@ -1,0 +1,430 @@
+= Prometheus, Alertmanager, Grafana and cachet 
+:toc:
+
+== Introduction 
+
+
+The idea of this document, is to describe how to setup quickly a full monitoring chain using docker.
+
+From 
+
+ * https://prometheus.io/docs/introduction/overview/
+ * https://prometheus.io/docs/alerting/overview/
+ * https://cachethq.io/
+ 
+
+== Global architecture 
+
+image::architecturePrometheus.png[Prometheus]
+
+There is 3 main modules in the prometheus architecture :
+  * The jobs exporter
+  * prometheus
+  * Alertmanager
+  * Grafana to display the metrics
+ We will plug cachet to prometheus, and so need 3 more modules :
+  * Cachet, to provide a UI to the end user to inform him about the status of the platform.
+  * postgres to store Cachet data
+  * cachet glue , to redirect alert from the alert manager to cachet.
+  
+
+== Installation with docker  
+
+So, we are going to write a docker compose file that will start the full stack.
+
+There 3 mains configuration files. For a quick start, simply start the node exporter, prometheus, and grafana.
+Note : you have a magic page here : http://prometheus/consoles/node.html
+
+Then, when you understand this simple deployment, add the altermager  and some alertrules.
+And then, when you have alerts, you can plug cachet. 
+
+
+=== Docker compose file
+
+
+```
+version: '3.3'
+
+services:
+
+    # =============================================================
+    # Prometheus
+	# =============================================================
+    prometheus:
+        image: prom/prometheus:v2.3.0
+        ports:
+           - 9090:9090
+        volumes:
+		   #The prometheus configuration file
+           - /tmp/prometheus.yml:/etc/prometheus/prometheus.yml
+		   #The alert rules configuration file
+           - /tmp/alert.rules.yml:/etc/prometheus/alert.rules.yml
+
+
+    # =============================================================
+    # Alert manager
+	# =============================================================
+    alertmanager:
+        image: prom/alertmanager:v0.16.1
+        ports:
+          - 9093:9093
+        volumes:
+           - /tmp/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+		   
+    # =============================================================
+    # Node exporter  : will collect metrics on the server, need to 
+	#                  access physical ressources informations 
+	# =============================================================
+    node-exporter:
+        image: prom/node-exporter:v0.16.0
+        ports: 
+           - 9100:9100
+        volumes:
+           - /proc:/host/proc
+           - /sys:/host/sys
+           - /:/rootfs" 
+
+		   
+    # =============================================================
+    # Cachet glue, will send alert (from alert manager, to cachet)
+	# =============================================================
+    cachetglue:
+      image : cachetglue:latest
+
+      ports:
+        - 8081:80
+      environment:
+        - CACHET_BASE_URL=http://cachet:80
+        - CACHET_URL=http://cachet:8000
+        - CACHET_KEY=XXXX_INSERT_YOUR_KEY_HERE_XXXX
+
+	
+    # =============================================================
+    # Grafana : the tools used to display pretty graph
+	# =============================================================	
+    grafana:
+        image: grafana/grafana:5.1.5
+        ports:
+          - 3000:3000
+        # In real life your should provide a volume for persistent storage
+		# volumes:
+        #  - ${DATA_PATH}/grafana/data:/var/lib/grafana
+        environment:
+        # and customise your grafana root
+        #  - GF_SERVER_ROOT_URL=http://grafana.${DOMAIN}
+          - GF_SECURITY_ADMIN_PASSWORD=secret 
+
+		  
+    # =============================================================
+    # The database for cachet to store event, you can share it with prometheus
+	# =============================================================
+    postgres:
+        image: postgres:11.2
+        restart: always
+        volumes:
+           - /tmp/data:/var/lib/postgresql/data
+        ports:
+          - 5432:5432
+        environment:
+          - POSTGRES_PASSWORD=example
+          - POSTGRES_USER=postgres
+
+    # =============================================================
+    # Cachet itself
+	# =============================================================
+    cachet:
+        image: cachethq/docker:2.3.12
+        ports:
+          - 80:8000
+        links:
+          - postgres:postgres
+        environment:
+          - APP_KEY=#####INSERT Your cachet KEY here######
+          - DB_USER=postgres
+          - DB_PASSWORD=example
+          - DB_DRIVER=pgsql
+          - DB_HOST=postgres
+          - DB_PORT=5432
+          - DB_DATABASE=postgres
+        depends_on:
+          - postgres
+```
+
+== Configuration files 
+
+Let's have a look at some configuration files :
+
+=== prometheus.yml
+
+The prometheus.yml  :
+
+```
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+rule_files:
+    - alert.rules.yml
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          group: 'prometheus'
+
+  - job_name: 'applicationServer'
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+#Start configuration of the alert mechanism
+alerting:
+  alertmanagers:
+    - static_configs:
+       - targets: ['alertmanager:9093']
+```
+
+=== alert.rules.yml
+
+The alert.rules.yml  
+
+```
+groups:
+ - name: example
+  rules:
+  - alert: HighErrorRate
+    expr: prometheus_http_request_duration_seconds_count{job="applicationServer"} > 8
+    for: 1m
+    labels:
+      severity: page
+    annotations:
+      summary: High request latency on all site
+  - alert: HighErrorRateOnAlert
+    expr: prometheus_http_request_duration_seconds_count{job="applicationServer",handler="/alerts"} > 2
+    for: 1m
+    labels:
+      severity: page
+    annotations:
+      summary: High request latency on alert page
+ 
+```
+
+=== The alertmanager.yml
+
+The alertmanager.yml, where we define one route, to send all alerts to the cachetglue service (it will send directly the information to cachet)
+
+```
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+receivers:
+- name: 'web.hook'
+  webhook_configs:
+  - url: 'http://cachetglue:80/webhook'
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
+
+``` 
+
+== Adding the cachet glue
+
+The cachet glue need to be compile, and packaged from : https://github.com/gregdhill/prometheus-cachet.git
+
+=== docker file
+
+The docker file is included :
+
+```
+# Building
+# --------
+FROM golang:1.11-alpine as builder
+MAINTAINER gregdhill <greg.hill@monax.io>
+
+ARG REPO=$GOPATH/src/github.com/gregdhill/bridge
+COPY . $REPO
+WORKDIR $REPO
+
+RUN go build --ldflags '-extldflags "-static"' -o bin/bridge
+
+# Deployment
+# ----------
+FROM alpine:3.8
+
+ARG REPO=/go/src/github.com/gregdhill/bridge
+COPY --from=builder $REPO/bin/* /usr/local/bin/
+
+RUN apk add --no-cache ca-certificates
+
+ENTRYPOINT [ "bridge" ]
+
+```
+
+and it's simply build by : docker build -t cachetglue .
+
+
+== Results 
+
+now, if we click some time on the alert button of prometheus (this is where we have defined the demo alert)
+
+=== The alerts are spotted in prometheus
+
+image::PromAlertGreen.png[PromAlertGreen]
+
+When an alert is raised we have the details in prometheus
+
+image::PromAlertRed.png[PromAlertRed]
+
+=== The alert are send to the alert manager for dispatching
+
+
+image::AlertManager.png[AlertManager]
+
+=== we can have a look in grafana to see the evolution
+
+image::grafana_prometheus.png[grafana_prometheus]
+
+=== We notify cachet, so the end user know the status on the plateform.
+
+image::Cachet.png[Cachet]
+
+There a nice button in the bottom left for the dashboard 
+
+image::CachetDashboard.png[CachetDashboard]
+
+
+ 
+== Query examples/
+
+=== using the UI to test queries
+
+image::prometheus.png[prometheus]
+
+=== Simple time series selection
+
+Return all time series with the metric http_requests_total:
+
+ http_requests_total
+
+Return all time series with the metric http_requests_total and the given job and handler labels:
+
+ http_requests_total{job="apiserver", handler="/api/comments"}
+
+Return a whole range of time (in this case 5 minutes) for the same vector, making it a range vector:
+
+ http_requests_total{job="apiserver", handler="/api/comments"}[5m]
+
+Note that an expression resulting in a range vector cannot be graphed directly, but viewed in the tabular ("Console") view of the expression browser.
+
+=== Using regular expressions
+
+you could select time series only for jobs whose name match a certain pattern, in this case, all jobs that end with server. Note that this does a substring match, not a full string match:
+
+ http_requests_total{job=~"server$"}
+
+To select all HTTP status codes except 4xx ones, you could run:
+
+ http_requests_total{status!~"^4..$"}
+
+=== Using functions, operators, etc.
+
+Return the per-second rate for all time series with the http_requests_total metric name, as measured over the last 5 minutes:
+
+ rate(http_requests_total[5m])
+
+Assuming that the http_requests_total time series all have the labels job (fanout by job name) and instance (fanout by instance of the job), we might want to sum over the rate of all instances, so we get fewer output time series, but still preserve the job dimension:
+
+ sum(rate(http_requests_total[5m])) by (job)
+
+If we have two different metrics with the same dimensional labels, we can apply binary operators to them and elements on both sides with the same label set will get matched and propagated to the output. For example, this expression returns the unused memory in MiB for every instance (on a fictional cluster scheduler exposing these metrics about the instances it runs):
+
+ (instance_memory_limit_bytes - instance_memory_usage_bytes) / 1024 / 1024
+
+The same expression, but summed by application, could be written like this:
+
+ sum(
+  instance_memory_limit_bytes - instance_memory_usage_bytes
+ ) by (app, proc) / 1024 / 1024
+
+If the same fictional cluster scheduler exposed CPU usage metrics like the following for every instance:
+
+ instance_cpu_time_ns{app="lion", proc="web", rev="34d0f99", env="prod", job="cluster-manager"}
+ instance_cpu_time_ns{app="elephant", proc="worker", rev="34d0f99", env="prod", job="cluster-manager"}
+ instance_cpu_time_ns{app="turtle", proc="api", rev="4d3a513", env="prod", job="cluster-manager"}
+ instance_cpu_time_ns{app="fox", proc="widget", rev="4d3a513", env="prod", job="cluster-manager"}
+ 
+
+We could get the top 3 CPU users grouped by application (app) and process type (proc) like this:
+
+ topk(3, sum(rate(instance_cpu_time_ns[5m])) by (app, proc))
+
+Assuming this metric contains one time series per running instance, you could count the number of running instances per application like this:
+
+ count(instance_cpu_time_ns) by (app)
+
+
+
+== Grafana 
+
+=== Adding data source
+
+
+Open the side menu by clicking the Grafana icon in the top header.
+In the side menu under the Dashboards link you should find a link named Data Sources.
+Click the + Add data source button in the top header.
+Select Prometheus from the Type dropdown.
+NOTE: If you’re not seeing the Data Sources link in your side menu it means that your current user does not have the Admin role for the current organization.
+
+.Data source options
+|===
+|Name|Description
+|Name
+|The data source name. This is how you refer to the data source in panels & queries.
+|Default
+|Default data source means that it will be pre-selected for new panels.
+|Url
+|The http protocol, ip and port of you Prometheus server (default port is usually 9090)
+|Access
+|Proxy = access via Grafana backend, Direct = access directly from browser.
+|Basic Auth
+|Enable basic authentication to the Prometheus data source.
+|User
+|Name of your Prometheus user
+|Password
+|Database user’s password
+|===
+
+.Query editor
+
+Open a graph in edit mode by click the title > Edit (or by pressing e key while hovering over panel).
+
+image::prometheus_query_editor.png[Query Editor]
+
+|===
+|Name|Description
+|Query expression
+|Prometheus query expression, check out the Prometheus documentation.
+|Legend format
+|Controls the name of the time series, using name or pattern. For example {{hostname}} will be replaced with label value for the label hostname.
+|Min step
+|Set a lower limit for the Prometheus step option. Step controls how big the jumps are when the Prometheus query engine performs range queries. Sadly there is no official prometheus documentation to link to for this very important option.
+|Resolution
+|Controls the step option. Small steps create high-resolution graphs but can be slow over larger time ranges, lowering the resolution can speed things up. 1/2 will try to set step option to generate 1 data point for every other pixel. A value of 1/10 will try to set step option so there is a data point every 10 pixels.Metric lookup
+|Format as
+|(New in v4.3) Switch between Table & Time series. Table format will only work in the Table panel.
+|===
+
+
+
