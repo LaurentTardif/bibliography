@@ -1,0 +1,60 @@
+# Packer
+
+<!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
+## Introduction 
+
+
+
+
+## Quick start & demo
+
+From : 
+
+ * https://kubernetes.io/docs/tutorials/stateless-application/hello-minikube/
+ * https://github.com/kubernetes/minikube/releases
+ 
+
+ 
+ curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.18.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+
+ 
+No we need in the VM the virutalBox tools ...
+
+ cd /etc/yum.repos.d
+ sudo wget http://download.virtualbox.org/virtualbox/rpm/rhel/virtualbox.repo
+
+ sudo yum install epel-release
+ sudo yum --enablerepo=epel install dkms
+ 
+ sudo yum groupinstall "Development Tools"
+ sudo yum install kernel-devel
+ 
+ sudo yum install VirtualBox-5.1
+ sudo usermod -a -G vboxusers admin
+
+## To go further 
+
+* https://github.com/kelseyhightower/kubernetes-the-hard-way
+ 
+## Formation
+
+### Architecture 
+
+![Architecture overview](./images/architecture.png "Architecture Overview")
+
+
+### Distributions
+
+* mini kube : only one server 
+* kubeadm : several server   
+* fourniture standard : gke / azure / aws
+* docker entreprise / OpenShift v3
+
+Add-ons Mecanism to extend fonctionnalities 
+datadog ? 
+
+
+	
+
+
+
