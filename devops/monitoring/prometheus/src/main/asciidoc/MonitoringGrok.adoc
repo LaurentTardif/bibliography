@@ -1,0 +1,159 @@
+= Prometheus,Grafana & Grok exporter
+:toc:
+
+== Introduction 
+
+
+The idea of this document, is to describe how to setup quickly a full monitoring chain using Prometheus / Gragana & grok exporter.
+We will add a simple monitoring on the Host itself, and a log analyzer to identify some patterns in logs, they will send metrics t
+From 
+
+ * https://prometheus.io/docs/introduction/overview/
+ * https://prometheus.io/docs/alerting/overview/
+ * https://github.com/fstab/grok_exporter 
+ * https://github.com/logstash-plugins/logstash-patterns-core/blob/6d25c13c15f98843513f7cdc07f0fb41fbd404ef/patterns/grok-patterns  for the list of pattern defined
+ * https://github.com/fstab/grok_exporter/releases  les releases de grok (use 2.6)
+ 
+== Setup 
+
+
+=== Grok exporter
+
+The idea of using grok exporter, is to parse/analyze log file to raise metrics from them. It can be useful for example to collect the number of 404 in Apache/nginx error log, 
+send metrics on NPE or out of memory errors. 
+To do that, we'll use grok (used by Elastic before filebeat) to parse the files, and a small go program the grok exporter to expose metrics to Prometheus.
+
+The grok exporter doesn't come directly with a docker image, so let's build a small one.
+
+First, let's update a bit the config file :
+
+```
+global:
+    config_version: 2
+input:
+    type: file
+    path: ./example/exim-rejected-RCPT-examples.log
+    readall: true # Read from the beginning of the file? False means we start at the end of the file and read only new lines.
+grok:
+    patterns_dir: ./patterns
+    additional_patterns:
+    - 'EXIM_MESSAGE [a-zA-Z ]*'
+metrics:
+    - type: counter
+      name: exim_rejected_rcpt_total
+      help: Total number of rejected recipients, partitioned by error message.
+      match: '%{EXIM_DATE} %{EXIM_REMOTE_HOST} F=<%{EMAILADDRESS}> rejected RCPT <%{EMAILADDRESS}>: %{EXIM_MESSAGE:message}'
+      labels:
+          error_message: '{{.message}}'
+server:
+    host: @@hostname@@
+    port: 9144
+```
+
+and let's create the docker image :
+
+```
+#For the example I used a centos image, in order to have curl, vi,.... to make small tests in the images.
+FROM centos:7
+
+#By default, grok use port 9144
+EXPOSE 9144 
+
+#add the grok binary, get from the github repo
+add grok/grok_exporter-0.2.6.linux-amd64 /opt/grok/
+
+#Update the default config file with the hostname, in order to listen to incoming request outside the docker image.
+CMD cd /opt/grok/conf/ ; \
+    sed s/@@hostname@@/`hostname`/ config.yml-template > config.yml ;  \
+    cd /opt/grok ; \
+    ./grok_exporter -config /opt/grok/conf/config.yml
+```
+
+and then, build it : 
+
+```
+  docker build -t grok_exporter:latest . 
+``` 
+
+=== Docker compose
+
+Now, let's start the monitoring stack.
+
+```
+version: '3.3'
+
+services:
+    prometheus:
+        image: prom/prometheus:v2.8.1
+        ports:
+           - 9090:9090
+        volumes:
+           - /opt/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+           - /opt/monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml
+
+    alertmanager:
+        image: prom/alertmanager:v0.16.1
+        ports:
+          - 9093:9093
+        volumes:
+           - /opt/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+    node-exporter:
+        image: prom/node-exporter:v0.16.0
+        ports: 
+           - 9100:9100
+        volumes:
+           - /proc:/host/proc
+           - /sys:/host/sys
+           - /:/rootfs" 
+
+    grafana:
+        image: grafana/grafana:6.1.3
+        ports:
+          - 3000:3000
+        volumes:
+          - monitoringData:/var/lib/grafana
+        environment:
+          - GF_SECURITY_ADMIN_PASSWORD=secret 
+
+    grok_exporter:
+       image: grok_exporter:latest
+       ports:
+         - 9144:9144   
+
+volumes:
+    monitoringData:
+    
+``` 
+
+=== Parsing access Log
+
+This is another example to expose the number of HTTP request, allowing to simply sort result by clientIp and request path.
+
+```
+global:
+    config_version: 2
+#input can be file or stdin,... 
+input:
+    type: file
+    path: /tmp/access.log
+    readall: false # Read from the beginning of the file? False means we start at the end of the file and read only new lines.
+#define the pattern directory, you can add custom patterns directly in the configuration file 
+grok:
+    patterns_dir: ./patterns
+# you can define several metrics counter, histogram, gauge, .... 
+metrics:
+    - type: counter
+      name: access_http_log_count
+      help: inumber of http access in access.log
+      match: '%{COMMONAPACHELOG}'
+	  #Labels allow to define prometheus label, it will allow you to filter results inside prometheus or grafana.
+      labels:
+          InputIP: '{{.clientip}}'
+          Path: '{{.request}}'
+server:
+    host: 6d183798b69b
+    port: 9144
+```
+
+

@@ -5,12 +5,15 @@
 
 
 The idea of this document, is to describe how to setup quickly a full monitoring chain using docker.
+We will add a simple monitoring on the Host itself, and a log analyzer to identify some patterns in logs, they will send metrics to prometheus.
+That will raise alerts in the alertmanager and send them to cachetHQ.
 
 From 
 
  * https://prometheus.io/docs/introduction/overview/
  * https://prometheus.io/docs/alerting/overview/
  * https://cachethq.io/
+ * https://github.com/fstab/grok_exporter
  
 
 == Global architecture 
@@ -38,6 +41,18 @@ Note : you have a magic page here : http://prometheus/consoles/node.html
 Then, when you understand this simple deployment, add the altermager  and some alertrules.
 And then, when you have alerts, you can plug cachet. 
 
+
+=== Creating the docker image for the grok exporter 
+
+``` 
+#
+# Docker file for grok exporter
+# 
+
+
+``` 
+
+Let's build it, and store the image locally (for the test, you can push it to your docker repository)
 
 === Docker compose file
 
@@ -193,23 +208,23 @@ The alert.rules.yml
 
 ```
 groups:
- - name: example
+  - name: example
   rules:
-  - alert: HighErrorRate
-    expr: prometheus_http_request_duration_seconds_count{job="applicationServer"} > 8
-    for: 1m
-    labels:
-      severity: page
-    annotations:
-      summary: High request latency on all site
-  - alert: HighErrorRateOnAlert
-    expr: prometheus_http_request_duration_seconds_count{job="applicationServer",handler="/alerts"} > 2
-    for: 1m
-    labels:
-      severity: page
-    annotations:
-      summary: High request latency on alert page
- 
+	  - alert: HighErrorRate
+		expr: prometheus_http_request_duration_seconds_count{job="applicationServer"} > 8
+		for: 1m
+		labels:
+		  severity: page
+		annotations:
+		  summary: High request latency on all site
+	  - alert: HighErrorRateOnAlert
+		expr: prometheus_http_request_duration_seconds_count{job="applicationServer",handler="/alerts"} > 2
+		for: 1m
+		labels:
+		  severity: page
+		annotations:
+		  summary: High request latency on alert page
+	 
 ```
 
 === The alertmanager.yml
