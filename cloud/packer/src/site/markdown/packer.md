@@ -97,21 +97,35 @@ Here's a little example :
     "builders": [
         {
             "access_key": "{{user `aws_access_key`}}",
-            "ami_name": "packer-linux-aws-demo-{{timestamp}}",
+            "ami_name": "MYFunnyName-{{timestamp}}",
             "instance_type": "t2.micro",
-            "region": "us-east-1",
+            "region": "{{user `region`}}",
             "secret_key": "{{user `aws_secret_key`}}",
-            "source_ami_filter": {
-              "filters": {
-              "virtualization-type": "hvm",
-              "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
-              "root-device-type": "ebs"
-              },
-              "owners": ["099720109477"],
-              "most_recent": true
-            },
+			"source_ami": "AMI-REF to use as starting point",
+
+            #"source_ami_filter": {
+            #  "filters": {
+            #    "virtualization-type": "hvm",
+            #    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+            #    "root-device-type": "ebs"
+            #  },
+            #   "owners": ["XXXXXXXXXXXXXXXXXXXx"],
+            #   "most_recent": true
+            # },
+
+			#If your provisioners need to access S3 data 
+            "iam_instance_profile":"myBestProfile", 
             "ssh_username": "ubuntu",
-            "type": "amazon-ebs"
+            "type": "amazon-ebs",
+            "tags": {
+              "App": "aTAG",
+              "Release": "AReleaseNumber",
+              "BuildAt": "{{isotime \"02-Jan-06 03:04:05\"}}"
+			},
+            "ami_users": [
+              "YYYYYYYYYYY",
+              "ZZZZZZZZZZZ"
+            ]
         }
     ],
     "provisioners": [
