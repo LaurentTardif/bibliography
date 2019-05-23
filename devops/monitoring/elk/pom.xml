@@ -1,4 +1,5 @@
 <project>
+
 	<parent>
 		<groupId>org.ouelcum.bibliography</groupId>
 		<artifactId>parent</artifactId>
@@ -7,33 +8,27 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ouelcum.bibliography</groupId>
-	<artifactId>monitoring</artifactId>
-	<name>monitoring</name>
+	<artifactId>elk</artifactId>
+	<name>elk</name>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
-     
+
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
 			<url>scp://www.yourcompany.com/www/docs/project/monitoring/</url>
 		</site>
 	</distributionManagement>	 
-	 
+
 	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>${maven-site-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>attach-descriptor</id>
-						<goals>
-							<goal>attach-descriptor</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.5</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<reporting>
@@ -64,11 +59,5 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	
-	<modules>
-		<module>nagios</module>
-		<module>prometheus</module>
-		<module>elk</module>
-	</modules>
+
 </project>
