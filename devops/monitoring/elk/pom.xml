@@ -4,7 +4,7 @@
 		<groupId>org.ouelcum.bibliography</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.0.1</version>
-		<relativePath>../../parent/pom.xml</relativePath>
+		<relativePath>../../../parent/pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ouelcum.bibliography</groupId>
