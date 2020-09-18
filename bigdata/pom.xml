@@ -11,14 +11,14 @@
 	<name>bigdata</name>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
-     
+
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
 			<url>scp://www.yourcompany.com/www/docs/project/bigdata/</url>
 		</site>
-	</distributionManagement>	 
-	 
+	</distributionManagement>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -64,13 +64,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	
+
+
 	<modules>
 		<module>Apache Family</module>
 		<module>bigdata</module>
 		<module>database</module>
-		<module>kafka</module>	
+		<module>kafka</module>
 		<module>hadoop</module>
 		<module>hbase</module>
 		<module>cassandra</module>

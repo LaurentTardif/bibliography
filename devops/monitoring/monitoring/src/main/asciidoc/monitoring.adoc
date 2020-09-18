@@ -1,0 +1,19 @@
+= monitoring
+
+:toc:
+
+== Key concept to check
+
+
+ * are you catching errors before they affect your users
+ * is every user fencing errors generate an alert
+ * is your SRE able to understand what's happening with your alerts
+ * what % of pages are false positives
+ * what can your report to your management
+ * what's the benefit for the engineers
+
+
+
+
+
+== Global architecture

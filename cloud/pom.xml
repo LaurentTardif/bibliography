@@ -11,14 +11,14 @@
 	<name>cloud</name>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
-     
+
 	<distributionManagement>
 		<site>
 			<id>www.yourcompany.com</id>
 			<url>scp://www.yourcompany.com/www/docs/project/cloud/</url>
 		</site>
-	</distributionManagement>	 
-	 
+	</distributionManagement>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -64,8 +64,8 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	
+
+
 	<modules>
 		<module>dockerfull</module>
 		<module>azure</module>

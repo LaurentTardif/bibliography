@@ -17,10 +17,10 @@
 			<id>www.yourcompany.com</id>
 			<url>scp://www.yourcompany.com/www/docs/project/unix/</url>
 		</site>
-	</distributionManagement>	 
+	</distributionManagement>
 
 	<build>
-		
+
 	</build>
 
 	<reporting>

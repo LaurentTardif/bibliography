@@ -67,6 +67,7 @@
 	
 	
 	<modules>
+		<module>monitoring</module>
 		<module>nagios</module>
 		<module>prometheus</module>
 		<module>elk</module>

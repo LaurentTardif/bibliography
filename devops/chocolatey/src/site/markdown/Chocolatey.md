@@ -1,7 +1,4 @@
-# Chocolatey 
-
-<!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
-
+# Chocolatey
 
 ## Introduction to Chocolatey
 
@@ -14,7 +11,7 @@ The Chocolatey Windows package manager uses the same infrastructure as NuGet, th
 
 The Nuspec contains basic information such as the version, license, maintainer, and package dependencies. Chocolatey includes additional optional functionality on top of NuGet's Nuspec format - the best way to determine currently supported features is to create a test package, and look at the generated nuspec file.
 
-choco new testpackage
+ choco new testpackage
 
 Note: If your package uses recently introduced functionality, you might want to include chocolatey as a dependency with the version being the lowest version that has the introduced functionality. Otherwise the installation could fail for users with an older version of Chocolatey installed.
 
@@ -122,10 +119,10 @@ The video is a bit outdated in showing the contents of the chocolateyInstall.ps1
 During which scenarios will my custom scripts be triggered?
 
 The table below shows which scripts are available, and which command(s) will cause them to be run.
-	
+
 	Script Name 						Install 	Upgrade 	Uninstall
 	chocolateyBeforeModify.ps1 						Yes 		Yes
-	chocolateyInstall.ps1 				Yes 			Yes 	
+	chocolateyInstall.ps1 				Yes 			Yes
 	chocolateyUninstall.ps1 										Yes
 
 Note: In the upgrade scenario, the chocolateyInstall.ps1 script will be the one included in the new package. The chocolateyBeforeModify.ps1 script will be the one from the previously installed package.
@@ -354,4 +351,3 @@ NOTE: This is not recommended if you are passing install arguments or package pa
 To push your package after you have built and tested it, you type choco push packageName.nupkg -s sourceLocation where packageName.nupkg is the name of the nupkg that was built with a version number as part of the package name and sourceLocation is the location of the source you want to push to (e.g. -s https://chocolatey.org/ for chocolatey's community feed). You must have an api key for https://chocolatey.org/ set. Take a look at choco push
 
 You can also log into chocolatey.org and upload your package from there (not recommended for packages over 2MB).
-
