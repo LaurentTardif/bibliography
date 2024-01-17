@@ -119,3 +119,80 @@ Attribute |Type |Description |Examples
 |Attribute |Type |Description |Examples|
 |--------------|-----------|------------|------------|
 |db.sql.table |string |The name of the primary table that the operation is acting upon, including the database name (if applicable). [1] |public.users; |
+
+# Destination Attributes
+
+These attributes may be used to describe the receiver of a network exchange/packet. These should be used when there is no client/server relationship between the two sides, or when that relationship is unknown. This covers low-level network interactions (e.g. packet tracing) where you don’t know if there was a connection or which side initiated it. This also covers unidirectional UDP flows and peer-to-peer communication where the “user-facing” surface of the protocol / API does not expose a clear notion of client and server.
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|destination.address|string|Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name. [1] | destination.example.com; 10.1.2.80; /tmp/my.sock|
+|destination.port|int|Destination port number|3389; 2888|
+
+[1]: When observed from the source side, and when communicating through an intermediary, destination.address SHOULD represent the destination address behind any intermediaries, for example proxies, if it’s available.
+
+# Device Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|device.id|string|A unique identifier representing the device [1]|2ab2916d-a51f-4ac8-80ee-45ac31a28092|
+|device.manufacturer|string|The name of the device manufacturer [2]|Apple; Samsung|
+|device.model.identifier|string|The model identifier for the device [3]|iPhone3,4; SM-G920F|
+|device.model.name|string|The marketing name for the device model [4]|iPhone 6s Plus; Samsung Galaxy S6|
+
+# Disk Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|disk.io.direction|string|The disk IO operation direction.|read|
+
+# Error Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|error.type|string|Stable |Describes a class of error the operation ended with. [1]|timeout; java.net.UnknownHostException;|
+
+
+# Exception Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|exception.escaped|boolean|SHOULD be set to true if the exception event is recorded at a point where it is known that the exception is escaping the scope of the span. [1]|
+|exception.message|string|The exception message.|Division by zero; Can't convert 'int' object to str implicitly
+exception.stacktrace|string|A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.|Exception in thread "main" java.lang.RuntimeException: Test exception\n at com.example.GenerateTrace.methodB(GenerateTrace.java:13)\n at com.example.GenerateTrace.methodA(GenerateTrace.java:9)\n at com.example.GenerateTrace.main(GenerateTrace.java:5)|
+|exception.type|string|The type of the exception (its fully-qualified class name, if applicable). The dynamic type of the exception should be preferred over the static type in languages that support it.|
+
+# Host Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|host.arch|string|The CPU architecture the host system is running on.|amd64|
+|host.cpu.cache.l2.size|int|The amount of level 2 memory cache available to the processor (in Bytes).|12288000|
+|host.cpu.family|string|Family or generation of the CPU.|6; PA-RISC 1.1e|
+|host.cpu.model.id|string|Model identifier. It provides more granular information about the CPU, distinguishing it from other CPUs within the same family.|6; 9000/778/B180L|
+|host.cpu.model.name|string|Model designation of the processor.|11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz|
+|host.cpu.stepping|int|Stepping or core revisions.|1|
+|host.cpu.vendor.id|string|Processor manufacturer identifier. A maximum 12-character string. [1]|GenuineIntel|
+|host.id|string|Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider. For non-containerized systems, this should be the machine-id. See the table below for the sources to use to determine the machine-id based on operating system.|fdbf79e8af94cb7f9e8df36789187052|
+|host.image.id|string|VM image ID or host OS image ID. For Cloud, this value is from the provider.|ami-07b06b442921831e5|
+|host.image.name|string|Name of the VM image or OS install the host was instantiated from.|infra-ami-eks-worker-node-7d4ec78312; CentOS-8-x86_64-1905|
+|host.image.version|string|The version string of the VM image or host OS as defined in Version Attributes.|0.1|
+|host.ip|string[]|Available IP addresses of the host, excluding loopback interfaces. [2]|[192.168.1.140, fe80::abc2:4a28:737a:609e]|
+|host.mac|string[]|Available MAC addresses of the host, excluding loopback interfaces. [3]|[AC-DE-48-23-45-67, AC-DE-48-23-45-67-01-9F]|
+|host.name|string|Name of the host. On Unix systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user.|opentelemetry-test|
+|host.type|string|Type of host. For Cloud, this must be the machine type.|n1-standard-1|
+
+# HTTP Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|http.request.body.size|int|The size of the request payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the Content-Length header. For requests using transport encoding, this should be the compressed size.|3495|
+|http.request.header.<key>|string[]|Stable|HTTP request headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [1]|http.request.header.content-type=["application/json"]; http.request.header.x-forwarded-for=["1.2.3.4", "1.2.3.5"]|
+|http.request.method|string|Stable|HTTP request method. [2]|GET; POST; HEAD|
+|http.request.method_original|string|Stable|Original HTTP method sent by the client in the request line.|GeT; ACL; foo|
+|http.request.resend_count|int|Stable
+The ordinal number of request resending attempt (for any reason, including redirects). [3]|3|
+|http.response.body.size|int|The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the Content-Length header. For requests using transport encoding, this should be the compressed size.|3495|
+|http.response.header.<key>|string[]|Stable|HTTP response headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [4]|http.response.header.content-type=["application/json"]; http.response.header.my-custom-header=["abc", "def"]|
+|http.response.status_code|int|Stable|HTTP response status code.|200|
+|http.route|string|Stable|The matched route, that is, the path template in the format used by the respective server framework. [5]|/users/:userID?; {controller}/{action}/{id?}|
