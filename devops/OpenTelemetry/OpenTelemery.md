@@ -196,3 +196,245 @@ The ordinal number of request resending attempt (for any reason, including redir
 |http.response.header.<key>|string[]|Stable|HTTP response headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [4]|http.response.header.content-type=["application/json"]; http.response.header.my-custom-header=["abc", "def"]|
 |http.response.status_code|int|Stable|HTTP response status code.|200|
 |http.route|string|Stable|The matched route, that is, the path template in the format used by the respective server framework. [5]|/users/:userID?; {controller}/{action}/{id?}|
+
+
+# Deprecated HTTP Attributes
+
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|http.flavor|string|Deprecated
+Deprecated, use network.protocol.name instead.|1.0|
+|http.method|string|Deprecated
+Deprecated, use http.request.method instead.|GET; POST; HEAD|
+|http.request_content_length|int|Deprecated
+Deprecated, use http.request.header.content-length instead.|3495|
+|http.response_content_length|int|Deprecated
+Deprecated, use http.response.header.content-length instead.|3495|
+|http.scheme|string|Deprecated
+Deprecated, use url.scheme instead.|http; https|
+|http.status_code|int|Deprecated
+Deprecated, use http.response.status_code instead.|200|
+|http.target|string|Deprecated
+Deprecated, use url.path and url.query instead.|/search?q=OpenTelemetry#SemConv|
+|http.url|string|Deprecated
+Deprecated, use url.full instead.|https://www.foo.bar/search?q=OpenTelemetry#SemConv|
+|http.user_agent|string|Deprecated
+Deprecated, use user_agent.original instead.|CERN-LineMode/2.15 libwww/2.17b3; Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1|
+
+http.flavor has the following list of well-known values. If one of them applies, then the respective val
+
+
+# Kubernetes Resource Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|k8s.cluster.name|string|The name of the cluster.|opentelemetry-cluster|
+|k8s.cluster.uid|string|A pseudo-ID for the cluster, set to the UID of the kube-system namespace. [1]|218fc5a9-a5f1-4b54-aa05-46717d0ab26d|
+|k8s.container.name|string|The name of the Container from Pod specification, must be unique within a Pod. Container runtime usually uses different globally unique name (container.name).|redis|
+|k8s.container.restart_count|int|Number of times the container was restarted. This attribute can be used to identify a particular container (running or stopped) within a container spec.|0; 2|
+|k8s.cronjob.name|string|The name of the CronJob.|opentelemetry|
+|k8s.cronjob.uid|string|The UID of the CronJob.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.daemonset.name|string|The name of the DaemonSet.|opentelemetry|
+|k8s.daemonset.uid|string|The UID of the DaemonSet.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.deployment.name|string|The name of the Deployment.|opentelemetry|
+|k8s.deployment.uid|string|The UID of the Deployment.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.job.name|string|The name of the Job.|opentelemetry|
+|k8s.job.uid|string|The UID of the Job.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.namespace.name|string|The name of the namespace that the pod is running in.|default|
+|k8s.node.name|string|The name of the Node.|node-1|
+|k8s.node.uid|string|The UID of the Node.|1eb3a0c6-0477-4080-a9cb-0cb7db65c6a2|
+|k8s.pod.annotation.<key>|string|The annotation key-value pairs placed on the Pod, the <key> being the annotation name, the value being the annotation value.|k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets=true; k8s.pod.annotation.mycompany.io/arch=x64; k8s.pod.annotation.data=|
+|k8s.pod.labels.<key>|string|The labels placed on the Pod, the <key> being the label name, the value being the label value.|k8s.pod.labels.app=my-app; k8s.pod.labels.mycompany.io/arch=x64; k8s.pod.labels.data=|
+|k8s.pod.name|string|The name of the Pod.|opentelemetry-pod-autoconf|
+|k8s.pod.uid|string|The UID of the Pod.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.replicaset.name|string|The name of the ReplicaSet.|opentelemetry|
+|k8s.replicaset.uid|string|The UID of the ReplicaSet.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+|k8s.statefulset.name|string|The name of the StatefulSet.|opentelemetry|
+|k8s.statefulset.uid|string|The UID of the StatefulSet.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
+
+# Messaging Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|messaging.batch.message_count|int|The number of messages sent, received, or processed in the scope of the batching operation. [1]|0; 1; 2|
+|messaging.client_id|string|A unique identifier for the client that consumes or produces a message.|client-5; myhost@8742@s8083jm|
+|messaging.destination.anonymous|boolean|A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).|
+|messaging.destination.name|string|The message destination name [2]|MyQueue; MyTopic|
+|messaging.destination.template|string|Low cardinality representation of the messaging destination name [3]|/customers/{customerId}|
+|messaging.destination.temporary|boolean|A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed.|
+|messaging.destination_publish.anonymous|boolean|A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name).|
+|messaging.destination_publish.name|string|The name of the original destination the message was published to [4]|MyQueue; MyTopic|
+|messaging.gcp_pubsub.message.ordering_key|string|The ordering key for a given message. If the attribute is not present, the message does not have an ordering key.|ordering_key|
+|messaging.kafka.consumer.group|string|Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.|my-group|
+|messaging.kafka.destination.partition|int|Partition the message is sent to.|2|
+|messaging.kafka.message.key|string|Message keys in Kafka are used for grouping alike messages to ensure they’re processed on the same partition. They differ from messaging.message.id in that they’re not unique. If the key is null, the attribute MUST NOT be set. [5]|myKey|
+|messaging.kafka.message.offset|int|The offset of a record in the corresponding Kafka partition.|42|
+|messaging.kafka.message.tombstone|boolean|A boolean that is true if the message is a tombstone.|
+|messaging.message.body.size|int|The size of the message body in bytes. [6]|1439|
+|messaging.message.conversation_id|string|The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called “Correlation ID”.|MyConversationId|
+|messaging.message.envelope.size|int|The size of the message body and metadata in bytes. [7]|2738|
+|messaging.message.id|string|A value used by the messaging system as an identifier for the message, represented as a string.|452a7c7c7c7048c2f887f61572b18fc2|
+|messaging.operation|string|A string identifying the kind of messaging operation. [8]|publish|
+|messaging.rabbitmq.destination.routing_key|string|RabbitMQ message routing key.|myKey|
+|messaging.rocketmq.client_group|string|Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind.|myConsumerGroup|
+|messaging.rocketmq.consumption_model|string|Model of message consumption. This only applies to consumer spans.|clustering|
+|messaging.rocketmq.message.delay_time_level|int|The delay time level for delay message, which determines the message delay time.|3|
+|messaging.rocketmq.message.delivery_timestamp|int|The timestamp in milliseconds that the delay message is expected to be delivered to consumer.|1665987217045|
+|messaging.rocketmq.message.group|string|It is essential for FIFO message. Messages that belong to the same message group are always processed one by one within the same consumer group.|myMessageGroup|
+|messaging.rocketmq.message.keys|string[]|Key(s) of message, another way to mark message besides message id.|[keyA, keyB]|
+|messaging.rocketmq.message.tag|string|The secondary classifier of message besides topic.|tagA|
+|messaging.rocketmq.message.type|string|Type of message.|normal|
+|messaging.rocketmq.namespace|string|Namespace of RocketMQ resources, resources in different namespaces are individual.|myNamespace|
+|messaging.system|string|An identifier for the messaging system being used. See below for a list of well-known identifiers.|activemq|
+
+
+# Network Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|network.carrier.icc|string|The ISO 3166-1 alpha-2 2-character country code associated with the mobile carrier network.|DE|
+|network.carrier.mcc|string|The mobile carrier country code.|310|
+|network.carrier.mnc|string|The mobile carrier network code.|001|
+|network.carrier.name|string|The name of the mobile carrier.|sprint|
+|network.connection.subtype|string|This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.|LTE|
+|network.connection.type|string|The internet connection type.|wifi|
+|network.io.direction|string|The network IO operation direction.|transmit|
+|network.local.address|string|Stable|Local address of the network connection - IP address or Unix domain socket name.|10.1.2.80; /tmp/my.sock|
+|network.local.port|int|Stable|Local port number of the network connection.|65123
+|network.peer.address|string|Stable|Peer address of the network connection - IP address or Unix domain socket name.|10.1.2.80; /tmp/my.sock
+|network.peer.port|int|Stable|Peer port number of the network connection.|65123
+|network.protocol.name|string|Stable|OSI application layer or non-OSI equivalent. [1]|amqp; http; mqtt|
+|network.protocol.version|string|Stable|Version of the protocol specified in network.protocol.name. [2]|3.1.1|
+|network.transport|string|Stable|OSI transport layer or inter-process communication method. [3]|tcp; udp|
+|network.type|string|Stable|OSI network layer or non-OSI equivalent. [4]|ipv4; ipv6|
+
+# OCI Image Manifest
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|oci.manifest.digest|string|The digest of the OCI image manifest. For container images specifically is the digest by which the container image is known. [1]|sha256:e4ca62c0d62f3e886e684806dfe9d4e0cda60d54986898173c1083856cfda0f4|
+
+# Operating System Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|os.build_id|string|Unique identifier for a particular build or compilation of the operating system.|TQ3C.230805.001.B2; 20E247; 22621|
+|os.description|string|Human readable (not intended to be parsed) OS version information, like e.g. reported by ver or lsb_release -a commands.|Microsoft Windows [Version 10.0.18363.778]; Ubuntu 18.04.1 LTS|
+|os.name|string|Human readable operating system name.|iOS; Android; Ubuntu
+|os.type|string|The operating system type.|windows|
+|os.version|string|The version string of the operating system as defined in Version Attributes.|14.2.1; 18.04.1|
+
+# Process Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|process.command|string|The command used to launch the process (i.e. the command name). On Linux based systems, can be set to the zeroth string in proc/[pid]/cmdline. On Windows, can be set to the first parameter extracted from GetCommandLineW.|cmd/otelcol|
+|process.command_args|string[]|All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from proc/[pid]/cmdline. For libc-based executables, this would be the full argv vector passed to main.|[cmd/otecol, --config=config.yaml]|
+|process.command_line|string|The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of GetCommandLineW. Do not set this if you have to assemble it just for monitoring; use process.command_args instead.|C:\cmd\otecol --config="my directory\config.yaml"|
+|process.executable.name|string|The name of the process executable. On Linux based systems, can be set to the Name in proc/[pid]/status. On Windows, can be set to the base name of GetProcessImageFileNameW.|otelcol|
+|process.executable.path|string|The full path to the process executable. On Linux based systems, can be set to the target of proc/[pid]/exe. On Windows, can be set to the result of GetProcessImageFileNameW.|/usr/bin/cmd/otelcol
+process.owner|string|The username of the user that owns the process.|root|
+|process.parent_pid|int|Parent Process identifier (PPID).|111
+process.pid|int|Process identifier (PID).|1234|
+|process.runtime.description|string|An additional description about the runtime of the process, for example a specific vendor customization of the runtime environment.|Eclipse OpenJ9 Eclipse OpenJ9 VM openj9-0.21.0|
+|process.runtime.name|string|The name of the runtime of this process. For compiled native binaries, this SHOULD be the name of the compiler.|OpenJDK Runtime Environment|
+|process.runtime.version|string|The version of the runtime of this process, as returned by the runtime without modification.|14.0.2|
+
+
+# RPC Attributes
+
+RPC attributes are intended to be used in the context of events related to remote procedure calls (RPC).
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|rpc.connect_rpc.error_code|string|The error codes of the Connect request. Error codes are always string values.|cancelled|
+|rpc.connect_rpc.request.metadata.<key>|string[]|Connect request metadata, <key> being the normalized Connect Metadata key (lowercase), the value being the metadata values. [1]|rpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
+|rpc.connect_rpc.response.metadata.<key>|string[]|Connect response metadata, <key> being the normalized Connect Metadata key (lowercase), the value being the metadata values. [2]|rpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
+|rpc.grpc.request.metadata.<key>|string[]|gRPC request metadata, <key> being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [3]|rpc.grpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
+|rpc.grpc.response.metadata.<key>|string[]|gRPC response metadata, <key> being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [4]|rpc.grpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
+|rpc.grpc.status_code|int|The numeric status code of the gRPC request.|0|
+|rpc.jsonrpc.error_code|int|error.code property of response if it is an error response.|-32700; 100|
+|rpc.jsonrpc.error_message|string|error.|  of response if it is an error response.|Parse error; User already exists|
+|rpc.jsonrpc.request_id|string|id property of request or response. Since protocol allows id to be int, string, null or missing (for notifications), value is expected to be cast to string for simplicity. Use empty string in case of null value. Omit entirely if this is a notification.|10; request-7; ``|
+|rpc.jsonrpc.version|string|Protocol version as in jsonrpc property of request/response. Since JSON-RPC 1.0 doesn’t specify this, the value can be omitted.|2.0; 1.0|
+|rpc.method|string|The name of the (logical) method being called, must be equal to the $method part in the span name. [5]|exampleMethod|
+|rpc.service|string|The full (logical) name of the service being called, including its package name, if applicable. [6]|myservice.EchoService|
+|rpc.system|string|A string identifying the remoting system. See below for a list of well-known identifiers.|grpc|
+
+
+# Server Attributes
+
+These attributes may be used to describe the server in a connection-based network interaction where there is one side that initiates the connection (the client is the side that initiates the connection). This covers all TCP network interactions since TCP is connection-based and one side initiates the connection (an exception is made for peer-to-peer communication over TCP where the “user-facing” surface of the protocol / API does not expose a clear notion of client and server). This also covers UDP network interactions where one side initiates the interaction, e.g. QUIC (HTTP/3) and DNS.
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|server.address|string|Stable|Server domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name. [1]|example.com; 10.1.2.80; /tmp/my.sock|
+|server.port|int|Stable|Server port number. [2]|80; 8080; 443|
+
+# Source Attributes
+
+These attributes may be used to describe the sender of a network exchange/packet. These should be used when there is no client/server relationship between the two sides, or when that relationship is unknown. This covers low-level network interactions (e.g. packet tracing) where you don’t know if there was a connection or which side initiated it. This also covers unidirectional UDP flows and peer-to-peer communication where the “user-facing” surface of the protocol / API does not expose a clear notion of client and server.
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|source.address|string|Source address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name. [1]|source.example.com; 10.1.2.80; /tmp/my.sock|
+|source.port|int|Source port number|3389; 2888|
+
+# Thread Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|thread.id|int|Current “managed” thread ID (as opposed to OS thread ID).|42|
+|thread.name|string|Current thread name.|main|
+
+
+# TLS Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|tls.cipher|string|String indicating the cipher used during the current connection. [1]|TLS_RSA_WITH_3DES_EDE_CBC_SHA; TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256|
+|tls.client.certificate|string|PEM-encoded stand-alone certificate offered by the client. This is usually mutually-exclusive of client.certificate_chain since this value also exists in that list.|MII...|
+|tls.client.certificate_chain|string[]|Array of PEM-encoded certificates that make up the certificate chain offered by the client. This is usually mutually-exclusive of client.certificate since that value should be the first certificate in the chain.|[MII..., MI...]|
+|tls.client.hash.md5|string|Certificate fingerprint using the MD5 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.|0F76C7F2C55BFD7D8E8B8F4BFBF0C9EC|
+|tls.client.hash.sha1|string|Certificate fingerprint using the SHA1 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.|9E393D93138888D288266C2D915214D1D1CCEB2A|
+|tls.client.hash.sha256|string|Certificate fingerprint using the SHA256 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.|0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0|
+|tls.client.issuer|string|Distinguished name of subject of the issuer of the x.509 certificate presented by the client.|CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com|
+|tls.client.ja3|string|A hash that identifies clients based on how they perform an SSL/TLS handshake.|d4e5b18d6b55c71272893221c96ba240|
+|tls.client.not_after|string|Date/Time indicating when client certificate is no longer considered valid.|2021-01-01T00:00:00.000Z|
+|tls.client.not_before|string|Date/Time indicating when client certificate is first considered valid.|1970-01-01T00:00:00.000Z|
+|tls.client.server_name|string|Also called an SNI, this tells the server which hostname to which the client is attempting to connect to.|opentelemetry.io|
+|tls.client.subject|string|Distinguished name of subject of the x.509 certificate presented by the client.|CN=myclient, OU=Documentation Team, DC=example, DC=com|
+|tls.client.supported_ciphers|string[]|Array of ciphers offered by the client during the client hello.|["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "..."]|
+|tls.curve|string|String indicating the curve used for the given cipher, when applicable|secp256r1|
+|tls.established|boolean|Boolean flag indicating if the TLS negotiation was successful and transitioned to an encrypted tunnel.|True|
+|tls.next_protocol|string|String indicating the protocol being tunneled. Per the values in the IANA registry, this string should be lower case.|http/1.1|
+|tls.protocol.name|string|Normalized lowercase protocol name parsed from original string of the negotiated SSL/TLS protocol version|ssl|
+|tls.protocol.version|string|Numeric part of the version parsed from the original string of the negotiated SSL/TLS protocol version|1.2; 3|
+|tls.resumed|boolean|Boolean flag indicating if this TLS connection was resumed from an existing TLS negotiation.|True|
+|tls.server.certificate|string|PEM-encoded stand-alone certificate offered by the server This is usually mutually-exclusive of server.certificate_chain since this value also exists in that list.|MII...|
+|tls.server.certificate_chain|string[]|Array of PEM-encoded certificates that make up the certificate chain offered by the server. This is usually mutually-exclusive of server.certificate since that value should be the first certificate in the chain.|[MII..., MI...]|
+|tls.server.hash.md5|string|Certificate fingerprint using the MD5 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.|0F76C7F2C55BFD7D8E8B8F4BFBF0C9EC|
+|tls.server.hash.sha1|string|Certificate fingerprint using the SHA1 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.|9E393D93138888D288266C2D915214D1D1CCEB2A|
+|tls.server.hash.sha256|string|Certificate fingerprint using the SHA256 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.|0687F666A054EF17A08E2F2162EAB4CBC0D265E1D7875BE74BF3C712CA92DAF0|
+|tls.server.issuer|string|Distinguished name of subject of the issuer of the x.509 certificate presented by the client.|CN=Example Root CA, OU=Infrastructure Team, DC=example, DC=com|
+|tls.server.ja3s|string|A hash that identifies servers based on how they perform an SSL/TLS handshake.|d4e5b18d6b55c71272893221c96ba240|
+|tls.server.not_after|string|Date/Time indicating when server certificate is no longer considered valid.|2021-01-01T00:00:00.000Z|
+|tls.server.not_before|string|Date/Time indicating when server certificate is first considered valid.|1970-01-01T00:00:00.000Z|
+|tls.server.subject|string|Distinguished name of subject of the x.509 certificate presented by the server.|CN=myserver, OU=Documentation Team, DC=example, DC=com|
+
+# URL Attributes
+
+Attribute|Type|Description|Examples
+|--------------|-----------|------------|------------|
+|url.fragment|string|Stable|The URI fragment component|SemConv|
+|url.full|string|Stable|Absolute URL describing a network resource according to RFC3986 [1]|https://www.foo.bar/search?q=OpenTelemetry#SemConv; //localhost|
+|url.path|string|Stable|The URI path component|/search|
+|url.query|string|Stable|The URI query component [2]|q=OpenTelemetry|
+|url.scheme|string|Stable|The URI scheme component identifying the used protocol.|https; ftp; telnet|
+
+# User agent Attributes
+
+|Attribute|Type|Description|Examples|
+|--------------|-----------|------------|------------|
+|user_agent.original|string|Stable|Value of the HTTP User-Agent header sent by the client.|CERN-LineMode/2.15 libwww/2.17b3; Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1|
