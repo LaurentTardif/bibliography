@@ -1,5 +1,9 @@
 Open Telemetry Semantics
 
+
+doc : https://opentelemetry.io/docs/specs/semconv/attributes-registry/
+
+
 # Client
 
 | Attribute   | Type    | Description | Examples |
