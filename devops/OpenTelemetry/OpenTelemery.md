@@ -76,16 +76,16 @@ doc : https://opentelemetry.io/docs/specs/semconv/attributes-registry/
 
 ## CosmosDB Attributes
 
-Attribute |Type |Description |Examples
+|Attribute |Type |Description |Examples|
 |--------------|-----------|------------|------------|
-db.cosmosdb.client_id |string |Unique Cosmos client instance id. |3ba4827d-4422-483f-b59f-85b74211c11d
-db.cosmosdb.connection_mode |string |Cosmos client connection mode. |gateway
-db.cosmosdb.container |string |Cosmos DB container name. |anystring
-db.cosmosdb.operation_type |string |CosmosDB Operation Type. |Invalid
-db.cosmosdb.request_charge |double |RU consumed for that operation |46.18; 1.0
-db.cosmosdb.request_content_length |int |Request payload size in bytes |
-db.cosmosdb.status_code |int |Cosmos DB status code. |200; 201
-db.cosmosdb.sub_status_code |int |Cosmos DB sub status code. |1000; 1002
+|db.cosmosdb.client_id |string |Unique Cosmos client instance id. |3ba4827d-4422-483f-b59f-85b74211c11d|
+|db.cosmosdb.connection_mode |string |Cosmos client connection mode. |gateway|
+|db.cosmosdb.container |string |Cosmos DB container name. |anystring|
+|db.cosmosdb.operation_type |string |CosmosDB Operation Type. |Invalid|
+|db.cosmosdb.request_charge |double |RU consumed for that operation |46.18; 1.0|
+|db.cosmosdb.request_content_length |int |Request payload size in bytes |
+|db.cosmosdb.status_code |int |Cosmos DB status code. |200; 201|
+|db.cosmosdb.sub_status_code |int |Cosmos DB sub status code. |1000; 1002|
 
 ## Elasticsearch Attributes
 
@@ -114,7 +114,7 @@ Attribute |Type |Description |Examples
 
 ## Redis Attributes
 
-Attribute |Type |Description |Examples
+|Attribute |Type |Description |Examples|
 |--------------|-----------|------------|------------|
 |db.redis.database_index |int |The index of the database being accessed as used in the SELECT command, provided as an integer. To be used instead of the generic db.name attribute. |0; 1; 15|
 
@@ -194,8 +194,7 @@ exception.stacktrace|string|A stacktrace as a string in the natural representati
 |http.request.header.<key>|string[]|Stable|HTTP request headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [1]|http.request.header.content-type=["application/json"]; http.request.header.x-forwarded-for=["1.2.3.4", "1.2.3.5"]|
 |http.request.method|string|Stable|HTTP request method. [2]|GET; POST; HEAD|
 |http.request.method_original|string|Stable|Original HTTP method sent by the client in the request line.|GeT; ACL; foo|
-|http.request.resend_count|int|Stable
-The ordinal number of request resending attempt (for any reason, including redirects). [3]|3|
+|http.request.resend_count|int|Stable|The ordinal number of request resending attempt (for any reason, including redirects). [3]|3|
 |http.response.body.size|int|The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the Content-Length header. For requests using transport encoding, this should be the compressed size.|3495|
 |http.response.header.<key>|string[]|Stable|HTTP response headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [4]|http.response.header.content-type=["application/json"]; http.response.header.my-custom-header=["abc", "def"]|
 |http.response.status_code|int|Stable|HTTP response status code.|200|
@@ -207,24 +206,15 @@ The ordinal number of request resending attempt (for any reason, including redir
 
 |Attribute|Type|Description|Examples|
 |--------------|-----------|------------|------------|
-|http.flavor|string|Deprecated
-Deprecated, use network.protocol.name instead.|1.0|
-|http.method|string|Deprecated
-Deprecated, use http.request.method instead.|GET; POST; HEAD|
-|http.request_content_length|int|Deprecated
-Deprecated, use http.request.header.content-length instead.|3495|
-|http.response_content_length|int|Deprecated
-Deprecated, use http.response.header.content-length instead.|3495|
-|http.scheme|string|Deprecated
-Deprecated, use url.scheme instead.|http; https|
-|http.status_code|int|Deprecated
-Deprecated, use http.response.status_code instead.|200|
-|http.target|string|Deprecated
-Deprecated, use url.path and url.query instead.|/search?q=OpenTelemetry#SemConv|
-|http.url|string|Deprecated
-Deprecated, use url.full instead.|https://www.foo.bar/search?q=OpenTelemetry#SemConv|
-|http.user_agent|string|Deprecated
-Deprecated, use user_agent.original instead.|CERN-LineMode/2.15 libwww/2.17b3; Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1|
+|http.flavor|string|Deprecated|Deprecated, use network.protocol.name instead.|1.0|
+|http.method|string|Deprecated|Deprecated, use http.request.method instead.|GET; POST; HEAD|
+|http.request_content_length|int|Deprecated|Deprecated, use http.request.header.content-length instead.|3495|
+|http.response_content_length|int|Deprecated|Deprecated, use http.response.header.content-length instead.|3495|
+|http.scheme|string|Deprecated|Deprecated, use url.scheme instead.|http; https|
+|http.status_code|int|Deprecated|Deprecated, use http.response.status_code instead.|200|
+|http.target|string|Deprecated|Deprecated, use url.path and url.query instead.|/search?q=OpenTelemetry#SemConv|
+|http.url|string|Deprecated|Deprecated, use url.full instead.|https://www.foo.bar/search?q=OpenTelemetry#SemConv|
+|http.user_agent|string|Deprecated|Deprecated, use user_agent.original instead.|CERN-LineMode/2.15 libwww/2.17b3; Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1|
 
 http.flavor has the following list of well-known values. If one of them applies, then the respective val
 
