@@ -104,7 +104,7 @@ exception.stacktrace|string|A stacktrace as a string in the natural representati
 |http.scheme|string|Deprecated|Deprecated, use url.scheme instead.|http; https|
 |http.status_code|int|Deprecated|Deprecated, use http.response.status_code instead.|200|
 |http.target|string|Deprecated|Deprecated, use url.path and url.query instead.|/search?q=OpenTelemetry#SemConv|
-|http.url|string|Deprecated|Deprecated, use url.full instead.|https://www.foo.bar/search?q=OpenTelemetry#SemConv|
+|http.url|string|Deprecated|Deprecated, use url.full instead.|<https://www.foo.bar/search?q=OpenTelemetry#SemConv>|
 |http.user_agent|string|Deprecated|Deprecated, use user_agent.original instead.|CERN-LineMode/2.15 libwww/2.17b3; Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1|
 |k8s.cluster.name|string|The name of the cluster.|opentelemetry-cluster|
 |k8s.cluster.uid|string|A pseudo-ID for the cluster, set to the UID of the kube-system namespace. [1]|218fc5a9-a5f1-4b54-aa05-46717d0ab26d|
@@ -240,7 +240,7 @@ process.pid|int|Process identifier (PID).|1234|
 |tls.server.not_before|string|Date/Time indicating when server certificate is first considered valid.|1970-01-01T00:00:00.000Z|
 |tls.server.subject|string|Distinguished name of subject of the x.509 certificate presented by the server.|CN=myserver, OU=Documentation Team, DC=example, DC=com|
 |url.fragment|string|Stable|The URI fragment component|SemConv|
-|url.full|string|Stable|Absolute URL describing a network resource according to RFC3986 [1]|https://www.foo.bar/search?q=OpenTelemetry#SemConv; //localhost|
+|url.full|string|Stable|Absolute URL describing a network resource according to RFC3986 [1]|<https://www.foo.bar/search?q=OpenTelemetry#SemConv>; //localhost|
 |url.path|string|Stable|The URI path component|/search|
 |url.query|string|Stable|The URI query component [2]|q=OpenTelemetry|
 |url.scheme|string|Stable|The URI scheme component identifying the used protocol.|https; ftp; telnet|
