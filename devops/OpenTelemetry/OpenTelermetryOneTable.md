@@ -1,7 +1,7 @@
-Open Telemetry Semantics
+# Open Telemetry Semantics
 
 
-doc : https://opentelemetry.io/docs/specs/semconv/attributes-registry/
+doc : <https://opentelemetry.io/docs/specs/semconv/attributes-registry/>
 
 
 | Attribute   | Type    | Description | Examples |
@@ -27,7 +27,7 @@ doc : https://opentelemetry.io/docs/specs/semconv/attributes-registry/
 |container.image.id|string|Runtime specific image identifier. Usually a hash algorithm followed by a UUID. [2]|sha256:19c92d0a00d1b66d897bceaa7319bee0dd38a10a851c60bcec9474aa3f01e50f|
 |*container.image.name*|string|Name of the image the container was built on.|gcr.io/opentelemetry/operator|
 |*container.image.repo_digests*|string[]|Repo digests of the container image as provided by the container runtime. [3]|[example@sha256:afcc7f1ac1b49db317a7196c902e61c6c3c4607d63599ee1a82d702d249a0ccb, internal.registry.example.com:5000/example@sha256:b69959407d21e8a062e0416bf13405bb2b71ed7a84dde4158ebafacfa06f5578]|
-|*container.image.tags*|string[]|Container image tags. An example can be found in Docker Image Inspect. Should be only the <tag> section of the full name for example from registry.example.com/my-org/my-image:<tag>.|[v1.27.1, 3.5.7-0]|
+|*container.image.tags*|string[]|Container image tags. An example can be found in Docker Image Inspect. Should be only the &lt;tag&gt; section of the full name for example from registry.example.com/my-org/my-image:&lt;tag&gt;.|[v1.27.1, 3.5.7-0]|
 |*container.labels.&lt;key&gt;*|string|Container labels, &lt;key&gt; being the label name, the value being the label value.|container.labels.app=nginx
 |*container.name*|string|Container name used by container runtime.|opentelemetry-autoconf|
 |*container.runtime*|string|The container runtime managing this container.|docker; containerd; rkt|
@@ -55,7 +55,7 @@ doc : https://opentelemetry.io/docs/specs/semconv/attributes-registry/
 |db.cosmosdb.sub_status_code |int |Cosmos DB sub status code. |1000; 1002|
 |db.elasticsearch.cluster.name |string |Represents the identifier of an Elasticsearch cluster. |e9106fc68e3044f0b1475b04bf4ffd5f|
 |db.elasticsearch.node.name |string |Represents the human-readable identifier of the node/instance to which a request was routed. |instance-0000000001|
-|db.elasticsearch.path_parts.<key> |string |A dynamic value in the url path. [1] |db.elasticsearch.path_parts.index=test-index; db.elasticsearch.path_parts.doc_id=123|
+|db.elasticsearch.path_parts.&lt;key&gt; |string |A dynamic value in the url path. [1] |db.elasticsearch.path_parts.index=test-index; db.elasticsearch.path_parts.doc_id=123|
 |db.jdbc.driver_classname |string |The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect. |org.postgresql.Driver; com.microsoft.sqlserver.jdbc.SQLServerDriver|
 |db.mongodb.collection |string |The MongoDB collection being accessed within the database stated in db.name. |customers; products|
 |db.mssql.instance_name |string |The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance. |
@@ -89,12 +89,12 @@ exception.stacktrace|string|A stacktrace as a string in the natural representati
 |host.name|string|Name of the host. On Unix systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user.|opentelemetry-test|
 |host.type|string|Type of host. For Cloud, this must be the machine type.|n1-standard-1|
 |http.request.body.size|int|The size of the request payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the Content-Length header. For requests using transport encoding, this should be the compressed size.|3495|
-|http.request.header.<key>|string[]|Stable|HTTP request headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [1]|http.request.header.content-type=["application/json"]; http.request.header.x-forwarded-for=["1.2.3.4", "1.2.3.5"]|
+|http.request.header.&lt;key&gt;|string[]|Stable|HTTP request headers, &lt;key&gt; being the normalized HTTP Header name (lowercase), the value being the header values. [1]|http.request.header.content-type=["application/json"]; http.request.header.x-forwarded-for=["1.2.3.4", "1.2.3.5"]|
 |http.request.method|string|Stable|HTTP request method. [2]|GET; POST; HEAD|
 |http.request.method_original|string|Stable|Original HTTP method sent by the client in the request line.|GeT; ACL; foo|
 |http.request.resend_count|int|Stable|The ordinal number of request resending attempt (for any reason, including redirects). [3]|3|
 |http.response.body.size|int|The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the Content-Length header. For requests using transport encoding, this should be the compressed size.|3495|
-|http.response.header.<key>|string[]|Stable|HTTP response headers, <key> being the normalized HTTP Header name (lowercase), the value being the header values. [4]|http.response.header.content-type=["application/json"]; http.response.header.my-custom-header=["abc", "def"]|
+|http.response.header.&lt;key&gt;|string[]|Stable|HTTP response headers, &lt;key&gt; being the normalized HTTP Header name (lowercase), the value being the header values. [4]|http.response.header.content-type=["application/json"]; http.response.header.my-custom-header=["abc", "def"]|
 |http.response.status_code|int|Stable|HTTP response status code.|200|
 |http.route|string|Stable|The matched route, that is, the path template in the format used by the respective server framework. [5]|/users/:userID?; {controller}/{action}/{id?}|
 |http.flavor|string|Deprecated|Deprecated, use network.protocol.name instead.|1.0|
@@ -121,8 +121,8 @@ exception.stacktrace|string|A stacktrace as a string in the natural representati
 |k8s.namespace.name|string|The name of the namespace that the pod is running in.|default|
 |k8s.node.name|string|The name of the Node.|node-1|
 |k8s.node.uid|string|The UID of the Node.|1eb3a0c6-0477-4080-a9cb-0cb7db65c6a2|
-|k8s.pod.annotation.<key>|string|The annotation key-value pairs placed on the Pod, the <key> being the annotation name, the value being the annotation value.|k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets=true; k8s.pod.annotation.mycompany.io/arch=x64; k8s.pod.annotation.data=|
-|k8s.pod.labels.<key>|string|The labels placed on the Pod, the <key> being the label name, the value being the label value.|k8s.pod.labels.app=my-app; k8s.pod.labels.mycompany.io/arch=x64; k8s.pod.labels.data=|
+|k8s.pod.annotation.&lt;key&gt;|string|The annotation key-value pairs placed on the Pod, the &lt;key&gt; being the annotation name, the value being the annotation value.|k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets=true; k8s.pod.annotation.mycompany.io/arch=x64; k8s.pod.annotation.data=|
+|k8s.pod.labels.&lt;key&gt;|string|The labels placed on the Pod, the &lt;key&gt; being the label name, the value being the label value.|k8s.pod.labels.app=my-app; k8s.pod.labels.mycompany.io/arch=x64; k8s.pod.labels.data=|
 |k8s.pod.name|string|The name of the Pod.|opentelemetry-pod-autoconf|
 |k8s.pod.uid|string|The UID of the Pod.|275ecb36-5aa8-4c2a-9c47-d8bb681b9aff|
 |k8s.replicaset.name|string|The name of the ReplicaSet.|opentelemetry|
@@ -192,10 +192,10 @@ process.pid|int|Process identifier (PID).|1234|
 |process.runtime.name|string|The name of the runtime of this process. For compiled native binaries, this SHOULD be the name of the compiler.|OpenJDK Runtime Environment|
 |process.runtime.version|string|The version of the runtime of this process, as returned by the runtime without modification.|14.0.2|
 |rpc.connect_rpc.error_code|string|The error codes of the Connect request. Error codes are always string values.|cancelled|
-|rpc.connect_rpc.request.metadata.<key>|string[]|Connect request metadata, <key> being the normalized Connect Metadata key (lowercase), the value being the metadata values. [1]|rpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
-|rpc.connect_rpc.response.metadata.<key>|string[]|Connect response metadata, <key> being the normalized Connect Metadata key (lowercase), the value being the metadata values. [2]|rpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
-|rpc.grpc.request.metadata.<key>|string[]|gRPC request metadata, <key> being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [3]|rpc.grpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
-|rpc.grpc.response.metadata.<key>|string[]|gRPC response metadata, <key> being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [4]|rpc.grpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
+|rpc.connect_rpc.request.metadata.&lt;key&gt;|string[]|Connect request metadata, &lt;key&gt; being the normalized Connect Metadata key (lowercase), the value being the metadata values. [1]|rpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
+|rpc.connect_rpc.response.metadata.&lt;key&gt;|string[]|Connect response metadata, &lt;key&gt; being the normalized Connect Metadata key (lowercase), the value being the metadata values. [2]|rpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
+|rpc.grpc.request.metadata.&lt;key&gt;|string[]|gRPC request metadata, &lt;key&gt; being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [3]|rpc.grpc.request.metadata.my-custom-metadata-attribute=["1.2.3.4", "1.2.3.5"]|
+|rpc.grpc.response.metadata.&lt;key&gt;|string[]|gRPC response metadata, &lt;key&gt; being the normalized gRPC Metadata key (lowercase), the value being the metadata values. [4]|rpc.grpc.response.metadata.my-custom-metadata-attribute=["attribute_value"]|
 |rpc.grpc.status_code|int|The numeric status code of the gRPC request.|0|
 |rpc.jsonrpc.error_code|int|error.code property of response if it is an error response.|-32700; 100|
 |rpc.jsonrpc.error_message|string|error.|  of response if it is an error response.|Parse error; User already exists|
