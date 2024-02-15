@@ -34,6 +34,62 @@ https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMet
 https://prometheus.io/docs/instrumenting/exporters/
 
 
+
+### Ceph
+
+
+
+| metrics |  details |
+|----------|------------|
+|     ceph_rbd_read_bytes | RBD image bytes read|
+|     ceph_rbd_read_latency_count| RBD image reads latency count|
+|     ceph_rbd_read_latency_sum| RBD image reads latency total|
+|     ceph_rbd_read_ops| RBD image reads count|
+|     ceph_rbd_write_bytes| RBD image bytes written|
+|     ceph_rbd_write_latency_count| RBD image writes latency count|
+|     ceph_rbd_write_latency_sum| RBD image writes latency total|
+|     ceph_rbd_write_ops| RBD image writes count|
+|     ceph_mds_request| Total number of requests for the MDs daemon|
+|     ceph_mds_reply_latency_sum| Reply latency total|
+|     ceph_mds_reply_latency_count| Reply latency count|
+|     ceph_mds_server_handle_client_request| Number of client requests|
+|     ceph_mds_sessions_session_count| Session count|
+|     ceph_mds_sessions_total_load| Total load|
+|     ceph_mds_sessions_sessions_open| Sessions currently open|
+|     ceph_mds_sessions_sessions_stale| Sessions currently stale|
+|     ceph_objecter_op_r| Number of read operations|
+|     ceph_objecter_op_w| Number of write operations|
+|     ceph_mds_root_rbytes| Total number of bytes managed by the daemon|
+|     ceph_mds_root_rfiles| Total number of files managed by the daemon|
+|     ceph_rgw_put_initial_lat_count| Number of get operations|
+|     ceph_rgw_put_initial_lat_sum| Total latency time for the PUT operations|
+|     ceph_rgw_put| Total number of PUT operations|
+|     ceph_rgw_get_b| Total bytes transferred in PUT operations|
+| ceph_rgw_metadata| Provides generic information about the RGW daemon. It can be used together with other metrics to provide more contextual information in queries and graphs. Apart from the three common labels, this metric provides the following extra labels|
+|     ceph_daemon| Name of the Ceph daemon. Example| ceph_daemon=”rgw.rgwtest.cephtest-node-00.sxizyq”,|
+|     ceph_version| Version of Ceph daemon. Example| ceph_version=”ceph version 17.2.6 (d7ff0d10654d2280e08f1ab989c7cdf3064446a5) quincy (stable)”,|
+|     hostname| Name of the host where the daemon runs. Example| hostname|”cephtest-node-00.cephlab.com”,|
+| ceph_rgw_req| Number total of requests for the daemon (GET+PUT+DELETE)   Useful to detect bottlenecks and optimize load distribution.|
+| ceph_rgw_qlen| RGW operations queue length for the daemon.|
+|     Useful to detect bottlenecks and optimize load distribution.|
+| ceph_rgw_failed_req| Aborted requests.|
+|     ceph_rgw_get_initial_lat_count| Number of get operations|
+|     ceph_rgw_get_initial_lat_sum| Total latency time for the GET operations|
+|     ceph_rgw_get| Number total of GET requests|
+|     ceph_rgw_get_b| Total bytes transferred in GET operations  contextual information in queries and graphs. Apart of the three common labels this metric provide the following extra labels,     compression_mode| compression used in the pool (lz4, snappy, zlib, zstd, none). Example| compression_mode=”none”| description| brief description of the pool type (replica|number of replicas or Erasure code| ec profile). Example| description=”replica|3”|
+| ceph_pool_bytes_used| Total raw capacity consumed by user data and associated overheads by pool (metadata + redundancy)||
+| ceph_pool_stored| Total of CLIENT data stored in the pool|
+| ceph_pool_compress_under_bytes| Data eligible to be compressed in the pool|
+| ceph_pool_compress_bytes_used| Data compressed in the pool|
+| ceph_pool_rd| CLIENT read operations per pool (reads per second)|
+| ceph_pool_rd_bytes| CLIENT read operations in bytes per pool|
+| ceph_pool_wr| CLIENT write operations per pool (writes per second)|
+| ceph_pool_wr_bytes| CLIENT write operation in bytes per pool|
+
+
+### gitlab
+
+
 | metrics |  type | since | descrition | labels |
 |--------------|-----------|------------|------------|------------|
 |gitlab_cache_misses_total |Counter |10.2 |	Cache read miss |controller, action, store, endpoint_id|
