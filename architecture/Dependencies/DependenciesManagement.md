@@ -1,32 +1,40 @@
 
 # Dependencies Management
 
-
 ## Challenges
-Les projets Maven peuvent utiliser de nombreuses dépendances nécessaire à l'accomplissement des tâches que l'application ou la librairie produite doit effectuer. Ces dépendances peuvent comporter des bugs, des failles de sécurité. Egalement, elles peuvent évoluer au fur et à mesure des versions pour apporter de nouvelles fonctionnalités, corriger des failles ou bugs. Afin de maintenir correctement les applications dans le temps, il est nécessaire de bien maitriser les versions des dépendances utilisées, en suivant les pratiques en vigueur qui sont rappelées ici.
 
-## TL;DR
+Maven projects can use numerous dependencies to accomplish the tasks the build process to produce the binaries requires. These dependencies may contain bugs or security holes. They may also evolve with each new version to add new features or correct flaws or bugs.
 
-_Les dépendances d'un projet java:_
- * ne devraient pas occasionner des conflits de versions.
- * devraient être mises à jour régulièrement.
- * devraient être nécessaires et suffisantes.
+> In order to maintain applications correctly over time, it is essential to control the versions of the dependencies used.
 
-### Quelques rappels
+Java project dependencies:
 
-Documentation de référence.
-	https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html
-D
-### Dépendances transitives
-Si une application A utilise une dépendance B et que B utilise une dépendance C, alors la dépendance C est une dépendance transitive pour l'application A.
+* should not cause version conflicts.
+* should be updated regularly.
+* should be necessary and sufficient.
 
-### Mécanisme de résolution des dépendances par Maven
-Lorsqu'une dépendance est déclarée à plusieurs endroits de l'arbre de dépendances d'un projet, c'est la dépendance qui est la plus "proche" qui est retenue. Ci après une traduction de la documentation maven (paragraphe "Dependency mediation" de la documentation de référence sus citée)
+## A few reminders
 
-Maven: médiation de dépendances
+### Reference documentation.
 
-* Médiation de dépendance : elle détermine quelle version d'un artefact sera choisie lorsque plusieurs versions sont rencontrées en tant que dépendances. Maven choisit la "définition la plus proche". Autrement dit, il utilise la version de la dépendance la plus proche de votre projet dans l'arborescence des dépendances. Vous pouvez toujours garantir une version en la déclarant explicitement dans le POM de votre projet. Notez que si deux versions de dépendances se trouvent à la même profondeur dans l’arborescence des dépendances, la première déclaration l’emporte.
-* " définition la plus proche » signifie que la version utilisée sera la plus proche de votre projet dans l'arborescence des dépendances. Considérez cet arbre de dépendances :
+ * [Maven](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)
+
+### Transitive dependencies
+
+If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A.
+
+## Maven's dependency resolution mechanism
+
+When a dependency is present at several points in a project's dependency tree, the dependency that is "closest" is selected. (you may find the full details in "Dependency mediation" paragraph in the reference documentation mentioned above)
+
+**Maven: Dependency mediation**
+
+* **Dependency mediation**: determines which version of an artifact will be chosen when several versions are encountered as dependencies. Maven chooses the "closest definition". In other words, it uses the version of the dependency closest to your project in the dependency tree. You can always guarantee a version by explicitly declaring it in your project's POM. Note that if two dependency versions are at the same depth in the dependency tree, the first declaration takes precedence.
+
+* **"closest definition"** means that the version used will be the closest to your project in the dependency tree.
+
+Consider this dependency tree:
+
 ```
 o	  A
 o	  ├── B
@@ -35,7 +43,9 @@ o	  │       └── D 2.0
 o	  └── E
       └── D 1.0
 ```
-Dans le texte, les dépendances pour A, B et C sont définies comme A -> B -> C -> D 2.0 et A -> E -> D 1.0, alors D 1.0 sera utilisé lors de la construction de A car le chemin de A à D à E est plus court. Vous pouvez explicitement ajouter une dépendance à D 2.0 dans A pour forcer l'utilisation de D 2.0, comme indiqué ici :
+
+In the text, the dependencies for A, B and C are defined as A -> B -> C -> D 2.0 and A -> E -> D 1.0, so D 1.0 will be used when building A because the path from A to D to E is shorter. You can explicitly add a dependency on D 2.0 in A to force the use of D 2.0, as shown here :
+
 ```
   A
   ├── B
@@ -47,9 +57,12 @@ Dans le texte, les dépendances pour A, B et C sont définies comme A -> B -> C 
   └── D 2.0
 ```
 
-On peut constater que ce mécanisme de résolution comporte une fragilité liée à l'ordre de déclaration des dépendances.
-Maven: fragilité de la résolution des dépendances
-Considérons cet arbre de dépendances défini dans le fichier pom.xml du projet:
+We can see that this resolution mechanism has a weakness linked to the order in which dependencies are declared.
+
+## Maven: the fragility of dependency resolution
+
+Consider the dependency tree defined in the project's pom.xml file:
+
 ```
   A
   ├── B
@@ -57,8 +70,11 @@ Considérons cet arbre de dépendances défini dans le fichier pom.xml du projet
   └── D
       └── C 2.0
 ```
-Dans ce cas, la dépendance qui sera effectivement résolue est C 1.0
-Si cependant lors de la vie du projet l'ordre de déclaration change (ce qui a de fortes chances d'arriver) et devient
+
+In this case, the dependency that will actually be resolved is C 1.0.
+
+If, however, during the life of the project, the order of declaration changes (which is likely to happen) and becomes:
+
 ```
   A
   ├── D
@@ -66,73 +82,116 @@ Si cependant lors de la vie du projet l'ordre de déclaration change (ce qui a d
   └── B
       └── C 1.0
 ```
-Dans ce cas, la dépendance qui sera effectivement résolue est C 2.0. Après un tel changement le comportement du projet peut changer: fonctionnalité changée, effet de bord, voire impossibilité de construire.
-Cette fragilité (pas forcément connue de tous) montre qu'il est préférable de bien maitriser les dépendances d'un projet.
 
-## Recommendations
+In this case, the dependency that will actually be resolved is C 2.0. After such a change, the project's behavior may change: functionality may be altered, there may be an edge effect, or it may even be impossible to build.
 
-### N'utiliser que les dépendances strictement nécessaires.
-On constate assez souvent que des dépendances inutiles sont présentes dans les projets maven. Par exemple, si un batch utilise la dépendance "spring-boot-starter-web", on est en droit de se poser des questions: est ce qu'un batch a vocation à exposer une API REST ou servir du contenu Web?
-D'une manière générale, les dépendances inutiles sont préjudiciables:
-* d'un point de vue sécurité, elles augmentent la surface d'attaque.
-* elles peuvent occasionner des conflits de version avec les dépendances véritablement utiles.
-* d'un point de vue ressources, on produit des artefacts plus gros: plus de stockage nécessaire, plus de mémoire nécessaire, temps de démarrage pouvant être plus long... etc
-* d'un point de vue coût de maintenance: toute dépendance d'un projet nécessite une gestion durant toute la vie du projet.
+This fragility (not necessarily known to everyone) shows that it's preferable to have a good grasp of a project's dependencies.
 
-### Déclarer les dépendances effectivement utilisées.
-Lorsque le code d'un projet maven utilise explicitement des éléments d'une dépendance (ex: org.apache.commons.lang3.StringUtils#isNotBlank), alors cette dépendance doit être déclarée explicitement dans le fichier pom.xml du projet maven, plutôt que d'utiliser cette dépendance de manière transitive. Cela permet:
-* d'éviter des dépendances induites (qui pourraient être inutiles par ailleurs)
-* éventuellement faire disparaître des dépendances qui ne sont plus nécessaires.
-* de rendre la construction impossible (compilation ko) suite à un changement de dépendance (la dépendance transitive peut disparaître)
-* de comprendre quels sont les besoins techniques couverts du projet, et d'éviter de rajouter des dépendances évitables. Par exemple, si, de manière explicite, on sait que le projet dispose d'une librairie de manipulation JSON (par exemple com.fasterxml.jackson:jackson-databind), il sera moins probable qu'on rajoute par mégarde une autre librairie JSON (par exemple: com.google.code.gson:gson) qui a de forte chance d'être redondante.
+## Guidelines
 
-### Gestion stricte des versions des dépendances.
+### Use only strictly necessary dependencies.
 
-Afin de favoriser une maintenance efficiente d'un projet maven, il est fortement recommandé d'activer au plus tôt dans la vie du projet le contrôle "dependency convergence" (voir ci après) et de faire échouer le build si ce contrôle est négatif. Cette gestion permet de s'assurer que toutes les dépendances sont définies sans ambiguïté et que les conflits de version sont résolus dés qu'ils sont détectés.
+It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
 
-### Résolution d'un conflit de version
+Generally speaking, unnecessary dependencies requires unecessary work and generate risks:
 
-Lorsque le contrôle de "dependency convergence" échoue, les dépendances divergentes sont indiquées ainsi que leur position dans l'arbre des dépendances du projet. Il faut alors choisir la dépendance à retenir. Il n'y a pas de règle générale, mais il y a un cas (assez fréquents) où le choix est peu risqué: à condition que les versions des dépendances suivent la convention du semver (majeure.mineure.correctif plus de détails ici: https://semver.org/lang/fr/), si les versions ne diffère que d'un numéro correctif ou mineur (v.w.x vs v.w.y ou bien v.w.x vs v.y.z), alors le risque est théoriquement null de choisir la version la plus récente.
-Cependant, la situation où les versions ont des numéros de majeure distincts, la résolution peut être beaucoup plus délicate: il est possible que le choix de la version la plus récente rende l'application dysfonctionnelle: dans certains cas, l'application ne compile plus: c'est ce qui arrive si le code du projet utilise la librairie incriminée. La solution la plus "évidente" est d'adapter le code du projet pour le rendre compatible avec la librairie la plus récente. Dans d'autres cas (pernicieux) les problèmes sont vus au runtime (typiquement des exceptions de type java.lang.NoClassDefFoundError ou java.lang.NoSuchMethodError). Ce problème est d'autant plus pernicieux qu'il peut n'apparaître que dans certains cas qu'on ne sait pas identifier (à moins de très bien connaître le fonctionnement interne des dépendances à l'origine du conflit de version). On rencontre ce genre de problème lorsque deux dépendances du projet utilisent chacune une version incompatible de la dépendance conflictuelle. Il y a différentes possibilités de résolution :
-* modifier (quand cela est possible) la dépendance qui utilise la version la plus ancienne de la dépendance en conflit
-* modifier les versions des dépendances utilisatrices pour trouver la(les) version(s) où elles utilisent chacune une version compatible: mais en général ici, c'est au détriment des fonctionnalités car il va en général falloir descendre le numéro de version d'une des dépendances à l'origine du conflit.
-* refactorer le code du projet de manière à ne plus dépendre d'une des librairies à l'origine du conflit de version
-* si vraiment aucune des solutions précédentes n'est possible: créer une version "shaded" de la dépendance qui utilise la dépendance en conflit la plus ancienne en utilisant le plugin maven adéquat. C'est une technique avancée qui est relativement complexe et fastidieuse. Elle consiste à redéfinir les namespaces des classes de la dépendance en conflit et à mettre à jour leur usage dans la dépendance utilisatrice. Plus d'informations ici: https://maven.apache.org/plugins/maven-shade-plugin/. une fois la version "shaded" créée, on remplace dans les dépendances du projet la dépendance à l'origine du problème par sa version "shaded"
+* from a security point of view, they increase the attack surface.
+* they can cause version conflicts with truly useful dependencies.
+* from a resource point of view, they produce larger artifacts: more storage required, more memory needed, start-up time may be longer... etc.
+* from a maintenance cost point of view: all project dependencies need to be managed throughout the life of the project.
 
-### Définition stricte de la version d'une dépendance
-La section "dependency-management" du fichier pom.xml du projet permet de fixer de manière univoque la version d'une dépendance. C'est ici que l'on résout les conflits de versions.
 
-Utiliser les BOMs
+### Declare dependencies actually used.
 
-S'assurer (et donc tester) que différentes librairies indépendantes fonctionnent correctement ensemble peut être une tâche complexe et chronophage. Certains éditeurs (comme Spring) fournissent des Bill Of Materials (BOMs) qui permettent de définir des ensembles de librairies qui sont compatibles entre elles. L'import (ou l'heritage via pom parent) de ces BOMs permet d'affranchir le développeur de la gestion des versions de ces librairies.
-Dans le cas de projets logiciels complexes, créer des BOMs pour les librairies qui sont créées pour les besoins de ces projets peut représenter une réelle plus value. En centralisant la gestion de la compatibilité des librairies entre elles, on peut diminuer significativement l'effort à fournir pour maintenir les dépendances de chaque projet maven. Dans ce cas d'ailleurs, les projets maven n'ont quasiment plus besoin de définir les versions de leurs dépendances. Autrement dit la section "dependencies" du fichier pom.xml ne devrait définir quasiment aucune version (les sections "dependency" ne comportent pas la balise "version")
+When the code of a maven project explicitly uses elements of a dependency (e.g. org.apache.commons.lang3.StringUtils#isNotBlank), then this dependency must be explicitly declared in the maven project's pom.xml file, rather than using this dependency transitively. This allows you to:
 
-### Eviter d'utiliser plusieurs dépendances pour une même fonctionnalité.
+* avoid induced dependencies (which might otherwise be useless)
+* eliminate dependencies that are no longer necessary.
+* make construction impossible (ko compilation) following a change of dependency (the transitive dependency may disappear)
+* understand the project's technical requirements, and avoid adding avoidable dependencies.
 
-Il est préférable de répondre à un besoin spécifique d'un projet avec une seule dépendance. Par exemple on évitera d'utiliser deux clients http (ex com.squareup.okhttp3:okhttp et org.apache.httpcomponents:httpclient) dans le même projet.
-Cette recommendation n'est cependant pas toujours applicable: il se peut que l'on "subisse" des dépendances transitives "redondantes" du fait de l'utilisation de librairies ayant couvert leurs propres besoins techniques de manière indépendante.
+> For example, if you explicitly know that the project has a JSON manipulation library (e.g. com.fasterxml.jackson:jackson-databind), you're less likely to inadvertently add another JSON library (e.g. com.google.code.gson:gson), which is likely to be redundant.
 
-### Attention au scope (portée) des dépendances.
+### Strict versioning of dependencies.
 
-Pour mention, il arrive, par inadvertance, que des dépendances de test soient inclues dans les dépendances de production.
 
-### Mise à jour régulière des dépendances.
+For efficient maintenance of a maven project, it is strongly recommended to activate the "dependency convergence" check as early as possible in the project's life (see below), and to cause the build to fail if this check is negative.
 
-La mise à jour des dépendances d'un projet "au fil de l'eau" est une bonne pratique communément admise. Notamment les mises à jour de sécurité critiques sont facilitées (ex: log4shell). Dans le cadre des applications sensibles de la CNAM cela devient impératif.
-Des outils comme 'dependabot' qui s'intègrent à Gitlab servent à faciliter le processus de mise à jour régulière des dépendances (l'outil génère des merge requests de mise à jour des dépendances). Dans les pratiques couramment constatées, on effectue une analyse dependabot suivie d'une mise à jour toutes les semaines.
-La mise à jour de dépendances peut altérer le comportement d'une application. Une bonne couverture de tests permet d'addresser ce risque.
+This ensures that all dependencies are unambiguously defined and that version conflicts are resolved as soon as they are detected.
 
-###  Analyser les dépendances (transitives) existantes avant d'ajouter une nouvelle dépendance.
+### Resolution of a version conflict
 
-Lorsqu'un projet a besoin d'une nouveau service technique, par exemple un client http, et qu'il existe plusieurs librairies pouvant rendre ce service, on a intérêt à regarder dans les dépendances transitives si une telle librairie n'est pas déjà présente. Cela évitera une redondance fonctionnelle dans les dépendances du projet.
-Egalement, vérifier si le jdk ne fournit pas dèjà le service désiré. A titre d'exemple, il n'y a pas lieu d'utiliser la librairie "joda-time", le jdk propose, depuis Java 1.8, l'api date/time (JSR 310).
 
-###  Attention aux dépendances "fantômes".
+When the "dependency convergence" check fails, divergent dependencies are indicated, along with their position in the project dependency tree. You must then choose which dependency to retain. There is no general rule, but there is one (fairly frequent) case where the choice is low-risk: provided that the versions of the dependencies follow the semver convention (major.minor.patch more details here: https://semver.org/lang/fr/), if the versions differ by only one patch or minor number (v.w.x vs v.w.y or v.w.x vs v.y.z), then the risk is theoretically null of choosing the most recent version.
 
-Certaines librairies ont pour leur propres besoins effectué un shading de certaines de leur dépendances. C'est le cas par exemple de testcontainers qui a fait un shading de (entre autres) la librairie de sérialisation Jackson. Ainsi pour testcontainers, le namespace com.fasterxml.jackson est remplacé par org.testcontainers.shaded.com.fasterxml.jackson. On peut ainsi, par inadvertance, déclarer un object mapper de type org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper alors qu'on s'attend à utiliser le type com.fasterxml.jackson.databind.ObjectMapper.
-Outillage
-Traquer les conflits de versions des dépendances: Dependency convergence.
-Voici un exemple de configuration du plugin maven "enforcer". Celui ci va faire échouer le build si des conflits de version sont détectés
+However, in a situation where versions have distinct major numbers, the resolution can be much trickier: it's possible that choosing the most recent version will render the application dysfunctional: in some cases, the application will no longer compile: this is what happens if the project code uses the offending library.
+
+The "obvious" solution is to adapt the project code to make it compatible with the most recent library.
+
+ In other (pernicious) cases, problems are seen at runtime (typically java.lang.NoClassDefFoundError or java.lang.NoSuchMethodError exceptions). This problem is all the more pernicious in that it may only appear in certain cases that cannot be identified (unless you are very familiar with the inner workings of the dependencies at the origin of the version conflict). This kind of problem arises when two project dependencies each use an incompatible version of the conflicting dependency.
+
+ There are several possible solutions:
+
+* modify (when possible) the dependency that uses the oldest version of the conflicting dependency
+
+* modify the versions of the user dependencies to find the version(s) where they each use a compatible version: but in general, this is to the detriment of functionality, as it will generally be necessary to lower the version number of one of the dependencies at the origin of the conflict.
+
+* refactoring the project code so that it no longer depends on one of the libraries causing the version conflict
+
+* if none of the above solutions is possible, create a "shaded" version of the dependency that uses the oldest conflicting dependency, using the appropriate maven plugin. This is an advanced technique that is relatively complex and time-consuming. It involves redefining the namespaces of the classes in the conflicting dependency and updating their usage in the user dependency.
+
+For more information: https://maven.apache.org/plugins/maven-shade-plugin/. Once the "shaded" version has been created, the dependency causing the problem is replaced in the project's dependencies by its "shaded" version.
+
+### Strict definition of a dependency's version
+
+The "dependency-management" section of the project's pom.xml file allows you to unambiguously define the version of a dependency. This is where version conflicts are resolved.
+
+## Using BOMs
+
+Ensuring (and therefore testing) that different independent libraries work properly together can be a complex and time-consuming task. Some editors (such as Spring) provide Bill Of Materials (BOMs), which allow you to define sets of libraries that are compatible with each other. Importing (or inheriting via pom parent) these BOMs frees the developer from the need to manage versions of these libraries.
+
+In the case of complex software projects, creating BOMs for libraries created for the needs of these projects can represent a real added value. By centralizing the management of library compatibility, you can significantly reduce the effort required to maintain the dependencies of each maven project. In this case, maven projects hardly need to define the versions of their dependencies.
+
+In other words, the "dependencies" section of the pom.xml file should define virtually no versions (dependency sections do not include the "version" tag).
+
+### Avoid using multiple dependencies for the same functionality.
+
+
+It is preferable to meet a specific project need with a single dependency. For example, avoid using two http clients (e.g. com.squareup.okhttp3:okhttp and org.apache.httpcomponents:httpclient) in the same project.
+
+However, this recommendation is not always applicable: you may "suffer" from "redundant" transitive dependencies due to the use of libraries that have independently covered their own technical needs.
+
+### Pay attention to the scope of dependencies.
+
+
+It may happen, inadvertently, that test dependencies are included in production dependencies.
+
+### Regular updating of dependencies.
+
+
+Updating a project's dependencies "as you go" is a commonly accepted best practice. In particular, it facilitates security-critical updates (e.g. log4shell). In the context of CNAM's sensitive applications, this becomes imperative.
+
+Tools such as 'dependabot', which integrate with Gitlab, are used to facilitate the process of regularly updating dependencies (the tool generates merge requests for dependency updates). Current practice is to perform a dependabot analysis, followed by a weekly update.
+
+Updating dependencies can alter an application's behavior. Good test coverage helps address this risk.
+
+### Analyze existing (transitive) dependencies before adding a new one.
+
+
+When a project needs a new technical service, such as an http client, and there are several libraries that can provide this service, it's a good idea to look in the transitive dependencies to see if such a library isn't already present. This will avoid functional redundancy in the project's dependencies.
+
+You should also check whether the jdk already provides the desired service. For example, there's no need to use the "joda-time" library, as the jdk has offered the date/time api (JSR 310) since Java 1.8.
+
+### Beware of "phantom" dependencies.
+
+Some libraries have shaded some of their dependencies for their own purposes. This is the case, for example, with testcontainers, which has shaded (among others) the Jackson serialization library. For testcontainers, the namespace com.fasterxml.jackson is replaced by org.testcontainers.shaded.com.fasterxml.jackson. This means you can inadvertently declare an object mapper of type org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper when you'd expect to use type com.fasterxml.jackson.databind.ObjectMapper.
+
+## Tools
+
+### Track dependency version conflicts: Dependency convergence.
+
+Here's an example of how to configure the "enforcer" maven plugin. This will cause the build to fail if version conflicts are detected
+
 pom.xml
 ```
 <?xml version="1.0" encoding="UTF-8"?>
@@ -164,8 +223,9 @@ pom.xml
 ...
 </project>
 ```
-Voici un exemple de build qui échoue:
-Echec dependency convergence
+Here's an example of a failed build:
+
+Dependency convergence failure
 
 ```
 ...
@@ -198,8 +258,10 @@ Failed while enforcing releasability. See above detailed error message.
 [INFO] ------------------------------------------------------------------------
 ...
 ```
-Ce résultat indique que la dépendance "org.apache.xmlgraphics:xmlgraphics-commons:jar" est en conflit de version car elle existe en version 2.2 et 2.3 dans le projet. Si on choisi la version 2.3, on peut fixer cette version dans la section "dependencyManagement" du fichier pom.xml.
-pom.xml - spécification explicite de la version d'une dépendance
+This result indicates that the "org.apache.xmlgraphics:xmlgraphics-commons:jar" dependency is in version conflict, as it exists in versions 2.2 and 2.3 in the project. If you choose version 2.3, you can set this version in the "dependencyManagement" section of the pom.xml file.
+
+### explicitly specifying the version of a dependency
+
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -218,32 +280,44 @@ pom.xml - spécification explicite de la version d'une dépendance
 ...
 </project>
 ````
-Avoir une vision synthétique des dépendances: Dependency analysis.
-Le plugin maven "dependency" permet de créer un rapport html qui permet de connaitre pour un projet maven:
-* les dépendances déclarées et effectivement utilisées par le code du projet
-* les dépendances utilisées par le code du projet mais non déclarées (permet de les déclarer. Voir le paragraphe Déclarer les dépendances effectivement utilisées). On peut se permettre cependant de ne pas prendre en compte des dépendances "courantes" de spring (versions maitrisées par l'éditeur via un BOM, fournies par les starters spring boot, présentes dans la quasi totalité des modules spring).
-* les dépendances déclarées mais non utilisées par le code (permet de n'utiliser que les dépendances nécessaires. Ne pas tenir compte cependant des starters spring boot car ils ne sont que des conteneurs de dépendances)
 
-* dans le répertoire du projet
+### Get an overview of dependencies: Dependency analysis.
+
+The maven "dependency" plugin can be used to create an html report that provides information on a maven project:
+
+* dependencies declared and actually used by the project code
+
+* dependencies used by the project code but not declared (allows you to declare them). See paragraph Declaring dependencies actually used). However, you can choose not to take into account "common" spring dependencies (versions controlled by the editor via a BOM, supplied by spring boot starters, present in almost all spring modules).
+
+* dependencies declared but not used by the code (allows only necessary dependencies to be used). Disregard spring boot starters, however, as they are merely containers for dependencies).
+
 
 ````
+In the project repository:
+
 mvn dependency:analyze-report
 ````
 
-* produit le rapport ./target/dependency-analysis.html
-Voici un exemple de rapport produit
+* produces the report ./target/dependency-analysis.html
 
+Here is an example of the report produced
 
 ![Dependencies report](./images/dependencyReport.png "Dependencies Report")
 
+### Find dependency updates:
 
-Trouver les mises à jour de dépendances: Display dependency updates
-Le plugin maven "versions" permet de lister les mises à jour de dépendances disponibles pour un projet. La documentation est ici: https://www.mojohaus.org/versions/versions-maven-plugin/display-dependency-updates-mojo.html
+
+ Display dependency updates
+
+The maven "versions" plugin lists the dependency updates available for a project. The documentation is [here :]( https://www.mojohaus.org/versions/versions-maven-plugin/display-dependency-updates-mojo.html)
+
 versions:display-dependency-updates (exemple)
 ````
-# dans le répertoire du projet
+# In the project repository
+
 mvn versions:display-dependency-updates
-# résultat (extrait)
+
+# result (extract)
 ...
 [INFO] The following dependencies in Dependency Management have newer versions:
 [INFO]   antlr:antlr ........................................ 2.7.7 -> 20030911
