@@ -1,3 +1,5 @@
+* auto-gen TOC:
+{:toc}
 
 # Dependencies Management
 
@@ -258,7 +260,7 @@ Failed while enforcing releasability. See above detailed error message.
 [INFO] ------------------------------------------------------------------------
 ...
 ```
-This result indicates that the "org.apache.xmlgraphics:xmlgraphics-commons:jar" dependency is in version conflict, as it exists in versions 2.2 and 2.3 in the project. If you choose version 2.3, you can set this version in the "dependencyManagement" section of the pom.xml file.
+This result indicates that the _"org.apache.xmlgraphics:xmlgraphics-commons:jar"_ dependency is in version conflict, as it exists in versions 2.2 and 2.3 in the project. If you choose version 2.3, you can set this version in the "dependencyManagement" section of the pom.xml file.
 
 ### explicitly specifying the version of a dependency
 
