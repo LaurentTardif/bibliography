@@ -8,9 +8,10 @@ Maven projects can use numerous dependencies to accomplish the tasks the build p
 
 Java project dependencies:
 
-* should not cause version conflicts.
+* should be necessary and sufficient, no transitive dependencies explicitly define.
+* should be versionned, do not let the system choose for you what's you are using.
+* should define the scope (test, build, run)
 * should be updated regularly.
-* should be necessary and sufficient.
 
 ## A few reminders
 
@@ -18,11 +19,11 @@ Java project dependencies:
 
 * [Maven](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)
 
-### Transitive dependencies
+## Transitive Dependencies Management
 
 If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A.
 
-## Maven's dependency resolution mechanism
+### Maven's dependency resolution mechanism
 
 When a dependency is present at several points in a project's dependency tree, the dependency that is "closest" is selected. (you may find the full details in "Dependency mediation" paragraph in the reference documentation mentioned above)
 
@@ -58,7 +59,7 @@ In the text, the dependencies for A, B and C are defined as A -> B -> C -> D 2.0
 
 We can see that this resolution mechanism has a weakness linked to the order in which dependencies are declared.
 
-## Maven: the fragility of dependency resolution
+### Maven: the fragility of dependency resolution
 
 Consider the dependency tree defined in the project's pom.xml file:
 
@@ -86,9 +87,7 @@ In this case, the dependency that will actually be resolved is C 2.0. After such
 
 This fragility (not necessarily known to everyone) shows that it's preferable to have a good grasp of a project's dependencies.
 
-## Guidelines
-
-### Use only strictly necessary dependencies
+## Use only strictly necessary dependencies
 
 It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
 
@@ -110,7 +109,7 @@ When the code of a maven project explicitly uses elements of a dependency (e.g. 
 
 > For example, if you explicitly know that the project has a JSON manipulation library (e.g. com.fasterxml.jackson:jackson-databind), you're less likely to inadvertently add another JSON library (e.g. com.google.code.gson:gson), which is likely to be redundant.
 
-### Strict versioning of dependencies
+## Strict versioning of dependencies
 
 For efficient maintenance of a maven project, it is strongly recommended to activate the "dependency convergence" check as early as possible in the project's life (see below), and to cause the build to fail if this check is negative.
 
@@ -156,11 +155,11 @@ It is preferable to meet a specific project need with a single dependency. For e
 
 However, this recommendation is not always applicable: you may "suffer" from "redundant" transitive dependencies due to the use of libraries that have independently covered their own technical needs.
 
-### Pay attention to the scope of dependencies
+## Pay attention to the scope of dependencies
 
 It may happen, inadvertently, that test dependencies are included in production dependencies.
 
-### Regular updating of dependencies
+## Regular updating of dependencies
 
 Updating a project's dependencies "as you go" is a commonly accepted best practice. In particular, it facilitates security-critical updates (e.g. log4shell). In the context of CNAM's sensitive applications, this becomes imperative.
 
