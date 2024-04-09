@@ -2,28 +2,24 @@
 
 ## Challenges
 
-Maven projects can use numerous dependencies to accomplish the tasks the build process to produce the binaries requires. These dependencies may contain bugs or security holes. They may also evolve with each new version to add new features or correct flaws or bugs.
+Code projects can use numerous dependencies to accomplish the tasks the build process to produce the binaries requires. These dependencies may contain bugs or security holes. They may also evolve with each new version to add new features or correct flaws or bugs.
 
 > In order to maintain applications correctly over time, it is essential to control the versions of the dependencies used.
 
-Java project dependencies:
+In case of Java/Maven project, the dependencies:
 
-* should be necessary and sufficient, no transitive dependencies explicitly define.
-* should be versionned, do not let the system choose for you what's you are using.
-* should define the scope (test, build, run)
-* should be updated regularly.
+* should be **necessary and sufficient**, no transitive dependencies explicitly define.
+* should be **versionned**, do not let the system choose for you what's you are using.
+* should **define the scope** (test, build, run), do not go to production with tests dependencies
+* should be **updated regularly**, do not keep bug or security issues in your application
+* avoid using **multiple dependencies** for the same functionality
 
-## A few reminders
 
-### Reference documentation
+## Reference documentation
 
 * [Maven](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)
 
-## Transitive Dependencies Management
-
-If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A.
-
-### Maven's dependency resolution mechanism
+## Maven's dependency resolution mechanism
 
 When a dependency is present at several points in a project's dependency tree, the dependency that is "closest" is selected. (you may find the full details in "Dependency mediation" paragraph in the reference documentation mentioned above)
 
@@ -59,7 +55,7 @@ In the text, the dependencies for A, B and C are defined as A -> B -> C -> D 2.0
 
 We can see that this resolution mechanism has a weakness linked to the order in which dependencies are declared.
 
-### Maven: the fragility of dependency resolution
+#### Maven: the fragility of dependency resolution
 
 Consider the dependency tree defined in the project's pom.xml file:
 
@@ -87,17 +83,6 @@ In this case, the dependency that will actually be resolved is C 2.0. After such
 
 This fragility (not necessarily known to everyone) shows that it's preferable to have a good grasp of a project's dependencies.
 
-## Use only strictly necessary dependencies
-
-It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
-
-Generally speaking, unnecessary dependencies requires unecessary work and generate risks:
-
-* from a security point of view, they increase the attack surface.
-* they can cause version conflicts with truly useful dependencies.
-* from a resource point of view, they produce larger artifacts: more storage required, more memory needed, start-up time may be longer... etc.
-* from a maintenance cost point of view: all project dependencies need to be managed throughout the life of the project.
-
 ### Declare dependencies actually used
 
 When the code of a maven project explicitly uses elements of a dependency (e.g. org.apache.commons.lang3.StringUtils#isNotBlank), then this dependency must be explicitly declared in the maven project's pom.xml file, rather than using this dependency transitively. This allows you to:
@@ -108,6 +93,21 @@ When the code of a maven project explicitly uses elements of a dependency (e.g. 
 * understand the project's technical requirements, and avoid adding avoidable dependencies.
 
 > For example, if you explicitly know that the project has a JSON manipulation library (e.g. com.fasterxml.jackson:jackson-databind), you're less likely to inadvertently add another JSON library (e.g. com.google.code.gson:gson), which is likely to be redundant.
+
+## Transitive Dependencies Management
+
+If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A. The C dependency should not be defined in the pom of your project. Maven will get it for you.
+
+**Use only strictly necessary dependencies**
+
+It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
+
+Generally speaking, unnecessary dependencies requires unecessary work and generate risks:
+
+* from a security point of view, they increase the attack surface.
+* they can cause version conflicts with truly useful dependencies.
+* from a resource point of view, they produce larger artifacts: more storage required, more memory needed, start-up time may be longer... etc.
+* from a maintenance cost point of view: all project dependencies need to be managed throughout the life of the project.
 
 ## Strict versioning of dependencies
 
@@ -141,7 +141,7 @@ For more information: <https://maven.apache.org/plugins/maven-shade-plugin/>. On
 
 The "dependency-management" section of the project's pom.xml file allows you to unambiguously define the version of a dependency. This is where version conflicts are resolved.
 
-## Using BOMs
+### Using BOMs
 
 Ensuring (and therefore testing) that different independent libraries work properly together can be a complex and time-consuming task. Some editors (such as Spring) provide Bill Of Materials (BOMs), which allow you to define sets of libraries that are compatible with each other. Importing (or inheriting via pom parent) these BOMs frees the developer from the need to manage versions of these libraries.
 
@@ -149,23 +149,11 @@ In the case of complex software projects, creating BOMs for libraries created fo
 
 In other words, the "dependencies" section of the pom.xml file should define virtually no versions (dependency sections do not include the "version" tag).
 
-### Avoid using multiple dependencies for the same functionality
+## Avoid using multiple dependencies for the same functionality
 
 It is preferable to meet a specific project need with a single dependency. For example, avoid using two http clients (e.g. com.squareup.okhttp3:okhttp and org.apache.httpcomponents:httpclient) in the same project.
 
 However, this recommendation is not always applicable: you may "suffer" from "redundant" transitive dependencies due to the use of libraries that have independently covered their own technical needs.
-
-## Pay attention to the scope of dependencies
-
-It may happen, inadvertently, that test dependencies are included in production dependencies.
-
-## Regular updating of dependencies
-
-Updating a project's dependencies "as you go" is a commonly accepted best practice. In particular, it facilitates security-critical updates (e.g. log4shell). In the context of CNAM's sensitive applications, this becomes imperative.
-
-Tools such as 'dependabot', which integrate with Gitlab, are used to facilitate the process of regularly updating dependencies (the tool generates merge requests for dependency updates). Current practice is to perform a dependabot analysis, followed by a weekly update.
-
-Updating dependencies can alter an application's behavior. Good test coverage helps address this risk.
 
 ### Analyze existing (transitive) dependencies before adding a new one
 
@@ -176,6 +164,18 @@ You should also check whether the jdk already provides the desired service. For 
 ### Beware of "phantom" dependencies
 
 Some libraries have shaded some of their dependencies for their own purposes. This is the case, for example, with testcontainers, which has shaded (among others) the Jackson serialization library. For testcontainers, the namespace com.fasterxml.jackson is replaced by org.testcontainers.shaded.com.fasterxml.jackson. This means you can inadvertently declare an object mapper of type org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper when you'd expect to use type com.fasterxml.jackson.databind.ObjectMapper.
+
+## Pay attention to the scope of dependencies
+
+It may happen, inadvertently, that test dependencies are included in production dependencies.
+
+## Regular updating of dependencies
+
+Updating a project's dependencies "as you go" is a commonly accepted best practice. In particular, it facilitates security-critical updates (e.g. log4shell). In the context of sensitive applications, this becomes imperative.
+
+Tools such as 'dependabot', which integrate with Gitlab, are used to facilitate the process of regularly updating dependencies (the tool generates merge requests for dependency updates). Current practice is to perform a dependabot analysis, followed by a weekly update.
+
+Updating dependencies can alter an application's behavior. Good test coverage helps address this risk.
 
 ## Tools
 
@@ -220,26 +220,26 @@ Here's an example of a failed build:
 
 Dependency convergence failure
 
-``` xml
+``` shell
 ...
 [WARNING]
 Dependency convergence error for org.apache.xmlgraphics:xmlgraphics-commons:jar:2.3:compile paths to dependency are:
-+-fr.gouv.cnam.xxx:yyy:jar:1.0.0-SNAPSHOT
++-org.acme.xxx:yyy:jar:1.0.0-SNAPSHOT
   +-org.apache.xmlgraphics:fop:jar:2.3:compile
     +-org.apache.xmlgraphics:xmlgraphics-commons:jar:2.3:compile
 and
-+-fr.gouv.cnam.xxx:yyy:jar:1.0.0-SNAPSHOT
++-org.acme.xxx:yyy:jar:1.0.0-SNAPSHOT
   +-org.apache.xmlgraphics:fop:jar:2.3:compile
     +-org.apache.xmlgraphics:batik-svg-dom:jar:1.10:compile
       +-org.apache.xmlgraphics:batik-css:jar:1.10:compile
         +-org.apache.xmlgraphics:xmlgraphics-commons:jar:2.2:compile
 and
-+-fr.gouv.cnam.xxx:yyy:jar:1.0.0-SNAPSHOT
++-org.acme.xxx:yyy:jar:1.0.0-SNAPSHOT
   +-org.apache.xmlgraphics:fop:jar:2.3:compile
     +-org.apache.xmlgraphics:batik-bridge:jar:1.10:compile
       +-org.apache.xmlgraphics:xmlgraphics-commons:jar:2.2:compile
 and
-+-fr.gouv.cnam.xxx:yyy:jar:1.0.0-SNAPSHOT
++-org.acme.xxx:yyy:jar:1.0.0-SNAPSHOT
   +-org.apache.xmlgraphics:fop:jar:2.3:compile
     +-org.apache.xmlgraphics:batik-awt-util:jar:1.10:compile
       +-org.apache.xmlgraphics:xmlgraphics-commons:jar:2.2:compile
