@@ -12,8 +12,6 @@ In case of Java/Maven project, the dependencies:
 * should be **versionned**, do not let the system choose for you what's you are using.
 * should **define the scope** (test, build, run), do not go to production with tests dependencies
 * should be **updated regularly**, do not keep bug or security issues in your application
-* avoid using **multiple dependencies** for the same functionality
-
 
 ## Reference documentation
 
@@ -83,6 +81,32 @@ In this case, the dependency that will actually be resolved is C 2.0. After such
 
 This fragility (not necessarily known to everyone) shows that it's preferable to have a good grasp of a project's dependencies.
 
+## Dependencies Management : Use only strictly necessary dependencies
+
+### Do not define transitive dependencies if not explicitly used
+If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A. The C dependency should not be defined in the pom of your project. Maven will get it for you.
+
+It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
+
+Generally speaking, unnecessary dependencies requires unecessary work and generate risks:
+
+* from a security point of view, they increase the attack surface.
+* they can cause version conflicts with truly useful dependencies.
+* from a resource point of view, they produce larger artifacts: more storage required, more memory needed, start-up time may be longer... etc.
+* from a maintenance cost point of view: all project dependencies need to be managed throughout the life of the project.
+
+### Avoid using multiple dependencies for the same functionality
+
+It is preferable to meet a specific project need with a single dependency. For example, avoid using two http clients (e.g. com.squareup.okhttp3:okhttp and org.apache.httpcomponents:httpclient) in the same project.
+
+However, this recommendation is not always applicable: you may "suffer" from "redundant" transitive dependencies due to the use of libraries that have independently covered their own technical needs.
+
+### Analyze existing (transitive) dependencies before adding a new one
+
+When a project needs a new technical service, such as an http client, and there are several libraries that can provide this service, it's a good idea to look in the transitive dependencies to see if such a library isn't already present. This will avoid functional redundancy in the project's dependencies.
+
+You should also check whether the jdk already provides the desired service. For example, there's no need to use the "joda-time" library, as the jdk has offered the date/time api (JSR 310) since Java 1.8.
+
 ### Declare dependencies actually used
 
 When the code of a maven project explicitly uses elements of a dependency (e.g. org.apache.commons.lang3.StringUtils#isNotBlank), then this dependency must be explicitly declared in the maven project's pom.xml file, rather than using this dependency transitively. This allows you to:
@@ -94,20 +118,9 @@ When the code of a maven project explicitly uses elements of a dependency (e.g. 
 
 > For example, if you explicitly know that the project has a JSON manipulation library (e.g. com.fasterxml.jackson:jackson-databind), you're less likely to inadvertently add another JSON library (e.g. com.google.code.gson:gson), which is likely to be redundant.
 
-## Transitive Dependencies Management
+### Beware of "phantom" dependencies
 
-If an application A uses a dependency B and B uses a dependency C, then dependency C is a transitive dependency for application A. The C dependency should not be defined in the pom of your project. Maven will get it for you.
-
-**Use only strictly necessary dependencies**
-
-It is common to find unnecessary dependencies in maven projects. For example, if a batch uses the "spring-boot-starter-web" dependency, it's fair to ask: is the purpose of a batch to expose a REST API or to serve Web content?
-
-Generally speaking, unnecessary dependencies requires unecessary work and generate risks:
-
-* from a security point of view, they increase the attack surface.
-* they can cause version conflicts with truly useful dependencies.
-* from a resource point of view, they produce larger artifacts: more storage required, more memory needed, start-up time may be longer... etc.
-* from a maintenance cost point of view: all project dependencies need to be managed throughout the life of the project.
+Some libraries have shaded some of their dependencies for their own purposes. This is the case, for example, with testcontainers, which has shaded (among others) the Jackson serialization library. For testcontainers, the namespace com.fasterxml.jackson is replaced by org.testcontainers.shaded.com.fasterxml.jackson. This means you can inadvertently declare an object mapper of type org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper when you'd expect to use type com.fasterxml.jackson.databind.ObjectMapper.
 
 ## Strict versioning of dependencies
 
@@ -148,22 +161,6 @@ Ensuring (and therefore testing) that different independent libraries work prope
 In the case of complex software projects, creating BOMs for libraries created for the needs of these projects can represent a real added value. By centralizing the management of library compatibility, you can significantly reduce the effort required to maintain the dependencies of each maven project. In this case, maven projects hardly need to define the versions of their dependencies.
 
 In other words, the "dependencies" section of the pom.xml file should define virtually no versions (dependency sections do not include the "version" tag).
-
-## Avoid using multiple dependencies for the same functionality
-
-It is preferable to meet a specific project need with a single dependency. For example, avoid using two http clients (e.g. com.squareup.okhttp3:okhttp and org.apache.httpcomponents:httpclient) in the same project.
-
-However, this recommendation is not always applicable: you may "suffer" from "redundant" transitive dependencies due to the use of libraries that have independently covered their own technical needs.
-
-### Analyze existing (transitive) dependencies before adding a new one
-
-When a project needs a new technical service, such as an http client, and there are several libraries that can provide this service, it's a good idea to look in the transitive dependencies to see if such a library isn't already present. This will avoid functional redundancy in the project's dependencies.
-
-You should also check whether the jdk already provides the desired service. For example, there's no need to use the "joda-time" library, as the jdk has offered the date/time api (JSR 310) since Java 1.8.
-
-### Beware of "phantom" dependencies
-
-Some libraries have shaded some of their dependencies for their own purposes. This is the case, for example, with testcontainers, which has shaded (among others) the Jackson serialization library. For testcontainers, the namespace com.fasterxml.jackson is replaced by org.testcontainers.shaded.com.fasterxml.jackson. This means you can inadvertently declare an object mapper of type org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper when you'd expect to use type com.fasterxml.jackson.databind.ObjectMapper.
 
 ## Pay attention to the scope of dependencies
 
