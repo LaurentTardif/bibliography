@@ -14,31 +14,31 @@ jobs:
   count-and-report:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Count lines of code
-        id: cloc
-        run: |
-          sudo apt-get install cloc
-          cloc_output=$(cloc . --exclude-dir=.git,node_modules,dist --json)
-          echo "$cloc_output" > cloc.json
-          total=$(jq '[.JavaScript, .Python, .Java, .TypeScript,  \
-             .Markdown, .HTML, .CSS, .YAML, \
-             .XML, .C, .CPP, .Go, .Rust, \
-             .Shell, .JSON] \
-             | map(select(. != null)) \
-             | map(.code) \
-             | add' cloc.json)
-          echo "lines_of_code=$total" >> $GITHUB_OUTPUT
+    - name: Count lines of code
+      id: cloc
+      run: |
+        sudo apt-get install cloc
+        cloc_output=$(cloc . --exclude-dir=.git,node_modules,dist --json)
+        echo "$cloc_output" > cloc.json
+        total=$(jq '[.JavaScript, .Python, .Java, .TypeScript,  
+           .Markdown, .HTML, .CSS, .YAML, 
+           .XML, .C, .CPP, .Go, .Rust, 
+           .Shell, .JSON] 
+           | map(select(. != null)) 
+           | map(.code) 
+           | add' cloc.json)
+        echo "lines_of_code=$total" >> $GITHUB_OUTPUT
 
-      - name: Report lines of code to Port
-        uses: port-labs/port-github-action@v1
-        with:
-          clientId: ${{ secrets.PORT_CLIENT_ID }}
-          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-          identifier: ${{ github.repository }}
-          blueprint: repository
-          properties: |
-            lines_of_code: ${{ steps.cloc.outputs.lines_of_code }}
+    - name: Report lines of code to Port
+      uses: port-labs/port-github-action@v1
+      with:
+         clientId: ${{ secrets.PORT_CLIENT_ID }}
+         clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+         identifier: ${{ github.repository }}
+         blueprint: repository
+         properties: |
+           lines_of_code: ${{ steps.cloc.outputs.lines_of_code }}
