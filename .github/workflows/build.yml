@@ -7,7 +7,8 @@ on:
     paths:
       - '**/*.java'      # ou le chemin exact si vous ne voulez déclencher que sur certains fichiers
       - '**/*.md'        #files md and asciidoc may breack this documentation module
-      - '**/*.adoc'
+      - '**/*.adoc'      #need to add also images
+      - '**/*.xml' 
       - 'pom.xml'
 
 jobs:
