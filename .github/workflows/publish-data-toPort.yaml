@@ -33,7 +33,7 @@ jobs:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
           operation: UPSERT
-          blueprint: Bibliography  # ← Remplace par ex: codebase, project, app
+          blueprint: "githubRepository"  # ← Remplace par ex: codebase, project, app
           identifier: ${{ github.repository }}
           properties: |
             {
