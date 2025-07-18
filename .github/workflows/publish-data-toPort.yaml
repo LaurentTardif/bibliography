@@ -28,17 +28,14 @@ jobs:
             | add' cloc.json)
           echo "lines_of_code=$total" >> "$GITHUB_OUTPUT"
       - name: Report lines of code to Port
-        uses: port-labs/port-github-action@v1
+        uses: port-labs/port-github-action@v1.7.5
         with:
           clientId: ${{ secrets.PORT_CLIENT_ID }}
           clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: UPSERT
+          blueprint: Bibliography  # ← Remplace par ex: codebase, project, app
           identifier: ${{ github.repository }}
-          blueprint: repository
           properties: |
             {
-              "repository": "${{ github.repository }}",
-              "branch": "${{ github.ref_name }}",
-              "commit": "${{ github.sha }}",
-              "author": "${{ github.actor }}",
-              "lines_of_code": "${{ steps.cloc.outputs.lines_of_code }}"
+              "lines_of_code": ${{ steps.cloc.outputs.lines_of_code }}
             }
