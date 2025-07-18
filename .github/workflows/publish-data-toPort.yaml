@@ -26,7 +26,7 @@ jobs:
             | map(select(. != null))
             | map(.code)
             | add' cloc.json)
-          echo "lines_of_code=$total" >> $GITHUB_OUTPUT
+          echo "lines_of_code=$total" >> "$GITHUB_OUTPUT"
       - name: Report lines of code to Port
         uses: port-labs/port-github-action@v1
         with:
