@@ -6,7 +6,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<maven-site-plugin.version>3.9.1</maven-site-plugin.version>
+		<maven-site-plugin.version>3.21.0</maven-site-plugin.version>
 	</properties>
 
 	<build>
