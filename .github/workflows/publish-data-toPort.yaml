@@ -1,3 +1,7 @@
+#
+# publish data to port.io
+#
+
 name: Report lines of code to Port
 
 on:
@@ -20,7 +24,13 @@ jobs:
           sudo apt-get install cloc
           cloc_output=$(cloc . --exclude-dir=.git,node_modules,dist --json)
           echo "$cloc_output" > cloc.json
-          total=$(jq '[.JavaScript, .Python, .Java, .TypeScript, .Markdown, .HTML, .CSS, .YAML, .XML, .C, .CPP, .Go, .Rust, .Shell, .JSON] | map(select(. != null)) | map(.code) | add' cloc.json)
+          total=$(jq '[.JavaScript, .Python, .Java, .TypeScript,  \
+             .Markdown, .HTML, .CSS, .YAML, \
+             .XML, .C, .CPP, .Go, .Rust, \
+             .Shell, .JSON] \
+             | map(select(. != null)) \
+             | map(.code) \
+             | add' cloc.json)
           echo "lines_of_code=$total" >> $GITHUB_OUTPUT
 
       - name: Report lines of code to Port
