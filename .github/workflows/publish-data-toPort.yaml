@@ -35,4 +35,10 @@ jobs:
           identifier: ${{ github.repository }}
           blueprint: repository
           properties: |
-            lines_of_code: ${{ steps.cloc.outputs.lines_of_code }}
+            {
+              "repository": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "commit": "${{ github.sha }}",
+              "author": "${{ github.actor }}",
+              "lines_of_code": "${{ steps.cloc.outputs.lines_of_code }}"
+            }
