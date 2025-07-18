@@ -3,7 +3,7 @@ name: Build on commit
 on:
   push:
     branches:
-      - main  # ou la branche de votre choix
+      - '*'  # ou la branche de votre choix
     paths:
       - '**/*.java'      # ou le chemin exact si vous ne voulez déclencher que sur certains fichiers
       - '**/*.md'        #files md and asciidoc may breack this documentation module
