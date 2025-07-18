@@ -2,9 +2,10 @@ name: Report lines of code to Port
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+    
 jobs:
   count-and-report:
     runs-on: ubuntu-latest
