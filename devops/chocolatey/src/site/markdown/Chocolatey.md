@@ -67,7 +67,7 @@ There are a few rules that you have to follow before pushing packages to chocola
 * **Packaging commercial or trial software?** Clearly state this in the package description. Does it require an activation key? Is there a trial period if you don't have a key? How long is this trial period?
 * **Only post publicly relevant packages.** You should consider whether this package is useful for others. If that is not the case, it shouldn't be published on Chocolatey.org. Reasons for that can be if the package would require a very customized configuration. You can host your personal packages on MyGet and still be able to install them with Chocolatey using the -source parameter.
 * **Do not publish junk or malware packages**.
-* **Don't package software containing malware**. Packages of software that comes with bundled adware, spyware or other unrelated software that installs even in silent mode, are not allowed. But if you can figure out how to install the desired software without this unrelated software, it is allowed to publish the package. That can be accomplished for example with additional command line switches or by adding specific values to the registry. Examples of packages which make use of this are PDFCreator and CCleaner.
+* **Don't package software containing malware**. Packages of software that comes with bundled adware, spyware or other unrelated software that installs even in silent mode, are not allowed. But if you can figure out how to install the desired software without this unrelated software, it is allowed to publish the package. That can be accomplished for example with additional command-line switches or by adding specific values to the registry. Examples of packages which make use of this are PDFCreator and CCleaner.
 * **Don't package software that is already packaged**. Use the search function in the Chocolatey.org gallery and look if there is already a package for the desired software. If you would like to improve the already existing package or if you have suggestions, just contact the package maintainer or open a pull request at the maintainer's package repository.
 * **Don't include other required software** if there's a package of it. If a package requires other software of which there is already a package, the already existing package should be used as dependency instead.
 * **Split dependencies into multiple packages**. Try to split up packages as much as possible. If for example a program comes with additional modules/installers that are optional, make different packages for them instead of including all the things into one package. This idea is already widely applied for Linux packages, because it leads to a more lightweight system and reduces potential issues and conflicts.
@@ -102,7 +102,7 @@ Note: There is a lot of confusion in the world of character encodings: For examp
 
 ## What version of the software should I package?
 
-The main release of a product versions are usually sufficient. If there are also beta versions available and you would rather have that, then please create both the official release and the beta (and set the beta as a prerelease when pushing the item to chocolatey.org). Regular users of packages may want to use official releases only and not betas. NOTE: Both of these have the SAME package id, just different versions.
+The main release of a product versions are usually sufficient. If there are also beta versions available and you would rather have that, then please create both the official release and the beta (and set the beta as a prerelease when pushing the item to chocolatey.org). Regular users of packages may want to use official releases only and not betas. NOTE: Both of these have the SAME package ID, just different versions.
 
 ## Okay, how do I create packages?
 
@@ -110,7 +110,7 @@ There are three main elements to a Chocolatey package. Only the nuspec is requir
 
 * Nuspec
 * chocolateyInstall.ps1 - check out the helper reference
-* any application files to include (it is highly suggested that you are the author in this case or you have the right to distribute files). EXE files in the package/downloaded to package folder from chocolateyInstall.ps1 will get a link to the command line.
+* any application files to include (it is highly suggested that you are the author in this case or you have the right to distribute files). EXE files in the package/downloaded to package folder from chocolateyInstall.ps1 will get a link to the command-line.
 * chocolateyUninstall.ps1, for uninstalling your package. See helper reference for functions available in your script.
 
 Note: Please maintain compatibility with Posh v2. Not every OS we support is on Posh v2 (nor comes OOB with Posh v3+). It's best to work with the widest compatibility of systems out there.
@@ -314,13 +314,13 @@ Here's a great programmatic example:
 
 ## How do I set up shims for applications that have a GUI?
 
-If you don't want to see a hanging window when you open an application from the command line that was set up with Chocolatey, you want to create a file next to the executable that is named exactly the same (case sensitive) with .gui suffixed on the end.
+If you don't want to see a hanging window when you open an application from the command-line that was set up with Chocolatey, you want to create a file next to the executable that is named exactly the same (case sensitive) with .gui suffixed on the end.
 
 Example: In the case of Bob.exe you would create a file named Bob.exe.gui and that file would be set up as a GUI application so the window will call it and then move on without waiting for it to finish. Again, bob.exe.gui would not work because it doesn't have the correct casing.
 
 ## Build Your Package
 
-Open a command line in the directory where the nuspec is and type choco pack. That's it.
+Open a command-line in the directory where the nuspec is and type choco pack. That's it.
 
 
 ## Testing Your Package
@@ -329,7 +329,7 @@ NOTE: We strongly suggest the following should be performed in a VM and not on y
 
 NOTE: Testing your package can be done in the same way as the verifier - take a look at Chocolatey Verifier Testing.
 
-To test the package you just built, open a command line shell and navigate to the directory where the *.nupkg file is located. Then type:
+To test the package you just built, open a command-line shell and navigate to the directory where the *.nupkg file is located. Then type:
 
 	choco install packageName -dv -s .
 
