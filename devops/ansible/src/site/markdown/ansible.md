@@ -26,7 +26,7 @@
 * List of Behavioral Inventory Parameters
 * Non-SSH connection types
 
-Ansible works against multiple systems in your infrastructure at the same time. It does this by selecting portions of systems listed in Ansible’s inventory, which defaults to being saved in the location /etc/ansible/hosts. You can specify a different inventory file using the -i \<path\> option on the command line.
+Ansible works against multiple systems in your infrastructure at the same time. It does this by selecting portions of systems listed in Ansible’s inventory, which defaults to being saved in the location /etc/ansible/hosts. You can specify a different inventory file using the -i \<path\> option on the command-line .
 
 Not only is this inventory configurable, but you can also use multiple inventory files at the same time and pull inventory from dynamic or cloud sources or different formats (YAML, ini, etc), as described in Working With Dynamic Inventory. Introduced in version 2.4, Ansible has inventory plugins to make this flexible and customizable.
 
@@ -63,7 +63,7 @@ A YAML version would look like:
 					two.example.com:
 					three.example.com:
 
-It is ok to put systems in more than one group, for instance a server could be both a webserver and a dbserver. If you do, note that variables will come from all of the groups they are a member of. Variable precedence is detailed in a later chapter.
+It is OK to put systems in more than one group, for instance a server could be both a webserver and a dbserver. If you do, note that variables will come from all of the groups they are a member of. Variable precedence is detailed in a later chapter.
 
 If you have hosts that run on non-standard SSH ports you can put the port number after the hostname with a colon. Ports listed in your SSH config file won’t be used with the paramiko connection but will be used with the openssh connection.
 
@@ -242,7 +242,7 @@ All hosts that are in the ‘raleigh’ group will have the variables defined in
 
 Tip: The group_vars/ and host_vars/ directories can exist in the playbook directory OR the inventory directory. If both paths exist, variables in the playbook directory will override variables set in the inventory directory.
 
-Tip: Keeping your inventory file and variables in a git repo (or other version control) is an excellent way to track changes to your inventory and host variables.
+Tip: Keeping your inventory file and variables in a git  repository (or other version control) is an excellent way to track changes to your inventory and host variables.
 
 ### How Variables Are Merged
 
@@ -283,7 +283,7 @@ As described above, setting the following variables control how Ansible interact
 * ansible_port
     The ssh port number, if not 22
 * ansible_user
-    The default ssh user name to use.
+    The default ssh username  to use.
 
 **Specific to the SSH connection**:
 
@@ -292,13 +292,13 @@ As described above, setting the following variables control how Ansible interact
 * ansible_ssh_private_key_file
     Private key file used by ssh. Useful if using multiple keys and you don’t want to use SSH agent.
 * ansible_ssh_common_args
-    This setting is always appended to the default command line for sftp, scp, and ssh. Useful to configure a ProxyCommand for a certain host (or group).
+    This setting is always appended to the default command-line  for sftp, scp, and ssh. Useful to configure a ProxyCommand for a certain host (or group).
 * ansible_sftp_extra_args
-    This setting is always appended to the default sftp command line.
+    This setting is always appended to the default sftp command-line .
 * ansible_scp_extra_args
-    This setting is always appended to the default scp command line.
+    This setting is always appended to the default scp command-line .
 * ansible_ssh_extra_args
-    This setting is always appended to the default ssh command line.
+    This setting is always appended to the default ssh command-line .
 * ansible_ssh_pipelining
     Determines whether or not to use SSH pipelining. This can override the pipelining setting in ansible.cfg.
 * ansible_ssh_executable (added in version 2.2)
@@ -355,7 +355,7 @@ This connector deploys the playbook directly into Docker containers using the lo
 * ansible_host
     The name of the Docker container to connect to.
 * ansible_user
-    The user name to operate within the container. The user must exist inside the container.
+    The username  to operate within the container. The user must exist inside the container.
 * ansible_become
     If set to true the become_user will be used to operate within the container.
 * ansible_docker_extra_args
