@@ -4,7 +4,6 @@
 
 Chocolatey is a software management tool that is also a package manager. It functions fantastically well when the runtime software is all included in the package and it doesn't make use of native installers. However to approach the Windows ecosystem a package manager also needs to know how to manage actual software installations, thus why Chocolatey does that as well. For publicly available packages, copyright keeps from having binaries embedded in packages, so Chocolatey is able to download from distribution points and checksum those binaries.
 
-
 ## Nuspec
 
 The Chocolatey Windows package manager uses the same infrastructure as NuGet, the Visual Studio package manager by Outercurve Foundation (sponsored by Microsoft). Therefore packages are based on the same principles. One of those is a package description (specification) in xml format, known as the Nuspec.
@@ -17,12 +16,15 @@ Note: If your package uses recently introduced functionality, you might want to 
 
 You can indicate the Chocolatey dependency like any other dependency. E.g.:
 
+```{}
+<?xml version="1.0" encoding="ISO-8859-1"?>
     <dependencies>
       <dependency id="chocolatey" version="0.9.8.21" />
     </dependencies>
 
-Logically, the version is based on the lowest compatible version. But if you don't know and used a lot of sorcery in your package, depend on the version of Chocolatey that you succesfully tested your package on.
+```
 
+Logically, the version is based on the lowest compatible version. But if you don't know and used a lot of sorcery in your package, depend on the version of Chocolatey that you succesfully tested your package on.
 
 ## Summary to create packages
 
@@ -87,7 +89,14 @@ Don't use the default Windows Editor. In addition to its lack of features, it ca
 * Notepad++
 * Geany
 
-Use this XML declaration: <?xml version="1.0" encoding="utf-8"?>.
+Use this XML declaration:
+
+```{}
+<?xml version="1.0" encoding="ISO-8859-1"?>
+or
+<?xml version="1.0" encoding="utf-8"?>.
+
+```
 
 Note: There is a lot of confusion in the world of character encodings: For example, ANSI is an incorrect term for the internal Windows character encodings, e.  g. Windows-1252. But you should not use this encoding family anyway.
 
@@ -141,9 +150,14 @@ Note: If your package uses recently introduced functionality, you might want to 
 
 You can indicate the Chocolatey dependency like any other dependency. E.g.:
 
+```{}
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
     <dependencies>
       <dependency id="chocolatey" version="0.9.8.21" />
     </dependencies>
+
+```
 
 Logically, the version is based on the lowest compatible version. But if you don't know and used a lot of sorcery in your package, depend on the version of Chocolatey that you succesfully tested your package on.
 

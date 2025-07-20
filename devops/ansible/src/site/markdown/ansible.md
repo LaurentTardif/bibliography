@@ -1,9 +1,8 @@
-# Ansible 
+# Ansible
 
 <!-- MACRO{toc|section=0|fromDepth=0|toDepth=3} -->
 
-
-## Ansible on windows 
+## Ansible on windows
 
 * Gather facts on Windows hosts
 * Install and uninstall MSIs
@@ -383,4 +382,3 @@ Here is an example of how to instantly deploy to created containers:
 			file:
 				path: "/var/jenkins_home/.ssh/jupiter"
 				state: directory
-
