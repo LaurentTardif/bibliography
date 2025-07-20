@@ -34,8 +34,12 @@ Note: When you host internal packages, those packages can embed software and/or 
 
 First you should determine if you are making a self-contained package or (also) using automation scripts. You should also consider creating automatic packages for the best maintainability over time.
 
+```{}
+
     Run choco new -h to get a feel for what you can pass e.g choco new bob (to create a package named bob)
     Note all the rules below. This will help you, especially in publishing to the community feed (https://chocolatey.org)
+
+```
 
 ## Self-Contained?
 
@@ -227,15 +231,15 @@ Do not use a folder named "content" in your package. NuGet attaches a special me
 
 The title of your package (\<title\> tag in the nuspec) should be the same as the name of the application. Follow the official spelling, use upper and lower case and don't forget the spaces. Examples of correct package titles are: Google  Chrome, CCleaner, PuTTY and FileZilla. The title will appear on the left side in the package list of the Chocolatey gallery, followed by the version.
 
-There are some guidelines in terms of the package id (\<id\> tag in the nuspec):
+There are some guidelines in terms of the package ID (\<ID\> tag in the nuspec):
 
-* Use only lowercase letters, even if you used uppercase letters in the package title. (This is considered a guideline because it is correctable in other ways). Once a package is submitted (even prior moderation), the Gallery will always show the id with the casing of the first package version. In addition, changing the casing of the package id may have negative side effects on dependencies (note: this last statement needs verified).
-* If the original application name consists of compound words without spaces (CamelCase), just as MKVToolNix, TightVNC and VirtualBox, the package id's are simply the same (but lowercase of course): mkvtoolnix, tightvnc, and virtualbox.
-* If the name of the application contains multiple words separated by spaces, such as MusicBrainz  Picard or Adobe Reader, replace the spaces with the hyphen-minus character "-" (U+002D) or just omit them. Don't use dots. They should be used only if the original application name contains dots (e.  g. Paint.NET). Hence the correct id's of the previously mentioned applications can be musicbrainz-picard or adobereader. It is highly suggested to use the hyphen method when there are long package names, because that increases readability.
+* Use only lowercase letters, even if you used uppercase letters in the package title. (This is considered a guideline because it is correctable in other ways). Once a package is submitted (even prior moderation), the Gallery will always show the ID with the casing of the first package version. In addition, changing the casing of the package ID may have negative side effects on dependencies (note: this last statement needs verified).
+* If the original application name consists of compound words without spaces (CamelCase), just as MKVToolNix, TightVNC and VirtualBox, the package IDs  are simply the same (but lowercase of course): mkvtoolnix, tightvnc, and virtualbox.
+* If the name of the application contains multiple words separated by spaces, such as MusicBrainz  Picard or Adobe Reader, replace the spaces with the hyphen-minus character "-" (U+002D) or just omit them. Don't use dots. They should be used only if the original application name contains dots (e.  g. Paint.NET). Hence the correct IDs  of the previously mentioned applications can be musicbrainz-picard or adobereader. It is highly suggested to use the hyphen method when there are long package names, because that increases readability.
 * For sub-packages, use the hyphen-minus character "-" (U+002D) as separator, not a dot. Sub-packages are intended for separate packages that include extensions, modules or additional features/files for other applications. Therefore keepass-langfiles is a proper package id, because it adds the language files for the main application which in this case is KeePass. Another example is libreoffice-help for the help pack for LibreOffice, the open source office suite.
 * If you want to package an open source application, look on the repositories of some popular Linux distributions, such as Debian, Ubuntu and Arch Linux if they already have a package of it. If that is the case, use the same package id. This will make it easier for Linux and Windows users, because then they don't have to remember and use different package names.
 
-These guidelines are already commonly applied on packages for all major Linux distributions, because they lead to a more consistent look of software repositories, easier to remember package id's and less considerations about the naming for package creators.
+These guidelines are already commonly applied on packages for all major Linux distributions, because they lead to a more consistent look of software repositories, easier to remember package IDs  and less considerations about the naming for package creators.
 
 Note that a lot of packages in the Chocolatey Gallery don't follow these guidelines. The simple reason is that the affected packages were created before the introduction of these guidelines.
 
@@ -280,7 +284,7 @@ For Chocolatey, internationalization and localization of packages is very import
     The ideal situation is when an application determines the user's system language and automatically installs with that language. Then you don't have to take any action relating to localization, because the application already handles that. Examples of such applications are VLC Media Player and LibreOffice.
     When an application provides different installers for different languages, you should determine the system language and download the appropriate installer. The package for Mozilla Firefox (source code) uses this method.
     Sometimes an application installer or executable has already integrated all supported languages, but doesn't automatically select the system language during a silent install. Often you can pass an additional install parameter to select the desired language. This is used for example in the CCleaner package (source code).
-    Some application use separate language files which must be downloaded separately and put somewhere in the application directory. It is best when you create a separate package for the language files. If your package id is packageid, then call it packageid-langfiles. The language files package for KeePass is an example how this can be achieved.
+    Some application use separate language files which must be downloaded separately and put somewhere in the application directory. It is best when you create a separate package for the language files. If your package ID is packageid, then call it packageid-langfiles. The language files package for KeePass is an example how this can be achieved.
 
 ## Package icon guidelines
 
@@ -337,7 +341,7 @@ This will install the package right out of your source. As you find things you m
 
 NOTE: Using Force --force (-f) should only be done in subsequent testing where you are reinstalling the same package that you've changed and should NOT be used in regular use scenarios. It should definitely not be in scripts.
 
-NOTE: If you are using a Semver dash in your package version (such as 1.0.0-beta), you will need to use the -pre switch or else you will get Unable to find package errors from choco install. You can also specify -version 1.0.0-beta to try to install that exact version.
+NOTE: If you are using a  SemVer dash in your package version (such as 1.0.0-beta), you will need to use the -pre switch or else you will get Unable to find package errors from choco install. You can also specify -version 1.0.0-beta to try to install that exact version.
 
 . points to the current directory. You can specify multiple directories separated by a semicolon;
 
@@ -347,7 +351,7 @@ When your nuspec specifies dependencies that are not in your source, you should 
       <dependency id="chocolatey" version="0.9.8.20" />
     </dependencies>
 
-You'll need to append the API path like so:
+You'll need to append the   API   path like so:
 -source "'.;https://chocolatey.org/api/v2/'" (note the double quotes bookending the apostrophes here, use %cd% in cmd.exe or $pwd in Powershell.exe if . doesn't resolve). See passing options with quotes. Note: If you need to do this, please ensure you run choco pack first. This method of passing a source won't work calling a nuspec or nupkg directly as it will override the source passed to the local folder.
 
 You can also use the -debug switch on choco install to provide more information.
@@ -362,6 +366,6 @@ NOTE: This is not recommended if you are passing install arguments or package pa
 
 ### Push Your Package
 
-To push your package after you have built and tested it, you type choco push packageName.nupkg -s sourceLocation where packageName.nupkg is the name of the nupkg that was built with a version number as part of the package name and sourceLocation is the location of the source you want to push to (e.g. -s https://chocolatey.org/ for chocolatey's community feed). You must have an api key for https://chocolatey.org/ set. Take a look at choco push
+To push your package after you have built and tested it, you type choco push packageName.nupkg -s sourceLocation where packageName.nupkg is the name of the nupkg that was built with a version number as part of the package name and sourceLocation is the location of the source you want to push to (e.g. -s https://chocolatey.org/ for chocolatey's community feed). You must have an   API   key for https://chocolatey.org/ set. Take a look at choco push
 
 You can also log into chocolatey.org and upload your package from there (not recommended for packages over 2MB).
