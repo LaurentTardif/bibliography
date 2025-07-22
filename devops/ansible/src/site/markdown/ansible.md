@@ -34,34 +34,34 @@ Not only is this inventory configurable, but you can also use multiple inventory
 
 The inventory file can be in one of many formats, depending on the inventory plugins you have. For this example, the format for /etc/ansible/hosts is an INI-like (one of Ansible’s defaults) and looks like this:
 
-	mail.example.com
+  mail.example.com
 
-	[webservers]
-	foo.example.com
-	bar.example.com
+  [webservers]
+  foo.example.com
+  bar.example.com
 
-	[dbservers]
-	one.example.com
-	two.example.com
-	three.example.com
+  [dbservers]
+  one.example.com
+  two.example.com
+  three.example.com
 
 The headings in brackets are group names, which are used in classifying systems and deciding what systems you are controlling at what times and for what purpose.
 
 A YAML version would look like:
 
-	all:
-		hosts:
-			mail.example.com:
-		children:
-			webservers:
-				hosts:
-					foo.example.com:
-					bar.example.com:
-			dbservers:
-				hosts:
-					one.example.com:
-					two.example.com:
-					three.example.com:
+ all:
+  hosts:
+   mail.example.com:
+  children:
+   webservers:
+    hosts:
+     foo.example.com:
+     bar.example.com:
+   dbservers:
+    hosts:
+     one.example.com:
+     two.example.com:
+     three.example.com:
 
 It is OK to put systems in more than one group, for instance a server could be both a webserver and a dbserver. If you do, note that variables will come from all of the groups they are a member of. Variable precedence is detailed in a later chapter.
 
@@ -69,45 +69,45 @@ If you have hosts that run on non-standard SSH ports you can put the port number
 
 To make things explicit, it is suggested that you set them if things are not running on the default port:
 
-	badwolf.example.com:5309
+ badwolf.example.com:5309
 
 Suppose you have just static IPs and want to set up some aliases that live in your host file, or you are connecting through tunnels. You can also describe hosts via variables:
 
 In INI:
 
-	jumper ansible_port=5555 ansible_host=192.0.2.50
+ jumper ansible_port=5555 ansible_host=192.0.2.50
 
 In YAML:
 
-	...
-	hosts:
-		jumper:
-			ansible_port: 5555
-			ansible_host: 192.0.2.50
+ ...
+ hosts:
+  jumper:
+   ansible_port: 5555
+   ansible_host: 192.0.2.50
 
 In the above example, trying to ansible against the host alias “jumper” (which may not even be a real hostname) will contact 192.0.2.50 on port 5555. Note that this is using a feature of the inventory file to define some special variables. Generally speaking, this is not the best way to define variables that describe your system policy, but we’ll share suggestions on doing this later.
 
 Note
 
-	Values passed in the INI format using the key=value syntax are not interpreted as Python literal structure (strings, numbers, tuples, lists, dicts, booleans, None), but as a string. For example var=FALSE would create a string equal to ‘FALSE’. Do not rely on types set during definition, always make sure you specify type with a filter when needed when consuming the variable.
+ Values passed in the INI format using the key=value syntax are not interpreted as Python literal structure (strings, numbers, tuples, lists, dicts, booleans, None), but as a string. For example var=FALSE would create a string equal to ‘FALSE’. Do not rely on types set during definition, always make sure you specify type with a filter when needed when consuming the variable.
 
 If you are adding a lot of hosts following similar patterns, you can do this rather than listing each hostname:
 
-	[webservers]
-		www[01:50].example.com
+ [webservers]
+  www[01:50].example.com
 
 For numeric patterns, leading zeros can be included or removed, as desired. Ranges are inclusive. You can also define alphabetic ranges:
 
-	[databases]
-		db-[a:f].example.com
+ [databases]
+  db-[a:f].example.com
 
 You can also select the connection type and user on a per host basis:
 
-	[targets]
+ [targets]
 
-	localhost              ansible_connection=local
-	other1.example.com     ansible_connection=ssh        ansible_user=mpdehaan
-	other2.example.com     ansible_connection=ssh        ansible_user=mdehaan
+ localhost              ansible_connection=local
+ other1.example.com     ansible_connection=ssh        ansible_user=mpdehaan
+ other2.example.com     ansible_connection=ssh        ansible_user=mdehaan
 
 As mentioned above, setting these in the inventory file is only a shorthand, and we’ll discuss how to store them in individual files in the ‘host_vars’ directory a bit later on.
 
@@ -115,9 +115,9 @@ As mentioned above, setting these in the inventory file is only a shorthand, and
 
 As described above, it is easy to assign variables to hosts that will be used later in playbooks:
 
-	[atlanta]
-	host1 http_port=80 maxRequestsPerChild=808
-	host2 http_port=303 maxRequestsPerChild=909
+ [atlanta]
+ host1 http_port=80 maxRequestsPerChild=808
+ host2 http_port=303 maxRequestsPerChild=909
 
 ### Group Variables
 
@@ -125,23 +125,23 @@ Variables can also be applied to an entire group at once:
 
 The INI way:
 
-	[atlanta]
-	host1
-	host2
+ [atlanta]
+ host1
+ host2
 
-	[atlanta:vars]
-	ntp_server=ntp.atlanta.example.com
-	proxy=proxy.atlanta.example.com
+ [atlanta:vars]
+ ntp_server=ntp.atlanta.example.com
+ proxy=proxy.atlanta.example.com
 
 The YAML version:
 
-	atlanta:
-		hosts:
-			host1:
-			host2:
-		vars:
-			ntp_server: ntp.atlanta.example.com
-			proxy: proxy.atlanta.example.com
+ atlanta:
+  hosts:
+   host1:
+   host2:
+  vars:
+   ntp_server: ntp.atlanta.example.com
+   proxy: proxy.atlanta.example.com
 
 Be aware that this is only a convenient way to apply variables to multiple hosts at once; even though you can target hosts by group, variables are always flattened to the host level before a play is executed.
 
@@ -149,52 +149,52 @@ Be aware that this is only a convenient way to apply variables to multiple hosts
 
 It is also possible to make groups of groups using the :children suffix in INI or the children: entry in YAML. You can apply variables using :vars or vars::
 
-	[atlanta]
-	host1
-	host2
+ [atlanta]
+ host1
+ host2
 
-	[raleigh]
-	host2
-	host3
+ [raleigh]
+ host2
+ host3
 
-	[southeast:children]
-	atlanta
-	raleigh
+ [southeast:children]
+ atlanta
+ raleigh
 
-	[southeast:vars]
-	some_server=foo.southeast.example.com
-	halon_system_timeout=30
-	self_destruct_countdown=60
-	escape_pods=2
+ [southeast:vars]
+ some_server=foo.southeast.example.com
+ halon_system_timeout=30
+ self_destruct_countdown=60
+ escape_pods=2
 
-	[usa:children]
-	southeast
-	northeast
-	southwest
-	northwest
+ [usa:children]
+ southeast
+ northeast
+ southwest
+ northwest
 
-	all:
-		children:
-			usa:
-				children:
-					southeast:
-						children:
-							atlanta:
-								hosts:
-									host1:
-									host2:
-							raleigh:
-								hosts:
-									host2:
-									host3:
-								vars:
-									some_server: foo.southeast.example.com
-									halon_system_timeout: 30
-									self_destruct_countdown: 60
-								escape_pods: 2
-					northeast:
-					northwest:
-					southwest:
+ all:
+  children:
+   usa:
+    children:
+     southeast:
+      children:
+       atlanta:
+        hosts:
+         host1:
+         host2:
+       raleigh:
+        hosts:
+         host2:
+         host3:
+        vars:
+         some_server: foo.southeast.example.com
+         halon_system_timeout: 30
+         self_destruct_countdown: 60
+        escape_pods: 2
+     northeast:
+     northwest:
+     southwest:
 
 If you need to store lists or hash data, or prefer to keep host and group specific variables separate from the inventory file, see the next section. Child groups have a couple of properties to note:
 
@@ -217,26 +217,26 @@ These variable files are in YAML format. Valid file extensions include ‘.yml�
 
 Assuming the inventory file path is:
 
-	/etc/ansible/hosts
+ /etc/ansible/hosts
 
 If the host is named ‘foosball’, and in groups ‘raleigh’ and ‘webservers’, variables in YAML files at the following locations will be made available to the host:
 
-	/etc/ansible/group_vars/raleigh # can optionally end in '.yml', '.yaml', or '.json'
-	/etc/ansible/group_vars/webservers
-	/etc/ansible/host_vars/foosball
+ /etc/ansible/group_vars/raleigh # can optionally end in '.yml', '.yaml', or '.json'
+ /etc/ansible/group_vars/webservers
+ /etc/ansible/host_vars/foosball
 
 For instance, suppose you have hosts grouped by datacenter, and each datacenter uses some different servers. The data in the groupfile ‘/etc/ansible/group_vars/raleigh’ for the ‘raleigh’ group might look like:
 
-	---
-	ntp_server: acme.example.org
-	database_server: storage.example.org
+ ---
+ ntp_server: acme.example.org
+ database_server: storage.example.org
 
 It is okay if these files do not exist, as this is an optional feature.
 
 As an advanced use case, you can create directories named after your groups or hosts, and Ansible will read all the files in these directories in lexicographical order. An example with the ‘raleigh’ group:
 
-	/etc/ansible/group_vars/raleigh/db_settings
-	/etc/ansible/group_vars/raleigh/cluster_settings
+ /etc/ansible/group_vars/raleigh/db_settings
+ /etc/ansible/group_vars/raleigh/cluster_settings
 
 All hosts that are in the ‘raleigh’ group will have the variables defined in these files available to them. This can be very useful to keep your variables organized when a single file starts to be too big, or when you want to use Ansible Vault on a part of a group’s variables.
 
@@ -259,11 +259,11 @@ New in version 2.4.
 
 Starting in Ansible version 2.4, users can use the group variable ansible_group_priority to change the merge order for groups of the same level (after the parent/child order is resolved). The larger the number, the later it will be merged, giving it higher priority. This variable defaults to 1 if not set. For example:
 
-	a_group:
-		testvar: a
-		ansible_group_priority: 10
-	b_group
-		testvar: b
+ a_group:
+  testvar: a
+  ansible_group_priority: 10
+ b_group
+  testvar: b
 
 In this example, if both groups have the same priority, the result would normally have been testvar == b, but since we are giving the a_group a higher priority the result will be testvar == a.
 
@@ -335,10 +335,10 @@ New in version 2.1.
 
 Examples from an Ansible-INI host file:
 
-	some_host         ansible_port=2222     ansible_user=manager
-	aws_host          ansible_ssh_private_key_file=/home/example/.ssh/aws.pem
-	freebsd_host      ansible_python_interpreter=/usr/local/bin/python
-	ruby_module_host  ansible_ruby_interpreter=/usr/bin/ruby.1.9.3
+ some_host         ansible_port=2222     ansible_user=manager
+ aws_host          ansible_ssh_private_key_file=/home/example/.ssh/aws.pem
+ freebsd_host      ansible_python_interpreter=/usr/local/bin/python
+ ruby_module_host  ansible_ruby_interpreter=/usr/bin/ruby.1.9.3
 
 ### Non-SSH connection types
 
@@ -363,22 +363,22 @@ This connector deploys the playbook directly into Docker containers using the lo
 
 Here is an example of how to instantly deploy to created containers:
 
-	- name: create jenkins container
-		docker_container:
-			docker_host: myserver.net:4243
-			name: my_jenkins
-			image: jenkins
+* name: create jenkins container
+  docker_container:
+   docker_host: myserver.net:4243
+   name: my_jenkins
+   image: jenkins
 
-	- name: add container to inventory
-		add_host:
-			name: my_jenkins
-			ansible_connection: docker
-			ansible_docker_extra_args: "--tlsverify --tlscacert=/path/to/ca.pem --tlscert=/path/to/client-cert.pem --tlskey=/path/to/client-key.pem -H=tcp://myserver.net:4243"
-			ansible_user: jenkins
-			changed_when: false
+* name: add container to inventory
+  add_host:
+   name: my_jenkins
+   ansible_connection: docker
+   ansible_docker_extra_args: "--tlsverify --tlscacert=/path/to/ca.pem --tlscert=/path/to/client-cert.pem --tlskey=/path/to/client-key.pem -H=tcp://myserver.net:4243"
+   ansible_user: jenkins
+   changed_when: false
 
-	- name: create directory for ssh keys
-		delegate_to: my_jenkins
-			file:
-				path: "/var/jenkins_home/.ssh/jupiter"
-				state: directory
+* name: create directory for ssh keys
+  delegate_to: my_jenkins
+   file:
+    path: "/var/jenkins_home/.ssh/jupiter"
+    state: directory

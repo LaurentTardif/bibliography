@@ -4,7 +4,7 @@
 
 Chocolatey is a software management tool that is also a package manager. It functions fantastically well when the runtime software is all included in the package and it doesn't make use of native installers. However to approach the Windows ecosystem a package manager also needs to know how to manage actual software installations, thus why Chocolatey does that as well. For publicly available packages, copyright keeps from having binaries embedded in packages, so Chocolatey is able to download from distribution points and checksum those binaries.
 
-## Nuspec
+## Packge management Nuspec
 
 The Chocolatey Windows package manager uses the same infrastructure as NuGet, the Visual Studio package manager by Outercurve Foundation (sponsored by Microsoft). Therefore packages are based on the same principles. One of those is a package description (specification) in xml format, known as the Nuspec.
 
@@ -81,7 +81,7 @@ Is your package unqualified for the Chocolatey feed, but you like to be able to 
 
 ## Character encoding
 
-Use the UTF–8 character encoding for the *.nuspec and *.ps1 files. If you don't respect this rule, some characters are not displayed correctly in the Gallery on Chocolatey.org, because the Gallery assumes UTF-8.
+Use the UTF–8 character encoding for the *.nuspec and*.ps1 files. If you don't respect this rule, some characters are not displayed correctly in the Gallery on Chocolatey.org, because the Gallery assumes UTF-8.
 
 Do not save your *.nuspec files with a Byte Order Mark (BOM). A BOM is neither required nor recommended for UTF-8, because it can lead to several issues.
 
@@ -119,24 +119,24 @@ There are three main elements to a Chocolatey package. Only the nuspec is requir
 
 Note: Please maintain compatibility with Posh v2. Not every OS we support is on Posh v2 (nor comes OOB with Posh v3+). It's best to work with the widest compatibility of systems out there.
 
-There is a video showing the creation of a package: http://www.youtube.com/watch?v=Wt_unjS_SUo
+There is a video showing the creation of a package: <http://www.youtube.com/watch?v=Wt_unjS_SUo>
 The video is a bit outdated in showing the contents of the chocolateyInstall.ps1. Have a look at what the chocolateyInstall.ps1 looks like now:
 
-	$packageName = 'windirstat'
-	$fileType = 'exe'
-	$url = 'http://prdownloads.sourceforge.net/windirstat/windirstat1_1_2_setup.exe'
-	$silentArgs = '/S'
+ $packageName = 'windirstat'
+ $fileType = 'exe'
+ $url = 'http://prdownloads.sourceforge.net/windirstat/windirstat1_1_2_setup.exe'
+ $silentArgs = '/S'
 
-	Install-ChocolateyPackage $packageName $fileType $silentArgs $url
+ Install-ChocolateyPackage $packageName $fileType $silentArgs $url
 
 During which scenarios will my custom scripts be triggered?
 
 The table below shows which scripts are available, and which command(s) will cause them to be run.
 
-	Script Name 						Install 	Upgrade 	Uninstall
-	chocolateyBeforeModify.ps1 						Yes 		Yes
-	chocolateyInstall.ps1 				Yes 			Yes
-	chocolateyUninstall.ps1 										Yes
+ Script Name       Install  Upgrade  Uninstall
+ chocolateyBeforeModify.ps1       Yes   Yes
+ chocolateyInstall.ps1     Yes    Yes
+ chocolateyUninstall.ps1           Yes
 
 Note: In the upgrade scenario, the chocolateyInstall.ps1 script will be the one included in the new package. The chocolateyBeforeModify.ps1 script will be the one from the previously installed package.
 
@@ -169,9 +169,13 @@ See also: NuGet Version Reference
 
 ## But for real, how do I create a package?
 
+```{}
+
     Generate new package:
         choco new -h will get you started seeing options available to you.
         Once you figured out all of your options, you should move forward with generating your template.
+
+```
 
 ## Install Only On Some Versions of Windows
 
@@ -249,10 +253,10 @@ If you are going to offer a package that has both an installer and an archive (z
 
 The \<description\> of the package should contain a short text or at least a few words about the software for which the package is made. Here are a few things that should be respected:
 
-    The description should always be written in English, even if the packaged software does not provide an UI in English. You can also include the software's description in its original language, but insert it after the English description.
-    The description should not just contain a repetition of the package name.
-    It should not just consist of a link where more information can be found. For that purpose there's already <projectUrl>.
-    The contents of <description> and also <releaseNotes> are parsed as Markdown, so don't insert line breaks in the middle of sentences. Remember to add empty lines to separate paragraphs and add an empty line before a list.
+  The description should always be written in English, even if the packaged software does not provide an UI in English. You can also include the software's description in its original language, but insert it after the English description.
+  The description should not just contain a repetition of the package name.
+  It should not just consist of a link where more information can be found. For that purpose there's already \<projectUrl\>.
+  The contents of \<description\> and also \<releaseNotes\> are parsed as Markdown, so don't insert line breaks in the middle of sentences. Remember to add empty lines to separate paragraphs and add an empty line before a list.
 
 ## Versioning Recommendations
 
@@ -264,12 +268,15 @@ If the 4th segment is used, some folks like to drop the segment altogether and u
 
 Package fix version notation ONLY applies when you are making a fix to the package because the existing version of a package is incorrect in some way. So if the software is 1.1.0, in a normal scenario the package version should be 1.1.0. If you find that the 1.1.0 package has an issue and you need to fix the package but keep the same version of the software, that is where package fix version notation comes into play. You would end up with both a 1.1.0 package and a 1.1.0.YYYYMMDD version of the package.
 
-NOTE: This doesn't apply to packages on the community feed (aka https://chocolatey.org/packages) that are still under review (not yet approved). Please read the instructions given in email for resubmitting the same version.
+NOTE: This doesn't apply to packages on the community feed (aka <https://chocolatey.org/packages>) that are still under review (not yet approved). Please read the instructions given in email for resubmitting the same version.
 
 If you need to fix an approved package for some reason, you can use the fourth version element (aka segment) for a package fix notation. There are two recommended methods of package fix version notation:
 
+``` {}
     Date (Year/Month/Day) - Some folks use year month day package fix notation (yyyyMMdd as in 20120627 seen as 1.2.0.20120627)
     Sequential - Not recommended - Some folks use sequential numbering (0, then 1, etc as in 0 for no fix, 1 for first fix and so on seen as 1.2.0.0 and 1.2.0.1).
+
+```
 
 Date Package Fix Version Notation is recommended because one can ascertain what it is immediately upon seeing it, where sequential is not obvious on sight whether it is part of the software versioning or something special with the package.
 
@@ -281,19 +288,19 @@ When the fourth segment is already used, it is recommended to add two zeroes (00
 
 For Chocolatey, internationalization and localization of packages is very important, because it has users from all over the world. Many applications support multiple languages, but they use several different methods to achieve that. Therefore, there is no standard how internationalization/localization has to be integrated into packages. However, here are a few examples of packages that use various techniques. You can use them as inspiration for new packages:
 
-    The ideal situation is when an application determines the user's system language and automatically installs with that language. Then you don't have to take any action relating to localization, because the application already handles that. Examples of such applications are VLC Media Player and LibreOffice.
-    When an application provides different installers for different languages, you should determine the system language and download the appropriate installer. The package for Mozilla Firefox (source code) uses this method.
-    Sometimes an application installer or executable has already integrated all supported languages, but doesn't automatically select the system language during a silent install. Often you can pass an additional install parameter to select the desired language. This is used for example in the CCleaner package (source code).
-    Some application use separate language files which must be downloaded separately and put somewhere in the application directory. It is best when you create a separate package for the language files. If your package ID is packageid, then call it packageid-langfiles. The language files package for KeePass is an example how this can be achieved.
+  The ideal situation is when an application determines the user's system language and automatically installs with that language. Then you don't have to take any action relating to localization, because the application already handles that. Examples of such applications are VLC Media Player and LibreOffice.
+  When an application provides different installers for different languages, you should determine the system language and download the appropriate installer. The package for Mozilla Firefox (source code) uses this method.
+  Sometimes an application installer or executable has already integrated all supported languages, but doesn't automatically select the system language during a silent install. Often you can pass an additional install parameter to select the desired language. This is used for example in the CCleaner package (source code).
+  Some application use separate language files which must be downloaded separately and put somewhere in the application directory. It is best when you create a separate package for the language files. If your package ID is packageid, then call it packageid-langfiles. The language files package for KeePass is an example how this can be achieved.
 
 ## Package icon guidelines
 
 If there is an icon which is suitable for your package, you can specify it in the \<iconUrl\> tag in the nuspec. But there are a few things you should consider:
 
 * Avoid hotlinking icons from sites where you don't have control over the file. If you have a packages repository (recommended), use your own copy of the icon and put it there.
-* For the icon URLs it is recommended to use https://cdn.rawgit.com/ (production links). Rawgit is a CDN service that permits you to serve files hosted in a repository on GitHub. Keep in mind that cdn.rawgit.com caches files permanently. Therefore it's best to use a specific tag or commit URL, not a branch URL.
-* Avoid using GitHub raw links (https://raw.githubusercontent.com/...). They are not intended to be used as CDN.
-* Use the software's icon if one is available, not the logo. This blog post explains the difference between logos and icons: http://blog.designcrowd.com/article/353/differences-between-logos-and-icons. If the software of your package doesn't have an icon, but a logo with text and an image, you can extract the image with your favorite image editor and use that as package icon. An example is MySQL's dolphin.
+* For the icon URLs it is recommended to use <https://cdn.rawgit.com/> (production links). Rawgit is a CDN service that permits you to serve files hosted in a repository on GitHub. Keep in mind that cdn.rawgit.com caches files permanently. Therefore it's best to use a specific tag or commit URL, not a branch URL.
+* Avoid using GitHub raw links (<https://raw.githubusercontent.com/>...). They are not intended to be used as CDN.
+* Use the software's icon if one is available, not the logo. This blog post explains the difference between logos and icons: <http://blog.designcrowd.com/article/353/differences-between-logos-and-icons>. If the software of your package doesn't have an icon, but a logo with text and an image, you can extract the image with your favorite image editor and use that as package icon. An example is MySQL's dolphin.
 * Use package icons with at least 128 pixels in width or height if available. However, avoid very high resolutions, because this would only unnecessarily increase the page load time. If there are only icons with less than 128 pixels available, choose the icon with the highest resolution you can find without upscaling it. Don't use low resolution favicons as package icons.
 * Use icons with transparent background if available.
 * Don't use distorted or blurry icons.
@@ -309,12 +316,12 @@ Example: In the case of Bob.exe you would create a file named Bob.exe.ignore and
 
 Here's a great programmatic example:
 
-	$files = get-childitem $installDir -include *.exe -recurse
+ $files = get-childitem $installDir -include *.exe -recurse
 
-	foreach ($file in $files) {
-		#generate an ignore file
-		New-Item "$file.ignore" -type file -force | Out-Null
-	}
+ foreach ($file in $files) {
+  #generate an ignore file
+  New-Item "$file.ignore" -type file -force | Out-Null
+ }
 
 ## How do I set up shims for applications that have a GUI?
 
@@ -326,7 +333,6 @@ Example: In the case of Bob.exe you would create a file named Bob.exe.gui and th
 
 Open a command-line in the directory where the nuspec is and type choco pack. That's it.
 
-
 ## Testing Your Package
 
 NOTE: We strongly suggest the following should be performed in a VM and not on your machine.
@@ -335,7 +341,7 @@ NOTE: Testing your package can be done in the same way as the verifier - take a 
 
 To test the package you just built, open a command-line shell and navigate to the directory where the *.nupkg file is located. Then type:
 
-	choco install packageName -dv -s .
+ choco install packageName -dv -s .
 
 This will install the package right out of your source. As you find things you may need to fix, using --force (-f) will remove and reinstall the package from the updated *.nupkg. If you are specifically testing chocolateyBeforeModify.ps1, you need to be testing upgrade and uninstall scenarios. You need to install a version of the package with this file first as before modify is like uninstall, it runs from the installed package, not the package you are installing (like chocolateyInstall.ps1 does).
 
@@ -347,16 +353,19 @@ NOTE: If you are using a  SemVer dash in your package version (such as 1.0.0-bet
 
 When your nuspec specifies dependencies that are not in your source, you should add their paths to the source directory. E.g. in the case of Chocolatey itself:
 
+``` {}
     <dependencies>
       <dependency id="chocolatey" version="0.9.8.20" />
     </dependencies>
 
+```
+
 You'll need to append the   API   path like so:
--source "'.;https://chocolatey.org/api/v2/'" (note the double quotes bookending the apostrophes here, use %cd% in cmd.exe or $pwd in Powershell.exe if . doesn't resolve). See passing options with quotes. Note: If you need to do this, please ensure you run choco pack first. This method of passing a source won't work calling a nuspec or nupkg directly as it will override the source passed to the local folder.
+-source "'.;<https://chocolatey.org/api/v2/>'" (note the double quotes bookending the apostrophes here, use %cd% in cmd.exe or $pwd in Powershell.exe if . doesn't resolve). See passing options with quotes. Note: If you need to do this, please ensure you run choco pack first. This method of passing a source won't work calling a nuspec or nupkg directly as it will override the source passed to the local folder.
 
 You can also use the -debug switch on choco install to provide more information.
 
-NOTE: Do not call install with .nupkg - pointing to a file explicitly overrides source. You must call your install with the package name, not the nupkg file and location. You've already specified for choco to look in a local source with -s "'.;https://chocolatey.org/api/v2/'". Call choco install dude -s "'.;https://chocolatey.org/api/v2/'", not choco install .\dude.nupkg -s "'.;https://chocolatey.org/api/v2/'".
+NOTE: Do not call install with .nupkg - pointing to a file explicitly overrides source. You must call your install with the package name, not the nupkg file and location. You've already specified for choco to look in a local source with -s "'.;<https://chocolatey.org/api/v2/>'". Call choco install dude -s "'.;<https://chocolatey.org/api/v2/>'", not choco install .\dude.nupkg -s "'.;<https://chocolatey.org/api/v2/>'".
 
 ### Alternative testing strategy
 
@@ -366,6 +375,6 @@ NOTE: This is not recommended if you are passing install arguments or package pa
 
 ### Push Your Package
 
-To push your package after you have built and tested it, you type choco push packageName.nupkg -s sourceLocation where packageName.nupkg is the name of the nupkg that was built with a version number as part of the package name and sourceLocation is the location of the source you want to push to (e.g. -s https://chocolatey.org/ for chocolatey's community feed). You must have an   API   key for https://chocolatey.org/ set. Take a look at choco push
+To push your package after you have built and tested it, you type choco push packageName.nupkg -s sourceLocation where packageName.nupkg is the name of the nupkg that was built with a version number as part of the package name and sourceLocation is the location of the source you want to push to (e.g. -s <https://chocolatey.org/> for chocolatey's community feed). You must have an   API   key for <https://chocolatey.org/> set. Take a look at choco push
 
 You can also log into chocolatey.org and upload your package from there (not recommended for packages over 2MB).
