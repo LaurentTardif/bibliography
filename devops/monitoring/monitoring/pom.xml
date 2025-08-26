@@ -20,6 +20,7 @@
 				<version>3.2.0</version>
 				<executions>
 					<execution>
+						<?m2e execute onConfiguration,onIncremental?>
 						<id>output-html</id>
 						<phase>generate-resources</phase>
 						<goals>
